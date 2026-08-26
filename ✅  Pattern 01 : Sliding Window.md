@@ -103,8 +103,8 @@ function maxSubarrayOfSizeK(arr, k) {
   return maxSum
 }
 
-maxSubarrayOfSizeK(3, [2, 1, 5, 1, 3, 2])//9
-maxSubarrayOfSizeK(2, [2, 3, 4, 1, 5])//7
+maxSubarrayOfSizeK([2, 1, 5, 1, 3, 2], 3)//9
+maxSubarrayOfSizeK([2, 3, 4, 1, 5], 2)//7
 ````
 - Time complexity will be `O(N*K)`, where `N` is the total number of elements in the given array
 
@@ -333,7 +333,7 @@ function fruitsInBaskets(fruits) {
   let fruitFrequency = {};
   
   //try to extend the range
-  for(let windowEnd = 0; windowEnd < fruits.length; window++) {
+  for(let windowEnd = 0; windowEnd < fruits.length; windowEnd++) {
     const endFruit = fruits[windowEnd]
     if(!(endFruit in fruitFrequency)) {
       fruitFrequency[endFruit] = 0
@@ -679,7 +679,7 @@ function findStringAnagrams(str, pattern){
     if(windowEnd >= pattern.length -1) {
       const startChar = str[windowStart]
       windowStart++
-      if(endChar in charFreq) {
+      if(startChar in charFreq) {
         if(charFreq[startChar] === 0) {
           //before putting the character back
           //decrement the matched count

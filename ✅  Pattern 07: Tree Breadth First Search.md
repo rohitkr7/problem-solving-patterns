@@ -24,15 +24,21 @@ We can use a <b>Queue</b> to efficiently traverse in <b>BFS</b> fashion. Here ar
 class Deque {
     constructor() {
         this.front = this.back = undefined;
+        this.size = 0;
+    }
+    get length() {
+        return this.size;
     }
     addFront(value) {
         if (!this.front) this.front = this.back = { value };
         else this.front = this.front.next = { value, prev: this.front };
+        this.size++;
     }
     removeFront() {
         let value = this.peekFront();
         if (this.front === this.back) this.front = this.back = undefined;
         else (this.front = this.front.prev).next = undefined;
+        this.size--;
         return value;
     }
     peekFront() { 
@@ -41,11 +47,13 @@ class Deque {
     addBack(value) {
         if (!this.front) this.front = this.back = { value };
         else this.back = this.back.prev = { value, next: this.back };
+        this.size++;
     }
     removeBack() {
         let value = this.peekBack();
         if (this.front === this.back) this.front = this.back = undefined;
         else (this.back = this.back.next).back = undefined;
+        this.size--;
         return value;
     }
     peekBack() { 
@@ -72,26 +80,25 @@ function traverse (root) {
   //Start by pushing the root node to the queue.
   queue.addFront(root)
   //Keep iterating until the queue is empty.
-  let currentLevel = []
   while (queue.length > 0) {
     const levelSize = queue.length
     //In each iteration, first count the elements in the queue (let’s call it levelSize). We will have these many nodes in the current level.
-     
+    let currentLevel = []
+
     for(i = 0; i < levelSize; i++) {
-      TreeNode = queue.removeFront()
+      currentNode = queue.removeFront()
       //add the node to the current level
-      currentLevel.push(TreeNode.val)
+      currentLevel.push(currentNode.value)
       //insert the children of current node in the queue
-      if(TreeNode.left !== null) {
-        queue.addBack(TreeNode.left)
+      if(currentNode.left !== null) {
+        queue.addBack(currentNode.left)
+      }
+      if(currentNode.right !== null) {
+        queue.addBack(currentNode.right)
       }
     }
-    if(TreeNode.right !== null) {
-      queue.addBack(TreeNode.right)
-    }
+    result.push(currentLevel)
   }
-  
-  result.push(currentLevel)
   
   //Next, remove levelSize nodes from the queue and push their value in an array to represent the current level.
   //After removing each node from the queue, insert both of its children into the queue.
@@ -173,7 +180,7 @@ root = new TreeNode(1);
 levelOrder(root);
 //[[1]]
 
-root = new TreeNode();
+root = null;
 levelOrder(root);
 //[]
 ````
@@ -329,9 +336,9 @@ root = new TreeNode(1);
 zigzagLevelOrder(root);
 // [[1]];
 
-root = new TreeNode();
+root = null;
 zigzagLevelOrder(root);
-// [[]];
+// [];
 ````
 - The time complexity of the above algorithm is `O(N)`, where `N` is the total number of nodes in the tree. This is due to the fact that we traverse each node once.
 - The space complexity of the above algorithm will be `O(N)` as we need to return a list containing the level order traversal. We will also need `O(N)` space for the queue. Since we can have a maximum of `N/2` nodes at any level (this could happen only at the lowest level), therefore we will need `O(N)` space to store them in the queue.
@@ -395,7 +402,7 @@ root.left.right = new TreeNode(2);
 root.right.left = new TreeNode(10);
 root.right.right = new TreeNode(5);
 console.log(`Level averages are: ${findLevelAverages(root)}`)
-// [[12], [4], [6.5]];
+// [12, 4, 6.5];
 ````
 - The time complexity of the above algorithm is `O(N)`, where `N` is the total number of nodes in the tree. This is due to the fact that we traverse each node once.
 - The space complexity of the above algorithm will be `O(N)` which is required for the queue. Since we can have a maximum of `N/2` nodes at any level (this could happen only at the lowest level), therefore we will need `O(N)` space to store them in the queue
@@ -461,7 +468,7 @@ root.right.left = new TreeNode(10);
 root.right.right = new TreeNode(5);
 
 console.log(`Max value's for each level are: ${largestValue(root)}`);
-// [[12], [7], [10]];
+// [12, 7, 10];
 ````
 
 ## Minimum Depth of a Binary Tree (easy)
@@ -649,10 +656,9 @@ class TreeNode {
     this.right = null
     this.next = null
   }
-}
 
   // level order traversal using 'next' pointer
- function printLevelOrder() {
+  printLevelOrder() {
     console.log("Level order traversal using 'next' pointer: ");
     let nextLevelRoot = this;
     while (nextLevelRoot !== null) {
@@ -672,6 +678,7 @@ class TreeNode {
       console.log();
     }
   }
+}
 
 
 function connectLevelOrderSiblings(root) {
@@ -728,7 +735,7 @@ root.right.left = new TreeNode(10);
 root.right.right = new TreeNode(5);
 connectLevelOrderSiblings(root);
 
-printLevelOrder(root)
+root.printLevelOrder()
 ````
 - The time complexity of the above algorithm is `O(N)`, where `N` is the total number of nodes in the tree. This is due to the fact that we traverse each node once.
 - The space complexity of the above algorithm will be `O(N)`, which is required for the queue. Since we can have a maximum of `N/2`nodes at any level (this could happen only at the lowest level), therefore we will need `O(N)` space to store them in the queue.
@@ -872,7 +879,7 @@ class TreeNode {
   }
 }
 
-function treeRightView(root) {
+function treeLeftView(root) {
   let result = [];
   
   if(root === null) {
@@ -912,5 +919,5 @@ root.left.left = new TreeNode(9);
 root.right.left = new TreeNode(10);
 root.right.right = new TreeNode(5);
 root.left.left.left = new TreeNode(3);
-console.log("Tree right view: " + treeRightView(root))
+console.log("Tree left view: " + treeLeftView(root))
 ````

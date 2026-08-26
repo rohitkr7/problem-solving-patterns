@@ -127,7 +127,7 @@ function findKthSmallest(lists, k) {
 
   // put the 1st element of each list in the min heap
   for (let i = 0; i < lists.length; i++) {
-    minHeap.insert(lists[i][0]);
+    minHeap.insert([lists[i][0], 0, lists[i]]);
   }
   console.log(minHeap);
   // take the smallest(i.e., top) element form the min heap, if the running count is equal to k return the number
@@ -940,7 +940,7 @@ function partition(nums, low, high) {
     }
   }
 
-  const pivo = nums[high];
+  const pivot = nums[high];
   for (i = low; i < high; i++) {
     // all elements less than 'pivot' will be before the index 'low'
     if (nums[i] < pivot) {
@@ -963,8 +963,8 @@ function median_of_medians(nums, low, high) {
   // partition the given array into chunks of 5 elements
   // for simplicity, lets ignore any partition with less than 5 elements
   const partitions = [];
-  for (let i = 0; i < nums.length; i += 5) {
-    if (i + 5 <= nums.length) {
+  for (let i = low; i <= high; i += 5) {
+    if (i + 5 <= high + 1) {
       partitions.push(nums.slice(i, i + 5));
     }
   }
@@ -980,7 +980,8 @@ function median_of_medians(nums, low, high) {
     medians.push(p[2]);
   });
 
-  return partition(medians, 0, medians.length - 1);
+  // recursively find the actual median VALUE of the medians array (not just a partition index)
+  return findKthSmallestNumber_rec(medians, Math.ceil(medians.length / 2), 0, medians.length - 1);
 }
 
 console.log(

@@ -536,13 +536,12 @@ console.log(`Expression evaluations: ${diffWaysToEvaluateExpression("2*3-4-5")}`
 The problem has overlapping subproblems, as our recursive calls can be evaluating the same sub-expression multiple times. To resolve this, we can use <b>memoization</b> and store the intermediate results in a <b>HashMap</b>. In each function call, we can check our map to see if we have already evaluated this sub-expression before
 ````js
 function diffWaysToEvaluateExpression(input) {
-  diffWaysToEvaluateExpressionRecursive({}, input)
+  return diffWaysToEvaluateExpressionRecursive({}, input)
 }
 
 function diffWaysToEvaluateExpressionRecursive(map, input) {
   
   if(input in map) {
-    //issue with the hashmap here
     return map[input]
     // console.log(map[input])
   }
@@ -559,8 +558,8 @@ function diffWaysToEvaluateExpressionRecursive(map, input) {
          if(isNaN(parseInt(char, 10))){
         // if not a digit
         // break the equation here into two parts and make recursively calls
-           const leftParts = diffWaysToEvaluateExpression(input.substring(0, i))
-           const rightParts = diffWaysToEvaluateExpression(input.substring(i + 1))
+           const leftParts = diffWaysToEvaluateExpressionRecursive(map, input.substring(0, i))
+           const rightParts = diffWaysToEvaluateExpressionRecursive(map, input.substring(i + 1))
          // console.log(leftParts.length)
            for (let l = 0; l < leftParts.length; l++) {
           for (let r = 0; r < rightParts.length; r++) {
@@ -700,12 +699,10 @@ class TreeNode {
 };
 
 function countTrees(n) {
-  return countTreesRec({}, n);
+  return countTreesMemo({}, n);
 }
 
-function countTrees(map, n) {
-  
-  //fix this hashmap
+function countTreesMemo(map, n) {
    if (n in map) {
     return map[n];
   }
@@ -717,8 +714,8 @@ if (n <= 1) {
   let count = 0;
   for (let i = 1; i < n + 1; i++) {
     // making 'i' the root of the tree
-    const countOfLeftSubtrees = countTrees(i - 1);
-    const countOfRightSubtrees = countTrees(n - i);
+    const countOfLeftSubtrees = countTreesMemo(map, i - 1);
+    const countOfRightSubtrees = countTreesMemo(map, n - i);
     count += (countOfLeftSubtrees * countOfRightSubtrees);
   }
   

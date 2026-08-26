@@ -155,7 +155,7 @@ function findAPath(currentNode, currentPath, allPaths) {
   //add the current node to the path
   currentPath.push(currentNode.value)
   
-  //if the current node is not a leaf, save the current path
+  //if the current node is a leaf, save the current path
   if(currentNode.left === null && currentNode.right === null) {
     allPaths.push([...currentPath])
   } else {
@@ -204,7 +204,7 @@ function maxPathSum(root) {
     currentPath.push(currentNode.value)
 
     let pathMax = 0
-    //if the current node is not a leaf, save the current path
+    //if the current node is a leaf, check the sum of the current path
     if(currentNode.left === null && currentNode.right === null) {
       for(let i = 0; i < currentPath.length; i++) {
         pathMax += currentPath[i] 
@@ -428,6 +428,8 @@ class TreeDiameter {
   }
 
   findDiameter(root) {
+    //reset the diameter so the same instance can be reused for another tree
+    this.treeDiameter = 0
     this.calculateHeight(root)
     return this.treeDiameter
   }

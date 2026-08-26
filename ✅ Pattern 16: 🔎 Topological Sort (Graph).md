@@ -160,8 +160,8 @@ console.log(`Topological sort: ${topologicalSort(7, [[6, 4],[6, 2],[5, 3],[5, 4]
 
 <b>Solution:</b> If we can’t determine the topological ordering of all the vertices of a directed graph, the graph has a cycle in it. This was also referred to in the above code:
 ````js
-if (sortedOrder.size() != vertices) // topological sort is not possible as the graph has a cycle
-      return new ArrayList<>();
+if (sortedOrder.length !== vertices) // topological sort is not possible as the graph has a cycle
+      return [];
 ````
 
 ## 👩🏽‍🦯 Tasks Scheduling (medium)
@@ -313,7 +313,7 @@ console.log(`Is scheduling possible: ${findOrder(3, [[0, 1], [1, 2], [2, 0]])}`)
 //The tasks have a cyclic dependency, therefore they cannot be scheduled.
 
 console.log(`Is scheduling possible: ${findOrder(6, [[2, 5], [0, 5], [0, 4], [1, 4], [3, 2], [1,3]])}`)
-// true
+// [0, 1, 4, 3, 2, 5]
 //A possible scheduling of tasks is: [0 1 4 3 2 5] 
 ````
 - In step `4`, each task can become a source only once, and each edge (i.e., `prereq`) will be accessed and removed once. Therefore, the time complexity of the above algorithm will be `O(V+E)`, where `V` is the total number of tasks and `E` is the total number of prerequisites.
@@ -335,7 +335,7 @@ At any stage, if we have more than one source available and since we can choose 
 function printOrders(tasks, prerequisites) {
   let possibleSchedules = [];
 
-  if (tasks.length <= 0) return possibleSchedules;
+  if (tasks <= 0) return possibleSchedules;
 
   //1. Initialize graph
   //count incoming edges
@@ -659,8 +659,8 @@ console.log(`Can construct: ${canConstruct([3, 1, 4, 2, 5], [[3, 1, 5], [1, 4, 2
 //true
 //The sequences [3, 1, 5] and [1, 4, 2, 5] can uniquely reconstruct [3, 1, 4, 2, 5].
 ````
-- In step <b>4</b>, each task can become a source only once and each edge (a rule) will be accessed and removed once. Therefore, the time complexity of the above algorithm will be `O(V+E)`, where `V` is the total number of different characters and `E` is the total number of the rules in the alien language. Since, at most, each pair of words can give us one rule, therefore, we can conclude that the upper bound for the rules is `O(N)`where `N` is the number of words in the input. So, we can say that the time complexity of our algorithm is `O(V+N)`.
-- The space complexity will be `O(V+N)`, since we are storing all of the rules for each character in an <i>adjacency list</i>.
+- In step <b>4</b>, each number can become a source only once and each edge (an ordering rule) will be accessed and removed once. Therefore, the time complexity of the above algorithm will be `O(V+E)`, where `V` is the total number of distinct numbers and `E` is the total number of ordering rules extracted from the sequences. Since, at most, each sequence of length `L` can give us `L-1` rules, therefore, we can conclude that the upper bound for the rules is `O(N)` where `N` is the total number of elements across all the given sequences. So, we can say that the time complexity of our algorithm is `O(V+N)`.
+- The space complexity will be `O(V+N)`, since we are storing all of the ordering rules for each number in an <i>adjacency list</i>.
 ## 🌟 Minimum Height Trees (hard)
 https://leetcode.com/problems/minimum-height-trees/
 > We are given an undirected graph that has characteristics of a <b>[k-ary tree](https://en.wikipedia.org/wiki/M-ary_tree)</b>. In such a graph, we can choose any node as the root to make a <b>k-ary tree</b>. The <i>root (or the tree)</i> with the minimum height will be called <b>Minimum Height Tree (MHT)</b>. There can be multiple <b>MHTs</b> for a graph. In this problem, we need to find all those roots which give us <b>MHTs</b>. Write a method to find all <b>MHTs</b> of the given graph and return a list of their roots.
@@ -770,5 +770,5 @@ console.log(`Roots of MHTs: ${findTrees(4, [[0, 1], [0, 2], [2, 3]])}`)
 console.log(`Roots of MHTs: ${findTrees(4, [[1, 2], [1, 3]])}`)
 //[1]
 ````
-- In step <b>4</b>, each task can become a source only once and each edge (a rule) will be accessed and removed once. Therefore, the time complexity of the above algorithm will be `O(V+E)`, where `V` is the total number of different characters and `E` is the total number of the rules in the alien language. Since, at most, each pair of words can give us one rule, therefore, we can conclude that the upper bound for the rules is `O(N)`where `N` is the number of words in the input. So, we can say that the time complexity of our algorithm is `O(V+N)`.
-- The space complexity will be `O(V+N)`, since we are storing all of the rules for each character in an <i>adjacency list</i>.
+- In step <b>4</b>, each node can become a leaf only once and each edge will be visited (and removed) from both of its ends. Therefore, the time complexity of the above algorithm will be `O(V+E)`, where `V` is the total number of nodes and `E` is the total number of edges in the graph.
+- The space complexity will be `O(V+E)`, since we are storing both directions of every edge for each node in an <i>adjacency list</i>.

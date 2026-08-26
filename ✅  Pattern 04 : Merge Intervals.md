@@ -412,9 +412,9 @@ function whatAreTheConflicts(appointmentTimes)  {
   let conflicts = []
   
   for(let i = 0; i < appointmentTimes.length -1; i++) {
-    for(let j = 1; j < appointmentTimes.length; j++) {
-      if((j!==i) && (appointmentTimes[i][1] > appointmentTimes[j][0])) {
-        conflicts.push([appointmentTimes[j], appointmentTimes[i]])
+    for(let j = i+1; j < appointmentTimes.length; j++) {
+      if(appointmentTimes[i][0] < appointmentTimes[j][1] && appointmentTimes[j][0] < appointmentTimes[i][1]) {
+        conflicts.push([appointmentTimes[i], appointmentTimes[j]])
       } 
     }
  }
@@ -562,7 +562,7 @@ function findMaxCPULoad(jobs) {
     let previous = jobs[i-1]
    
     if(current[0] < previous[1]){
-      jobs[i] = [previous[0], current[1], previous[2] + current[2]]
+      jobs[i] = [previous[0], Math.max(previous[1], current[1]), previous[2] + current[2]]
       jobs.splice(i-1, 1)
       i--
     }
@@ -617,7 +617,7 @@ function findEmployeeFreeTime (schedules) {
     let previous = allTime[i-1]
    
     if(current[0] <= previous[1]) {
-      allTime[i] = [previous[0], current[1]]
+      allTime[i] = [previous[0], Math.max(previous[1], current[1])]
       allTime.splice(i-1, 1)
       i-- 
     }

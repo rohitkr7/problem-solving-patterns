@@ -138,8 +138,6 @@ Let’s jump onto our first problem.
 
 ## 🔎 0/1 Knapsack (medium)
 
-https://leetcode.com/problems/maximum-earnings-from-taxi/
-
 > Given the weights and profits of `N` items, we are asked to put these items in a <b>knapsack</b> with a capacity `C`. The goal is to get the `maximum profit` out of the <b>knapsack</b> items. Each item can only be selected once, as we don’t have multiple quantities of any item.
 
 Let’s take Merry’s example, who wants to carry some fruits in the <b>knapsack</b> to get `maximum profit`. Here are the weights and profits of the fruits:
@@ -726,7 +724,7 @@ function canPartition(num) {
   if (sum % 2 !== 0) return false;
 
   const dp = [];
-  return canPartitionRecursive(num, sum / 2, 0);
+  return canPartitionRecursive(dp, num, sum / 2, 0);
 
   function canPartitionRecursive(dp, num, sum, currIndex) {
     //recursive base case check
@@ -741,22 +739,23 @@ function canPartition(num) {
       //recursive call after choosing the number at currIndex
       //if the number at currIndex exceed the sum, we shouldn't process
       if (num[currIndex] <= sum) {
-        if (canPartitionRecursive(dp, num, sum - num[currIndex], currIndex + 1))
+        if (canPartitionRecursive(dp, num, sum - num[currIndex], currIndex + 1)) {
           dp[currIndex][sum] = true;
-
-        return true;
+          return true;
+        }
       }
+
+      //recursive call after excluding the number at currIndex
+      return (dp[currIndex][sum] = canPartitionRecursive(
+        dp,
+        num,
+        sum,
+        currIndex + 1
+      ));
     }
 
-    //recursive call after excluding the number at currIndex
-    return (dp[currIndex][sum] = canPartitionRecursive(
-      dp,
-      num,
-      sum,
-      currIndex + 1
-    ));
+    return dp[currIndex][sum];
   }
-  return dp[currIndex][sum];
 }
 
 console.log(`Can partition: ${canPartition([1, 2, 3, 4])}`); //True
@@ -1178,8 +1177,6 @@ console.log(`Can partitioning be done: ---> ${canPartition([1, 3, 100, 4])}`);
 - The above solution has the time and <b>space complexity</b> of `O(N*S)`, where `N` represents total numbers and `S` is the total sum of all the numbers.
 
 ## 🌟Count of Subset Sum (hard)
-
-https://leetcode.com/problems/combination-sum/
 
 > Given a set of positive numbers, find the total number of subsets whose sum is equal to a given number `S`.
 
@@ -1605,7 +1602,7 @@ function solveKnapsack(profits, weights, capacity) {
     const currentProfitMinusIndexItem = knapsackRecursive(
       profits,
       weights,
-      capacity - weights[currIndex],
+      capacity,
       currIndex + 1
     );
 
@@ -1666,7 +1663,7 @@ function solveKnapsack(profits, weights, capacity) {
     const currentProfitMinusIndexItem = knapsackRecursive(
       profits,
       weights,
-      capacity - weights[currIndex],
+      capacity,
       currIndex + 1
     );
 
@@ -1780,8 +1777,6 @@ Let’s assume the four items are identified as `{A, B, C, and D}`, and use the 
 
 ## Rod Cutting
 
-https://leetcode.com/problems/minimum-cost-to-cut-a-stick/
-
 > Given a rod of length `n`, we are asked to cut the rod and sell the pieces in a way that will maximize the profit. We are also given the price of every piece of length `i` where `1 <= i <= n`.
 
 ```
@@ -1834,8 +1829,8 @@ function solveRodCutting(lengths, prices, n) {
       currentProfit =
         prices[currIndex] +
         solveRodCuttingRecursive(
-          prices,
           lengths,
+          prices,
           n - lengths[currIndex],
           currIndex
         );
@@ -1843,9 +1838,9 @@ function solveRodCutting(lengths, prices, n) {
 
     //recursive call after excluding the element at the currIndex
     const currentProfitMinusIndexItem = solveRodCuttingRecursive(
-      prices,
       lengths,
-      n - lengths[currIndex],
+      prices,
+      n,
       currIndex + 1
     );
 
@@ -2414,7 +2409,7 @@ function countRibbonPieces(ribbonLengths, total) {
       total,
       currIndex + 1
     );
-    return Math.min(currRibbon, nextRibbon);
+    return Math.max(currRibbon, nextRibbon);
   }
   const result = countRibbonPiecesRecursive(ribbonLengths, total, 0);
   return result === -Infinity ? -1 : result;
@@ -2425,7 +2420,7 @@ console.log(
 console.log(
   `Maximum number of ribbons: ---> ${countRibbonPieces([2, 3], 7)}`);
 console.log(
-  `Maximum number of ribbons: ---> ${countRibbonPieces([3, 5, 7], 13)}`;
+  `Maximum number of ribbons: ---> ${countRibbonPieces([3, 5, 7], 13)}`);
 console.log(
   `Maximum number of ribbons: ---> ${countRibbonPieces([3, 5], 7)}`);
 ```
@@ -2492,7 +2487,7 @@ console.log(
 console.log(
   `Maximum number of ribbons: ---> ${countRibbonPieces([2, 3], 7)}`);
 console.log(
-  `Maximum number of ribbons: ---> ${countRibbonPieces([3, 5, 7], 13)}`;
+  `Maximum number of ribbons: ---> ${countRibbonPieces([3, 5, 7], 13)}`);
 console.log(
   `Maximum number of ribbons: ---> ${countRibbonPieces([3, 5], 7)}`);
 ```
@@ -2559,7 +2554,7 @@ function calculateFibonacci(n) {
     //if we have already solved this subproblem, simply return the result from the cache
     if (memoize[n]) return memoize[n];
 
-    memoize[n] = calculateFibonacci(n - 1) + calculateFibonacci(n - 2);
+    memoize[n] = fib(n - 1) + fib(n - 2);
 
     return memoize[n];
   }
@@ -2706,6 +2701,9 @@ function countWays(n) {
     if (n <= 2) {
       return dp[n];
     }
+
+    // if we have already solved this subproblem, simply return the result from the cache
+    if (typeof dp[n] !== 'undefined') return dp[n];
 
     // if we take 1 step, we are left with 'n-1' steps;
     const take1Step = countWaysRecursive(n - 1);
@@ -2883,7 +2881,9 @@ function countWays(n) {
     if (n <= 2) return 1;
     if (n === 3) return 2;
 
-    // if(typeod dp[n] === 'undefined'){
+    // if we have already solved this subproblem, simply return the result from the cache
+    if (typeof dp[n] !== 'undefined') return dp[n];
+
     // if we subtract 1, we are left with 'n-1'
     const subtract1 = countWaysRecursive(n - 1);
     // if we subtract 3, we are left with 'n-3'
@@ -3015,6 +3015,9 @@ function countMinJumps(jumps) {
     if (jumpIndex >= jumps.length - 1) return 0;
 
     if (jumps[jumpIndex] === 0) return Infinity;
+
+    // if we have already solved this subproblem, simply return the result from the cache
+    if (dp[jumpIndex] !== 0) return dp[jumpIndex];
 
     let totalJumps = Infinity;
     let start = jumpIndex + 1;
@@ -3162,6 +3165,9 @@ function findMinFee(fee) {
   function findMinFeeRecursive(fee, currIndex) {
     if (currIndex > fee.length - 1) return 0;
 
+    // if we have already solved this subproblem, simply return the result from the cache
+    if (typeof dp[currIndex] !== 'undefined') return dp[currIndex];
+
     //if we take 1 step, we are left with n-1 steps
     const take1Step = findMinFeeRecursive(fee, currIndex + 1);
     //similarly, if we take 2 steps, we are left with n-2 steps
@@ -3289,6 +3295,9 @@ function findMaxSteal(wealth) {
   function findMaxStealRecursive(wealth, currIndex) {
     if (currIndex >= wealth.length) return 0;
 
+    // if we have already solved this subproblem, simply return the result from the cache
+    if (typeof dp[currIndex] !== 'undefined') return dp[currIndex];
+
     //steal from the current house and skip one to steal from the next house
     const stealCurr =
       wealth[currIndex] + findMaxStealRecursive(wealth, currIndex + 2);
@@ -3318,7 +3327,7 @@ function findMaxSteal(wealth) {
   const dp = Array(wealth.length + 1).fill(0);
   //if there are no houses, the thief can't steal anything
   //only one house, so the thief will only be able to steal from that single house
-  dp[1] = wealth[1];
+  dp[1] = wealth[0];
 
   //please note that dp[] has one extra to handle house zero
   for (let i = 1; i < wealth.length; i++) {
@@ -3474,6 +3483,10 @@ function findLPSLength(str) {
 
     dp[startIndex] = dp[startIndex] || [];
 
+    // if we have already solved this subproblem, simply return the result from the cache
+    if (typeof dp[startIndex][endIndex] !== 'undefined')
+      return dp[startIndex][endIndex];
+
     //case 1: elements ar the start and end are the same
     if (str[startIndex] === str[endIndex]) {
       dp[startIndex][endIndex] =
@@ -3522,7 +3535,7 @@ if st[endIndex] == st[startIndex]
   dp[startIndex][endIndex] = 2 + dp[startIndex + 1][endIndex - 1]
 
 else
-  dp[startIndex][endIndex] = Math.max(dp[startIndex + 1][endIndex], dp[startInde[endIndex - 1])
+  dp[startIndex][endIndex] = Math.max(dp[startIndex + 1][endIndex], dp[startIndex][endIndex - 1])
 ```
 
 Here is the code for our <b>bottom-up dynamic programming approach</b>:
@@ -4031,7 +4044,7 @@ function minInsertions(s) {
   }
 
   //subtracting the length of the LPS from the length
-  //of the input string to get minimum number of deletions
+  //of the input string to get minimum number of insertions
   return s.length - findLPSLength(s);
 }
 
@@ -4110,8 +4123,8 @@ function isValidPalindrome(s, K) {
   }
 
   //subtracting the length of the LPS from the length
-  //of the input string to get minimum number of deletions < k
-  return s.length - findLPSLength(s) <= k;
+  //of the input string to get minimum number of deletions < K
+  return s.length - findLPSLength(s) <= K;
 }
 
 console.log(
@@ -4208,7 +4221,7 @@ console.log(`Minimum palindrome partitions ---> ${findMPPCuts('abdbca')}`);
 // Output: 3
 // Explanation: Palindrome pieces are "a", "bdb", "c", "a".
 
-console.log(`Minimum palindrome partitions ---> ${findMPPCuts('cdpdd')}`);
+console.log(`Minimum palindrome partitions ---> ${findMPPCuts('cddpd')}`);
 // Output: 2
 // Explanation: Palindrome pieces are "c", "d", "dpd".
 
@@ -4240,6 +4253,12 @@ function findMPPCuts(str) {
     if (startIndex >= endIndex || isPalindrome(str, startIndex, endIndex))
       return 0;
 
+    dp[startIndex] = dp[startIndex] || [];
+
+    //if we have already solved this subproblem, simply return the result from the cache
+    if (typeof dp[startIndex][endIndex] !== 'undefined')
+      return dp[startIndex][endIndex];
+
     //at most, we need to cut the str into it's length-1 pieces
     let minimumCuts = endIndex - startIndex;
     for (let i = startIndex; i <= endIndex; i++) {
@@ -4252,7 +4271,9 @@ function findMPPCuts(str) {
         );
       }
     }
-    return minimumCuts;
+
+    dp[startIndex][endIndex] = minimumCuts;
+    return dp[startIndex][endIndex];
   }
 
   function isPalindrome(str, start, end) {
@@ -4286,7 +4307,7 @@ console.log(`Minimum palindrome partitions ---> ${findMPPCuts('abdbca')}`);
 // Output: 3
 // Explanation: Palindrome pieces are "a", "bdb", "c", "a".
 
-console.log(`Minimum palindrome partitions ---> ${findMPPCuts('cdpdd')}`);
+console.log(`Minimum palindrome partitions ---> ${findMPPCuts('cddpd')}`);
 // Output: 2
 // Explanation: Palindrome pieces are "c", "d", "dpd".
 
@@ -4366,7 +4387,7 @@ console.log(`Minimum palindrome partitions ---> ${findMPPCuts('abdbca')}`);
 // Output: 3
 // Explanation: Palindrome pieces are "a", "bdb", "c", "a".
 
-console.log(`Minimum palindrome partitions ---> ${findMPPCuts('cdpdd')}`);
+console.log(`Minimum palindrome partitions ---> ${findMPPCuts('cddpd')}`);
 // Output: 2
 // Explanation: Palindrome pieces are "c", "d", "dpd".
 
@@ -5229,8 +5250,9 @@ function findMSIS(nums) {
       );
       // console.log(dp)
       dp[subProbKey] = Math.max(sumIncludingCurrIndex, sumWithoutCurrIndex);
-      return dp[subProbKey];
     }
+
+    return dp[subProbKey];
   }
   return findMSISRecursive(nums, 0, -1, 0);
 }
@@ -5745,6 +5767,9 @@ function findLRSLength(str) {
 
     dp[index1] = dp[index1] || [];
 
+    // if we have already solved this subproblem, simply return the result from the cache
+    if (typeof dp[index1][index2] !== 'undefined') return dp[index1][index2];
+
     if (index1 !== index2 && str[index1] === str[index2])
       dp[index1][index2] =
         1 + findLRSLengthRecursive(str, index1 + 1, index2 + 1);
@@ -5950,6 +5975,10 @@ function findSPMCount(str, pattern) {
     if (strIndex === str.length) return 0;
 
     dp[strIndex] = dp[strIndex] || [];
+
+    // if we have already solved this subproblem, simply return the result from the cache
+    if (typeof dp[strIndex][patternIndex] !== 'undefined')
+      return dp[strIndex][patternIndex];
 
     let count1 = 0;
 
@@ -6296,7 +6325,7 @@ function findLBSLength(nums) {
   let maxLength = 0;
 
   for (let i = 0; i < nums.length; i++) {
-    maxLength = Math.max(maxLength, ldsReversed[i] + ldsReversed[i] - 1);
+    maxLength = Math.max(maxLength, lds[i] + ldsReversed[i] - 1);
   }
 
   return maxLength;
@@ -6872,7 +6901,7 @@ A <b>basic brute-force solution</b>could be to try matching `m` and `n` with `p`
 1. If the letter at `mIndex` matches with the letter at `pIndex`, we can recursively match for the remaining lengths of `m` and `p`.
 2. If the letter at `nIndex` matches with the letter at `pIndex`, we can recursively match for the remaining lengths of `n` and `p`.
 
-<b>LAS</b> would be the maximum of the above three subsequences.
+`p` is a valid interleaving of `m` and `n` if either of the above two recursive calls returns `true`.
 
 Here is the code:
 
