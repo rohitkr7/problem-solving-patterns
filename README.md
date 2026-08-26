@@ -91,7 +91,7 @@ Given two intervals (`a` and `b`), there will be six distinct ways the two inter
 2. `a` and `b` overlap, `b` ends after `a`
 3. `a` completely overlaps `b`
 4. `a` and `b` overlap, `a` ends after `b`
-5. `b` completly overlaps `a`
+5. `b` completely overlaps `a`
 6. `a` and `b` do not overlap
 
 Understanding the above six cases will help us in solving all intervals related problems.

@@ -4,6 +4,8 @@
 
 It maintains a <i>forest</i> of trees, where each tree is one set and the root of the tree is that set's <b>representative</b>. Two elements are in the same set exactly when they have the same root. That gives us two primitive operations: <b>find(x)</b> returns the representative of the set containing `x`, and <b>union(x, y)</b> merges the set containing `x` with the set containing `y`.
 
+![](./images/union_find.jpg)
+
 This pattern applies whenever you see one of the following signals:
 
 - <b>Dynamic connectivity:</b> edges arrive one at a time and we need to answer "are `u` and `v` reachable from each other <i>right now</i>?" A <b>DFS</b>/<b>BFS</b> would have to re-traverse the whole graph after every new edge; <b>Union Find</b> answers in near constant time.

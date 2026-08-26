@@ -6,7 +6,7 @@ Given two intervals (`a` and `b`), there will be six different ways the two inte
 2. `a` and `b` overlap, `b` ends after `a`
 3. `a` completely overlaps `b`
 4. `a` and `b` overlap, `a` ends after `b`
-5. `b` completly overlaps `a`
+5. `b` completely overlaps `a`
 6. `a` and `b` do not overlap
 
 Understanding the above six cases will help us in solving all intervals related problems.
@@ -58,7 +58,7 @@ function merge (intervals) {
       //overlapping intervals, adjust the end
       end = Math.max(interval.end, end)    
     } else {
-      //non-overlapping intercal, add the precious interval and reset
+      //non-overlapping interval, add the previous interval and reset
       mergedIntervals.push(new Interval(start, end))
       start = interval.start
       end = interval.end

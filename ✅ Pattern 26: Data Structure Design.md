@@ -11,6 +11,8 @@ And here is the craft of the pattern. Almost no single structure hits every requ
 
 Individually neither can implement an <b>LRU cache</b>. Together they can, in `O(1)`: keep the entries in a doubly linked list ordered by recency, and keep a hash map from `key` to <i>the list node holding that key</i>. The map's weakness (no order) is covered by the list; the list's weakness (no lookup) is covered by the map. That reciprocal arrangement — <b>two structures, each patching the other's hole</b> — is the whole pattern, and once you see it you will see it in every problem below.
 
+![](./images/lru_cache.jpg)
+
 You have met the idea already, in milder form. <b>[Pattern 09: Two Heaps](./✅%20%20Pattern%2009:%20Two%20Heaps.md)</b> combines a <b>Max Heap</b> and a <b>Min Heap</b> so the median of a stream sits at the boundary between them — neither heap can find the median, the pair can in `O(1)`. And <b>[Pattern 13: Top 'K' Elements](./✅%20Pattern%2013:%20Top%20'K'%20Elements.md)</b> ends with <i>Frequency Stack</i>, which pairs a <b>frequency map</b> with a <b>stack of stacks</b>. Both are really design problems in disguise; this pattern makes the disguise explicit.
 
 ### ❗ NOTE

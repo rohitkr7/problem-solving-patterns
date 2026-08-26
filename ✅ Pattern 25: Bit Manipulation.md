@@ -4,6 +4,8 @@
 
 The mental model is simple: an integer is not a number, it is a <b>fixed-width array of booleans</b>. Once you accept that, a 32-bit integer becomes a free `Set` of up to 32 elements with `O(1)` union (`|`), intersection (`&`), difference (`& ~`), symmetric difference (`^`), and membership test (`& (1 << i)`). Most "bit manipulation" interview questions are really asking whether you can see that set hiding inside the integer.
 
+![](./images/bit_manipulation.jpg)
+
 |  Operator |  Name  |  Effect on each bit pair  |
 |:---:|:---:|:---|
 | `a & b` | AND | `1` only when <i>both</i> bits are `1` — used to <b>mask</b> / test |

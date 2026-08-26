@@ -4,6 +4,8 @@ A <b>Trie</b> (pronounced "try", from re<b>trie</b>val, also called a <b>Prefix 
 
 The whole point of the structure is that <b>words sharing a prefix share the same path</b>. Storing `car`, `card`, and `care` costs us five nodes, not twelve, because `c → a → r` is walked once and only the tails branch. That sharing is what turns "check this prefix against every word in the dictionary" into "walk `M` pointers", where `M` is the length of the prefix — completely independent of how many words the dictionary holds.
 
+![](./images/trie.jpg)
+
 Reach for this pattern when the problem talks about <i>prefixes</i>, <i>a dictionary of words that gets queried many times</i>, or <i>autocomplete</i>. The tell-tale signs are:
 - We need `startsWith`/prefix lookups, not just exact membership. A <b>HashSet</b> gives us `O(1)` exact lookups but knows nothing about prefixes; a <b>Trie</b> gives us both.
 - The same set of words is queried repeatedly. We pay `O(total characters)` once to build the trie, then every query is `O(M)`.

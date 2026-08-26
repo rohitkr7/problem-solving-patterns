@@ -9,6 +9,8 @@ Once you accept that framing, every graph traversal you already know applies unc
 1. <b>DFS (flood fill)</b> — go as deep as possible from a starting cell, then unwind. This is the same recursion we used in <b>Pattern 08: Tree Depth First Search</b>, except that instead of two children (`left`, `right`) we recurse into up to four neighbours. Reach for DFS when the question is <i>"what belongs to this blob?"</i> — the size of a connected component, whether a region touches the border, how many components exist.
 2. <b>BFS (level expansion)</b> — push a cell into a <b>Queue</b>, then peel off one full ring of neighbours at a time. This is exactly the `levelSize` loop from <b>Pattern 07: Tree Breadth First Search</b>. Reach for BFS when the question involves <i>distance</i> or <i>time</i> — the shortest path through a grid, the minutes for something to spread, the distance from every cell to the nearest zero.
 
+![](./images/island_matrix.jpg)
+
 The distinction matters more than it looks. <b>BFS visits cells in non-decreasing order of distance from its sources</b>, so the first time BFS reaches a cell it has already found the shortest way there. DFS gives no such guarantee — it can arrive by a long winding route, mark the cell visited, and block the short route that would have come later. So: <i>counting and sizing components → DFS is simpler; measuring distance or simultaneous spread → BFS is required</i>.
 
 ### The standard toolkit

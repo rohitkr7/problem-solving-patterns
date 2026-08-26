@@ -6,6 +6,8 @@ A large family of array problems asks the same underlying question in different 
 
 The <b>brute-force</b> algorithm is the obvious one: stand on each element and scan forward until you find something bigger.
 
+![](./images/monotonic_stack.jpg)
+
 ````js
 function nextGreaterBruteForce(arr) {
   const result = new Array(arr.length).fill(-1)

@@ -6,6 +6,8 @@ It helps a lot to know how this pattern differs from <b>[Pattern 10: Subsets](#p
 
 ### The mental model: a decision tree
 
+![](./images/backtracking.jpg)
+
 Every backtracking problem is a tree. The <b>root</b> is the empty partial solution; each <b>level</b> is one decision (which number goes next, which letter this digit maps to, which column this queen sits in); each <b>edge</b> is one choice available at that decision; a <b>leaf</b> is either a complete solution or a dead end. Crucially, the <b>path from the root</b> to the current node <i>is</i> our partial solution. We never build this tree in memory — we walk it with recursion, and the call stack <i>is</i> the path. That is why the space complexity of a backtracking algorithm is almost always `O(depth of the tree)` plus whatever the output takes.
 
 ### The skeleton: choose → explore → un-choose

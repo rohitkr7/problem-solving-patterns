@@ -13,6 +13,8 @@ The formal answer has a name — the <b>greedy-choice property</b>. A problem ha
 
 If you can run that argument, greedy is provably correct. If you cannot, you almost certainly have a bug and not a proof gap.
 
+![](./images/greedy.jpg)
+
 ### How to sanity-check a greedy instinct
 
 Interview-speed heuristics, in the order you should reach for them:

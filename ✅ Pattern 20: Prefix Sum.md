@@ -8,6 +8,8 @@ The <b>Prefix Sum</b> pattern removes that duplicated work with one cheap precom
 
 Notice the off-by-one: `prefixSum[i]` deliberately stops <i>before</i> index `i`. We size the array at `nums.length + 1` and let `prefixSum[0] = 0` stand for the <b>empty prefix</b>. That single sentinel is what makes the rest of the pattern free of edge cases, and it is worth internalizing early because it shows up in every problem below. Once that array exists, the sum of any range `nums[left...right]` is a <b>single subtraction</b>:
 
+![](./images/prefix_sum.jpg)
+
 `rangeSum(left, right) = prefixSum[right + 1] - prefixSum[left]`
 
 The intuition is simply <i>"everything up to `right`, minus everything before `left`"</i>. The overlapping head of the two prefixes cancels out, leaving exactly the slice we wanted. A range query that used to cost `O(N)` now costs `O(1)`.

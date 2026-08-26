@@ -12,6 +12,8 @@ One more relative worth knowing: on a <b>Directed Acyclic Graph</b> you can beat
 
 Notice that most of these options want a <b>priority queue</b>, and <i>JavaScript ships no built-in heap</i>. Unlike Python's `heapq` or Java's `PriorityQueue`, we have to write our own — so let's write one good one and reuse it.
 
+![](./images/shortest_path.jpg)
+
 ## The MinHeap we will reuse
 
 A <b>binary heap</b> is an array pretending to be a tree: the children of index `i` live at `2i+1` and `2i+2`, and its parent lives at `Math.floor((i-1)/2)`. Two operations keep the shape honest:
