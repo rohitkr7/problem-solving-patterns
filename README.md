@@ -1,6 +1,8 @@
 # Several Coding Patterns for Solving Data Structures and Algorithms Problems during Interviews
 
-These are my notes in <b>Javascript</b> from a [course](https://www.educative.io/courses/grokking-the-coding-interview) that categorizes coding interview problems into a set of <b>16 patterns</b>. 
+These are my notes in <b>Javascript</b> from a [course](https://www.educative.io/courses/grokking-the-coding-interview) that categorizes coding interview problems into a set of <b>16 patterns</b>, plus <b>10 additional patterns</b> (17-26) that the course does not cover but which show up constantly in interviews.
+
+### The 16 course patterns
 
 |   |   |
 |---|---|
@@ -12,6 +14,16 @@ These are my notes in <b>Javascript</b> from a [course](https://www.educative.io
 |<b>[Pattern 6: In-place Reversal of a LinkedList](./✅%20%20Pattern%2006:%20In-place%20Reversal%20of%20a%20LinkedList.md)</b>|<b>[Pattern 14: K-way merge](./%E2%9C%85%20Pattern%2014%3A%20K-way%20merge.md)</b>|
 |<b>[Pattern 7: Tree Breadth First Search](./✅%20%20Pattern%2007:%20Tree%20Breadth%20First%20Search.md)</b>|<b>[Pattern 15: 0/1 Knapsack (Dynamic Programming)](./%E2%9C%85%20Pattern%2015:%200-1%20Knapsack%20(Dynamic%20Programming).md)</b>|
 |<b>[Pattern 8: Depth First Search (DFS)](./✅%20%20Pattern%2008:Tree%20Depth%20First%20Search.md)</b>|<b>[Pattern 16: Topological Sort (Graph)](./%E2%9C%85%20Pattern%2016%3A%20%F0%9F%94%8E%20Topological%20Sort%20(Graph).md)</b>|
+
+### Additional patterns
+
+|   |   |
+|---|---|
+|<b>[Pattern 17: Trie (Prefix Tree)](./✅%20Pattern%2017:%20Trie%20%28Prefix%20Tree%29.md)</b>|<b>[Pattern 22: Backtracking](./✅%20Pattern%2022:%20Backtracking.md)</b>|
+|<b>[Pattern 18: Union Find (Disjoint Set)](./✅%20Pattern%2018:%20Union%20Find%20%28Disjoint%20Set%29.md)</b>|<b>[Pattern 23: Shortest Path (Dijkstra & Friends)](./✅%20Pattern%2023:%20Shortest%20Path%20%28Dijkstra%20%26%20Friends%29.md)</b>|
+|<b>[Pattern 19: Monotonic Stack](./✅%20Pattern%2019:%20Monotonic%20Stack.md)</b>|<b>[Pattern 24: Greedy Algorithms](./✅%20Pattern%2024:%20Greedy%20Algorithms.md)</b>|
+|<b>[Pattern 20: Prefix Sum](./✅%20Pattern%2020:%20Prefix%20Sum.md)</b>|<b>[Pattern 25: Bit Manipulation](./✅%20Pattern%2025:%20Bit%20Manipulation.md)</b>|
+|<b>[Pattern 21: Island (Matrix Traversal)](./✅%20Pattern%2021:%20Island%20%28Matrix%20Traversal%29.md)</b>|<b>[Pattern 26: Data Structure Design](./✅%20Pattern%2026:%20Data%20Structure%20Design.md)</b>|
 
 ## Additional Resources
 Here are a few other resources that I found helpful when learning <b>Data Structures and Algorithms</b> using <b>JavaScript</b>
@@ -156,5 +168,66 @@ After the recursive solution, we will modify our algorithm to apply advanced tec
 
 ## [Pattern 16: 🔎 Topological Sort (Graph)](./%E2%9C%85%20Pattern%2016%3A%20%F0%9F%94%8E%20Topological%20Sort%20(Graph).md)
 <b>Topological Sort</b> is used to find a linear ordering of elements that have dependencies on each other. For example, if event `B` is dependent on event `A`, `A` comes before `B` in topological ordering.
+
+# 
+The following patterns are not part of the original course, but they come up often enough in interviews to be worth their own notes.
+
+## [Pattern 17: Trie (Prefix Tree)](./✅%20Pattern%2017:%20Trie%20%28Prefix%20Tree%29.md)
+
+A <b>Trie</b> (or <i>prefix tree</i>) stores a set of strings as a tree of shared prefixes, so every lookup costs `O(L)` in the length of the word rather than `O(N*L)` across the whole dictionary.
+
+Reach for it whenever a problem repeatedly asks <i>"is this a prefix of anything I know?"</i> — autocomplete, wildcard word matching, or searching a grid for many words at once.
+
+## [Pattern 18: Union Find (Disjoint Set)](./✅%20Pattern%2018:%20Union%20Find%20%28Disjoint%20Set%29.md)
+
+<b>Union Find</b> tracks which elements belong to the same group while the groups keep merging. With <i>path compression</i> and <i>union by rank</i>, both `find()` and `union()` run in near-constant amortized time.
+
+This is the tool for <b>dynamic connectivity</b> questions and for detecting cycles in an <b>undirected</b> graph — the counterpart to <b>[Pattern 16: Topological Sort](./%E2%9C%85%20Pattern%2016%3A%20%F0%9F%94%8E%20Topological%20Sort%20(Graph).md)</b>, which handles the directed case.
+
+## [Pattern 19: Monotonic Stack](./✅%20Pattern%2019:%20Monotonic%20Stack.md)
+
+When a problem asks for the <b>next (or previous) greater or smaller element</b>, keeping a stack in sorted order lets every element be pushed and popped at most once, turning the obvious `O(N^2)` scan into `O(N)`.
+
+The same idea with a <b>deque</b> solves sliding-window extremes, which is why this pattern pairs naturally with <b>[Pattern 1: Sliding Window](./✅%20%20Pattern%2001%20:%20Sliding%20Window.md)</b>.
+
+## [Pattern 20: Prefix Sum](./✅%20Pattern%2020:%20Prefix%20Sum.md)
+
+Precomputing cumulative sums turns any range-sum query into a single `O(1)` subtraction, and pairing prefix sums with a <b>HashMap</b> turns <i>"count the subarrays summing to `K`"</i> from `O(N^2)` into `O(N)`.
+
+Crucially, this works when the array contains <b>negative numbers</b> — exactly the case where the sliding-window approach of <b>[Pattern 1](./✅%20%20Pattern%2001%20:%20Sliding%20Window.md)</b> breaks down.
+
+## [Pattern 21: Island (Matrix Traversal)](./✅%20Pattern%2021:%20Island%20%28Matrix%20Traversal%29.md)
+
+A 2D grid is really an <b>implicit graph</b>: each cell is a node and its neighbours are computed by adding offsets rather than read from an adjacency list.
+
+Once you accept that framing, the tree traversals from <b>[Pattern 7](./✅%20%20Pattern%2007:%20Tree%20Breadth%20First%20Search.md)</b> and <b>[Pattern 8](./✅%20%20Pattern%2008:Tree%20Depth%20First%20Search.md)</b> apply unchanged — <b>DFS</b> to size a connected component, <b>BFS</b> whenever the question involves distance or simultaneous spread.
+
+## [Pattern 22: Backtracking](./✅%20Pattern%2022:%20Backtracking.md)
+
+<b>Backtracking</b> explores a decision tree with a <i>choose → explore → un-choose</i> skeleton, and its real power is <b>pruning</b>: abandoning a branch the moment it cannot possibly lead to a solution.
+
+Where <b>[Pattern 10: Subsets](./✅%20%20Pattern%2010:%20Subsets.md)</b> focuses on generating every combination, this pattern is about <i>constraint satisfaction</i> — N-Queens, Sudoku, word search.
+
+## [Pattern 23: Shortest Path (Dijkstra & Friends)](./✅%20Pattern%2023:%20Shortest%20Path%20%28Dijkstra%20%26%20Friends%29.md)
+
+Picking the right shortest-path algorithm is most of the work: plain <b>BFS</b> when every edge costs the same, <b>Dijkstra</b> for non-negative weights, <b>Bellman-Ford</b> when there are negative edges or a hop limit, and <b>Floyd-Warshall</b> for all-pairs on a small dense graph.
+
+## [Pattern 24: Greedy Algorithms](./✅%20Pattern%2024:%20Greedy%20Algorithms.md)
+
+A <b>Greedy</b> algorithm commits to the locally-optimal choice and never reconsiders. The entire skill is recognising when that is actually safe — and when it quietly is not.
+
+These notes deliberately include cases where the greedy instinct <b>fails</b>, and contrast them with <b>[Pattern 15: 0/1 Knapsack](./%E2%9C%85%20Pattern%2015:%200-1%20Knapsack%20(Dynamic%20Programming).md)</b>: fractional knapsack is greedy-solvable, 0/1 knapsack is not.
+
+## [Pattern 25: Bit Manipulation](./✅%20Pattern%2025:%20Bit%20Manipulation.md)
+
+The broader bitwise toolkit beyond <b>[Pattern 12: Bitwise XOR](./✅%20Pattern%2012:%20%20Bitwise%20XOR.md)</b> — masking, shifting, the `n & (n-1)` and `n & -n` idioms, and enumerating subsets with a bitmask.
+
+Includes the <b>JavaScript</b> caveat that trips everyone up: bitwise operators coerce to <i>signed</i> 32-bit integers, so `~`, `<<` and `>>` do not behave as they would in Java or C++, and you often need `>>>`.
+
+## [Pattern 26: Data Structure Design](./✅%20Pattern%2026:%20Data%20Structure%20Design.md)
+
+Design questions hand you a target <b>complexity per operation</b> and ask you to hit it. The craft is <b>combining</b> two structures so each covers the other's weakness.
+
+The canonical example: a <b>HashMap</b> gives `O(1)` lookup but no ordering, a <b>doubly-linked list</b> gives `O(1)` insert/remove but no lookup — together they give an `O(1)` <b>LRU cache</b>.
 
 
