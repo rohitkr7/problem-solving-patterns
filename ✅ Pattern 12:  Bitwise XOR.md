@@ -116,17 +116,21 @@ findSingleNumber([7, 9, 7])//9
 function singleNumber(arr) {
   //HashMap
   let numberMap = {}
-  //if number is not in HashMap, add it
   for(let i of arr) {
-    numberMap[i] = (numberMap[i] || 0) + 1
+    //if number is already in HashMap, remove it
+    if(numberMap[i] !== undefined) {
+      delete numberMap[i]
+    } else {
+      //if number is not in HashMap, add it
+      numberMap[i] = true
+    }
   }
-  //if number is already in HashMap, remove it
-  //number left at the end is out rquired single number
-  return numberMap
+  //number left at the end is our required single number
+  return Number(Object.keys(numberMap)[0])
 }
 
-findMissingNumber([1, 4, 2, 1, 3, 2, 3])//4
-findMissingNumber([7, 9, 7])//9
+singleNumber([1, 4, 2, 1, 3, 2, 3])//4
+singleNumber([7, 9, 7])//9
 ````
 Time and space complexity Time Complexity of the above solution will be `O(n)`and space complexity will also be `O(n)`.
 
@@ -201,10 +205,10 @@ function findSingleNumbers(nums) {
   nums.forEach((n) => {
     if((n & right) !== 0) {
       //the bit is set
-      num1 ^= n
+      num2 ^= n
     } else {
       //the bit is not set
-      num2 ^= n
+      num1 ^= n
     }
   })
   return [num1, num2];

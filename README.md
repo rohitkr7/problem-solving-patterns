@@ -4,7 +4,7 @@ These are my notes in <b>Javascript</b> from a [course](https://www.educative.io
 
 |   |   |
 |---|---|
-| <b>[Pattern 1: Sliding Window](./✅%20%20Pattern%2001%20:%20Sliding%20Window.md)</b>|<b>[Pattern 9: Two Heaps](./✅%20🙃%20Pattern%2009:%20Two%20Heaps.md)</b>   |
+| <b>[Pattern 1: Sliding Window](./✅%20%20Pattern%2001%20:%20Sliding%20Window.md)</b>|<b>[Pattern 9: Two Heaps](./✅%20%20Pattern%2009:%20Two%20Heaps.md)</b>   |
 |<b>[Pattern 2: Two Pointer](./✅%20%20Pattern%2002:%20Two%20Pointers.md)</b>|<b>[Pattern 10: Subsets](./✅%20%20Pattern%2010:%20Subsets.md)</b>|
 |<b>[Pattern 3: Fast & Slow pointers](./✅%20%20Pattern%2003:%20Fast%20%26%20Slow%20pointers.md)</b>|<b>[Pattern 11: Modified Binary Search](./✅%20%20Pattern%2011:%20Modified%20Binary%20Search.md)</b>|
 |<b>[Pattern 4: Merge Intervals](./✅%20%20Pattern%2004%20:%20Merge%20Intervals.md)</b>|<b>[Pattern 12: Bitwise XOR](./✅%20Pattern%2012:%20%20Bitwise%20XOR.md)</b>|
@@ -111,7 +111,7 @@ This pattern is based on the <b>Depth First Search (DFS)</b> technique to traver
 
 We will be using recursion (or we can also use a stack for the iterative approach) to keep track of all the previous (parent) nodes while traversing. This also means that the space complexity of the algorithm will be `O(H)`, where `H` is the maximum height of the tree.
 
-## [Pattern 9: Two Heaps](./✅%20🙃%20Pattern%2009:%20Two%20Heaps.md)
+## [Pattern 9: Two Heaps](./✅%20%20Pattern%2009:%20Two%20Heaps.md)
 
 In many problems, where we are given a set of elements such that we can divide them into two parts. To solve the problem, we are interested in knowing the smallest element in one part and the biggest element in the other part. This pattern is an efficient approach to solve such problems.
 

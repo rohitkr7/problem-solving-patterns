@@ -582,7 +582,7 @@ function searchRotatedArray(arr, key) {
       //first half is sorted in ascending order
       if (key >= arr[start] && key < arr[mid]) {
         //the key can be in the first half
-        end = middle - 1;
+        end = mid - 1;
       } else {
         //key > arr[middle], so the key can be in the
         //second half
@@ -637,7 +637,7 @@ function searchRotatedArrayWithDuplicates(arr, key) {
       //first half is sorted in ascending order
       if (key >= arr[start] && key < arr[mid]) {
         //the key can be in the first half
-        end = middle - 1;
+        end = mid - 1;
       } else {
         //key > arr[middle], so the key can be in the
         //second half
@@ -709,7 +709,7 @@ function countRotations(arr) {
     } else {
       //second half is sorted, so pivot is in first half
 
-      start = mid + 1;
+      end = mid - 1;
     }
   }
 

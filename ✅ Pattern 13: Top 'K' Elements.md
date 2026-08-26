@@ -348,11 +348,11 @@ function sortCharacterByFrequency(str) {
 };
 
 
-console.log('string after sorting characters by frequency: ${sortCharacterByFrequency("Programming")}`)
-//"rrggmmPiano"
+console.log(`string after sorting characters by frequency: ${sortCharacterByFrequency("Programming")}`)
+//"rrggmmPoain"
 //'r', 'g', and 'm' appeared twice, so they need to appear before any other character.
 
-console.log('string after sorting characters by frequency: ${sortCharacterByFrequency("abcbab")}`)
+console.log(`string after sorting characters by frequency: ${sortCharacterByFrequency("abcbab")}`)
 //"bbbaac"
 //'b' appeared three times, 'a' appeared twice, and 'c' appeared only once.
 ```
@@ -691,9 +691,10 @@ https://leetcode.com/problems/rearrange-string-k-distance-apart/
 function rearrangeString(str, k) {
   if (str.length < 2 || !k) return str;
   const buckets = [];
-  let a = 'a'.charCodeAt(0);
+  //index the buckets by the raw char code so that any character
+  //(not just lowercase 'a'-'z') maps to a valid bucket index
   for (let i = 0; i < str.length; i++) {
-    let key = str.charCodeAt(i) - a;
+    let key = str.charCodeAt(i);
     buckets[key] = (buckets[key] || 0) + 1;
   }
   let res = '';
@@ -710,7 +711,7 @@ function rearrangeString(str, k) {
       }
     }
     if (maxIndex === -1) return '';
-    res += String.fromCharCode(a + maxIndex);
+    res += String.fromCharCode(maxIndex);
     buckets[maxIndex]--;
     added[maxIndex] = 1;
     if (++added.length === k) added = { length: 0 };
@@ -742,7 +743,7 @@ console.log(`Reorganized string: ${rearrangeString('aab', 2)}`);
 //"aba"
 //All same characters are 2 distance apart.
 
-`console.log(`Reorganized string: ${rearrangeString('aapa', 3)}`);
+console.log(`Reorganized string: ${rearrangeString('aapa', 3)}`);
 //""
 //We cannot find an arrangement of the string where any two 'a' are 3 distance apart.
 ```
@@ -875,12 +876,12 @@ class Heap {
     while (true) {
       const startIndex = index * 2 + 1;
       const endIndex = index * 2 + 2;
-      let findIndex = ind;
+      let findIndex = index;
       if (
         startIndex <= lastIndex &&
         this.comparator(this.data[startIndex], this.data[findIndex]) < 0
       ) {
-        findIndex = starttIndex;
+        findIndex = startIndex;
       }
       if (
         endIndex <= lastIndex &&

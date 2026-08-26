@@ -238,19 +238,18 @@ class Heap {
 		return max;
 	}
 
-	bubbleUp() {
-		let index = this.values.length - 1;
+	bubbleUp(index = this.values.length - 1) {
 		let parent = Math.floor((index - 1) / 2);
 
-		while (this.comparator(this.values[index], this.values[parent]) < 0) {
+		while (index > 0 && this.comparator(this.values[index], this.values[parent]) < 0) {
 			[this.values[parent], this.values[index]] = [this.values[index], this.values[parent]];
 			index = parent;
 			parent = Math.floor((index - 1) / 2);
 		}
 	}
 
-	bubbleDown() {
-		let index = 0, length = this.values.length;
+	bubbleDown(index = 0) {
+		let length = this.values.length;
 
 		while (true) {
 			let left = null,
@@ -277,17 +276,15 @@ class Heap {
 		}
 	}
   remove(value) {
-    let idx;
-    for (let i of this.index[value]) {
-      idx = i;
-      break;
+    const idx = this.values.indexOf(value);
+    if (idx === -1) return;
+    this.size--;
+    const end = this.values.pop();
+    if (idx < this.values.length) {
+      this.values[idx] = end;
+      this.bubbleUp(idx);
+      this.bubbleDown(idx);
     }
-    this.index[value].delete(idx);
-    if (idx === this.values.length - 1) return this.value.pop();
-    this.values[idx] = this.value.pop()
-    this.idxs[this.values[idx]].delete(this.value.length);
-    this.idxs[this.store[idx]].add(idx);
-    this.heapifyDown(this.heapifyUp(idx));
   }
 }
 
@@ -314,9 +311,9 @@ class SlidingWindowMedian {
     // either both the heaps will have equal number of elements or max-heap will have
     // one more element than the min-heap
     if (this.maxHeap.size > this.minHeap.size + 1) {
-      this.minHeap.add(this.maxHeap.values.pop());
+      this.minHeap.add(this.maxHeap.poll());
     } else if (this.maxHeap.size < this.minHeap.size) {
-      this.maxHeap.add(this.minHeap.values.pop());
+      this.maxHeap.add(this.minHeap.poll());
     }
   }
 
@@ -342,10 +339,10 @@ class SlidingWindowMedian {
       if(i - k + 1 >= 0){
          //if we have at least k elements in the sliding window
         //then add the median to the result array
-        if(this.maxHeap.size() === this.minHeap.size()){
+        if(this.maxHeap.size === this.minHeap.size){
           //we have an enven number of elements
           //take the average of middle two elements
-          result[i - k + 1] = (this.maxHeap.peek() + this.min.Heap.peek())/2
+          result[i - k + 1] = (this.maxHeap.peek() + this.minHeap.peek())/2
         } else {
           //because maxHeap will have one more element than the minHeap
           result[i - k + 1] = this.maxHeap.peek()
@@ -369,7 +366,7 @@ class SlidingWindowMedian {
 
 
 
-const slidingWindowMedian = new SlidingWindowMedian()
+let slidingWindowMedian = new SlidingWindowMedian()
 let result = slidingWindowMedian.findSlidingWindowMedian(
   [1, 2, -1, 3, 5], 2)
 console.log(`Sliding window medians are: ${result}`)//[1.5, 0.5, 1.0, 4.0]
@@ -478,19 +475,18 @@ class Heap {
 		return max;
 	}
 
-	bubbleUp() {
-		let index = this.values.length - 1;
+	bubbleUp(index = this.values.length - 1) {
 		let parent = Math.floor((index - 1) / 2);
 
-		while (this.comparator(this.values[index], this.values[parent]) < 0) {
+		while (index > 0 && this.comparator(this.values[index], this.values[parent]) < 0) {
 			[this.values[parent], this.values[index]] = [this.values[index], this.values[parent]];
 			index = parent;
 			parent = Math.floor((index - 1) / 2);
 		}
 	}
 
-	bubbleDown() {
-		let index = 0, length = this.values.length;
+	bubbleDown(index = 0) {
+		let length = this.values.length;
 
 		while (true) {
 			let left = null,
@@ -516,18 +512,16 @@ class Heap {
 			index = swap;
 		}
 	}
-   remove(value) {
-    let idx;
-    for (let i of this.index[value]) {
-      idx = i;
-      break;
+  remove(value) {
+    const idx = this.values.indexOf(value);
+    if (idx === -1) return;
+    this.size--;
+    const end = this.values.pop();
+    if (idx < this.values.length) {
+      this.values[idx] = end;
+      this.bubbleUp(idx);
+      this.bubbleDown(idx);
     }
-    this.index[value].delete(idx);
-    if (idx === this.values.length - 1) return this.value.pop();
-    this.values[idx] = this.value.pop()
-    this.idxs[this.values[idx]].delete(this.value.length);
-    this.idxs[this.store[idx]].add(idx);
-    this.heapifyDown(this.heapifyUp(idx));
   }
 }
 
@@ -543,8 +537,11 @@ Heap.maxComparator = (a, b) => { return b - a; }
 ````
 ````js
 function findMaximumCapital(capital, profits, numberOfProjects, initialCapital) {
-  const minCapitalHeap = new Heap(Heap.minComparator);
-  const maxProfitHeap = new Heap(Heap.maxComparator);
+  // capital/profit pairs are stored as [value, index] tuples, so the heaps
+  // need to compare on the tuple's first element rather than the shared
+  // Heap.minComparator/Heap.maxComparator (which compare plain numbers)
+  const minCapitalHeap = new Heap((a, b) => a[0] - b[0]);
+  const maxProfitHeap = new Heap((a, b) => b[0] - a[0]);
 
   // insert all project capitals to a min-heap
   for (i = 0; i < profits.length; i++) {
@@ -556,7 +553,7 @@ function findMaximumCapital(capital, profits, numberOfProjects, initialCapital) 
   for (i = 0; i < numberOfProjects; i++) {
     // find all projects that can be selected within the available capital and insert them in a max-heap
     while (minCapitalHeap.size > 0 && minCapitalHeap.peek()[0] <= availableCapital) {
-      const [capital, index] = minCapitalHeap.values.pop();
+      const [capital, index] = minCapitalHeap.poll();
       maxProfitHeap.add([profits[index], index]);
     }
 
@@ -566,7 +563,7 @@ function findMaximumCapital(capital, profits, numberOfProjects, initialCapital) 
     }
 
     // select the project with the maximum profit
-    availableCapital += maxProfitHeap.pop()[0];
+    availableCapital += maxProfitHeap.poll()[0];
   }
 
   return availableCapital;
