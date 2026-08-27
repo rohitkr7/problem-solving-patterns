@@ -218,43 +218,49 @@ Take the larger. Then fold the result into a separate `maxSoFar`. The greedy ins
 
 The bug that catches almost everyone: initializing `maxSoFar = 0`. On an <b>all-negative</b> array that returns `0`, which corresponds to the empty subarray — but the problem demands <i>at least one number</i>, so the true answer is the largest single element. Seed both running values with `nums[0]` and start the loop at `i = 1`, and the all-negative case falls out for free.
 
-````js
-function maxSubArray(nums) {
-  if (nums == null || nums.length === 0) return 0
+```java
+import java.util.*;
 
-  //seed BOTH running values with the first element, never with 0
-  let maxEndingHere = nums[0]
-  let maxSoFar = nums[0]
+class Solution {
+    public static int maxSubArray(int[] nums) {
+        if (nums == null || nums.length == 0) return 0;
 
-  for (let i = 1; i < nums.length; i++) {
-    //greedy choice: either extend the previous subarray or start fresh at nums[i]
-    maxEndingHere = Math.max(nums[i], maxEndingHere + nums[i])
-    maxSoFar = Math.max(maxSoFar, maxEndingHere)
-  }
-  return maxSoFar
+        //seed BOTH running values with the first element, never with 0
+        int maxEndingHere = nums[0];
+        int maxSoFar = nums[0];
+
+        for (int i = 1; i < nums.length; i++) {
+            //greedy choice: either extend the previous subarray or start fresh at nums[i]
+            maxEndingHere = Math.max(nums[i], maxEndingHere + nums[i]);
+            maxSoFar = Math.max(maxSoFar, maxEndingHere);
+        }
+        return maxSoFar;
+    }
+
+    public static void main(String[] args) {
+        System.out.println(maxSubArray(new int[]{-2, 1, -3, 4, -1, 2, 1, -5, 4}));
+        //6
+        //The subarray [4, -1, 2, 1] has the largest sum.
+
+        System.out.println(maxSubArray(new int[]{1}));
+        //1
+
+        System.out.println(maxSubArray(new int[]{5, 4, -1, 7, 8}));
+        //23
+        //The whole array is the answer; the -1 dip is worth paying for.
+
+        System.out.println(maxSubArray(new int[]{-3, -1, -7, -4}));
+        //-1
+        //ALL NEGATIVE: the answer is the largest single element, NOT 0.
+
+        System.out.println(maxSubArray(new int[]{-1}));
+        //-1
+
+        System.out.println(maxSubArray(new int[]{-2, -1}));
+        //-1
+    }
 }
-
-console.log(maxSubArray([-2, 1, -3, 4, -1, 2, 1, -5, 4]))
-//6
-//The subarray [4, -1, 2, 1] has the largest sum.
-
-console.log(maxSubArray([1]))
-//1
-
-console.log(maxSubArray([5, 4, -1, 7, 8]))
-//23
-//The whole array is the answer; the -1 dip is worth paying for.
-
-console.log(maxSubArray([-3, -1, -7, -4]))
-//-1
-//ALL NEGATIVE: the answer is the largest single element, NOT 0.
-
-console.log(maxSubArray([-1]))
-//-1
-
-console.log(maxSubArray([-2, -1]))
-//-1
-````
+```
 
 - The <b>time complexity</b> of the above algorithm is `O(N)`, where `N` is the number of elements in `nums`, since we touch every element exactly once.
 - The algorithm runs in constant space `O(1)` — we keep two scalars regardless of input size.
@@ -272,47 +278,53 @@ The key observation: since `nums[i]` is a <i>maximum</i> and not a fixed distanc
 
 Watch the single-element case: `[0]` is `true`, because we start on the last index and are already done without jumping at all.
 
-````js
-function canJump(nums) {
-  if (nums == null || nums.length === 0) return false
+```java
+import java.util.*;
 
-  //the furthest index we know we can reach
-  let farthest = 0
+class Solution {
+    public static boolean canJump(int[] nums) {
+        if (nums == null || nums.length == 0) return false;
 
-  for (let i = 0; i < nums.length; i++) {
-    if (i > farthest) {
-      //we fell into a hole: i is past everything reachable
-      return false
+        //the furthest index we know we can reach
+        int farthest = 0;
+
+        for (int i = 0; i < nums.length; i++) {
+            if (i > farthest) {
+                //we fell into a hole: i is past everything reachable
+                return false;
+            }
+            farthest = Math.max(farthest, i + nums[i]);
+
+            if (farthest >= nums.length - 1) return true;
+        }
+        return true;
     }
-    farthest = Math.max(farthest, i + nums[i])
 
-    if (farthest >= nums.length - 1) return true
-  }
-  return true
+    public static void main(String[] args) {
+        System.out.println(canJump(new int[]{2, 3, 1, 1, 4}));
+        //true
+        //Jump 1 step to index 1, then 3 steps to the last index.
+
+        System.out.println(canJump(new int[]{3, 2, 1, 0, 4}));
+        //false
+        //Whatever we do we land on index 3, which holds a 0 and traps us.
+
+        System.out.println(canJump(new int[]{0}));
+        //true
+        //SINGLE ELEMENT: we already start on the last index, so no jump is needed.
+
+        System.out.println(canJump(new int[]{0, 1}));
+        //false
+        //A leading 0 with more array left is an immediate dead end.
+
+        System.out.println(canJump(new int[]{2, 0, 0}));
+        //true
+
+        System.out.println(canJump(new int[]{1, 0, 1, 0}));
+        //false
+    }
 }
-
-console.log(canJump([2, 3, 1, 1, 4]))
-//true
-//Jump 1 step to index 1, then 3 steps to the last index.
-
-console.log(canJump([3, 2, 1, 0, 4]))
-//false
-//Whatever we do we land on index 3, which holds a 0 and traps us.
-
-console.log(canJump([0]))
-//true
-//SINGLE ELEMENT: we already start on the last index, so no jump is needed.
-
-console.log(canJump([0, 1]))
-//false
-//A leading 0 with more array left is an immediate dead end.
-
-console.log(canJump([2, 0, 0]))
-//true
-
-console.log(canJump([1, 0, 1, 0]))
-//false
-````
+```
 
 - The <b>time complexity</b> of the above algorithm is `O(N)`, where `N` is the number of elements in `nums`, as we scan the array once.
 - The algorithm runs in constant space `O(1)`.
@@ -330,52 +342,58 @@ The whole point is that we never need an actual queue. Because reachability is c
 
 The subtle detail is the loop bound `i < n - 1`. Stopping one short of the end prevents an off-by-one where standing on the last index triggers a spurious extra jump.
 
-````js
-function minJumps(nums) {
-  if (nums == null || nums.length < 2) return 0
+```java
+import java.util.*;
 
-  const n = nums.length
-  let jumps = 0
-  let currentLevelEnd = 0
-  let farthest = 0
+class Solution {
+    public static int minJumps(int[] nums) {
+        if (nums == null || nums.length < 2) return 0;
 
-  //we stop at n-2: once we are standing on the last index we are done
-  for (let i = 0; i < n - 1; i++) {
-    //widen the next level with everything reachable from i
-    farthest = Math.max(farthest, i + nums[i])
+        int n = nums.length;
+        int jumps = 0;
+        int currentLevelEnd = 0;
+        int farthest = 0;
 
-    if (i === currentLevelEnd) {
-      //we have consumed the whole current level, so spend one jump
-      jumps++
-      currentLevelEnd = farthest
+        //we stop at n-2: once we are standing on the last index we are done
+        for (int i = 0; i < n - 1; i++) {
+            //widen the next level with everything reachable from i
+            farthest = Math.max(farthest, i + nums[i]);
 
-      if (currentLevelEnd >= n - 1) break
+            if (i == currentLevelEnd) {
+                //we have consumed the whole current level, so spend one jump
+                jumps++;
+                currentLevelEnd = farthest;
+
+                if (currentLevelEnd >= n - 1) break;
+            }
+        }
+        return jumps;
     }
-  }
-  return jumps
+
+    public static void main(String[] args) {
+        System.out.println(minJumps(new int[]{2, 3, 1, 1, 4}));
+        //2
+        //Jump 1 step to index 1, then 3 steps to the last index.
+
+        System.out.println(minJumps(new int[]{2, 3, 0, 1, 4}));
+        //2
+
+        System.out.println(minJumps(new int[]{1, 1, 1, 1}));
+        //3
+        //Every jump covers exactly one index, so we need n-1 of them.
+
+        System.out.println(minJumps(new int[]{1, 2}));
+        //1
+
+        System.out.println(minJumps(new int[]{0}));
+        //0
+        //SINGLE ELEMENT: we are already at the last index, so zero jumps.
+
+        System.out.println(minJumps(new int[]{5, 1, 1, 1, 1, 1}));
+        //1
+    }
 }
-
-console.log(minJumps([2, 3, 1, 1, 4]))
-//2
-//Jump 1 step to index 1, then 3 steps to the last index.
-
-console.log(minJumps([2, 3, 0, 1, 4]))
-//2
-
-console.log(minJumps([1, 1, 1, 1]))
-//3
-//Every jump covers exactly one index, so we need n-1 of them.
-
-console.log(minJumps([1, 2]))
-//1
-
-console.log(minJumps([0]))
-//0
-//SINGLE ELEMENT: we are already at the last index, so zero jumps.
-
-console.log(minJumps([5, 1, 1, 1, 1, 1]))
-//1
-````
+```
 
 - The <b>time complexity</b> of the above algorithm is `O(N)`, where `N` is the number of elements in `nums`. Each index is visited once even though we are conceptually running a BFS, because the levels are contiguous and never revisited.
 - The algorithm runs in constant space `O(1)` — this is the payoff for compressing the BFS queue into two integers.
@@ -395,50 +413,56 @@ Why? Take any intermediate station `k` with `start < k <= i`. We know that when 
 
 That is a proper exchange-style argument, and it is what makes the single pass legitimate rather than lucky. It also explains why we reset `tank = 0` but keep `totalSurplus` accumulating: `tank` is the simulation of the <i>current</i> candidate, while `totalSurplus` is the global feasibility test from Claim 1, which must see every station exactly once.
 
-````js
-function canCompleteCircuit(gas, cost) {
-  let totalSurplus = 0
-  let tank = 0
-  let start = 0
+```java
+import java.util.*;
 
-  for (let i = 0; i < gas.length; i++) {
-    const gain = gas[i] - cost[i]
+class Solution {
+    public static int canCompleteCircuit(int[] gas, int[] cost) {
+        int totalSurplus = 0;
+        int tank = 0;
+        int start = 0;
 
-    totalSurplus += gain
-    tank += gain
+        for (int i = 0; i < gas.length; i++) {
+            int gain = gas[i] - cost[i];
 
-    if (tank < 0) {
-      //every station from start..i is disqualified, so restart at i+1
-      start = i + 1
-      tank = 0
+            totalSurplus += gain;
+            tank += gain;
+
+            if (tank < 0) {
+                //every station from start..i is disqualified, so restart at i+1
+                start = i + 1;
+                tank = 0;
+            }
+        }
+        //a tour exists only if the whole loop produces at least as much gas as it burns
+        return totalSurplus >= 0 ? start : -1;
     }
-  }
-  //a tour exists only if the whole loop produces at least as much gas as it burns
-  return totalSurplus >= 0 ? start : -1
+
+    public static void main(String[] args) {
+        System.out.println(canCompleteCircuit(new int[]{1, 2, 3, 4, 5}, new int[]{3, 4, 5, 1, 2}));
+        //3
+        //Starting at index 3 is the only way around the circle.
+
+        System.out.println(canCompleteCircuit(new int[]{2, 3, 4}, new int[]{3, 4, 3}));
+        //-1
+        //IMPOSSIBLE CASE: total gas is 9 but total cost is 10, so no start works.
+
+        System.out.println(canCompleteCircuit(new int[]{5}, new int[]{4}));
+        //0
+
+        System.out.println(canCompleteCircuit(new int[]{3}, new int[]{4}));
+        //-1
+        //IMPOSSIBLE CASE: a single station that cannot even reach itself.
+
+        System.out.println(canCompleteCircuit(new int[]{3, 1, 1}, new int[]{1, 2, 2}));
+        //0
+
+        System.out.println(canCompleteCircuit(new int[]{1, 1, 1}, new int[]{1, 1, 1}));
+        //0
+        //Exactly break-even, which still counts as completable.
+    }
 }
-
-console.log(canCompleteCircuit([1, 2, 3, 4, 5], [3, 4, 5, 1, 2]))
-//3
-//Starting at index 3 is the only way around the circle.
-
-console.log(canCompleteCircuit([2, 3, 4], [3, 4, 3]))
-//-1
-//IMPOSSIBLE CASE: total gas is 9 but total cost is 10, so no start works.
-
-console.log(canCompleteCircuit([5], [4]))
-//0
-
-console.log(canCompleteCircuit([3], [4]))
-//-1
-//IMPOSSIBLE CASE: a single station that cannot even reach itself.
-
-console.log(canCompleteCircuit([3, 1, 1], [1, 2, 2]))
-//0
-
-console.log(canCompleteCircuit([1, 1, 1], [1, 1, 1]))
-//0
-//Exactly break-even, which still counts as completable.
-````
+```
 
 - The <b>time complexity</b> of the above algorithm is `O(N)`, where `N` is the number of gas stations, since we make a single pass and never re-simulate a discarded prefix.
 - The algorithm runs in constant space `O(1)`.
@@ -456,51 +480,57 @@ When can we cut? A part is valid only if no letter inside it appears anywhere la
 
 Notice that the extending step is the exact same `end = max(end, ...)` frontier move as <b>Jump Game</b>, and the cut condition `i === end` is the same "level exhausted" test as <b>Jump Game II</b>. Once you see the frontier shape you see it everywhere.
 
-````js
-function partitionLabels(s) {
-  if (s == null || s.length === 0) return []
+```java
+import java.util.*;
 
-  //last index at which each character appears
-  const lastIndex = {}
-  for (let i = 0; i < s.length; i++) {
-    lastIndex[s[i]] = i
-  }
+class Solution {
+    public static List<Integer> partitionLabels(String s) {
+        if (s == null || s.length() == 0) return new ArrayList<>();
 
-  const result = []
-  let start = 0
-  let end = 0
+        //last index at which each character appears
+        int[] lastIndex = new int[26];
+        for (int i = 0; i < s.length(); i++) {
+            lastIndex[s.charAt(i) - 'a'] = i;
+        }
 
-  for (let i = 0; i < s.length; i++) {
-    //the current piece must stretch at least as far as this character's last home
-    end = Math.max(end, lastIndex[s[i]])
+        List<Integer> result = new ArrayList<>();
+        int start = 0;
+        int end = 0;
 
-    if (i === end) {
-      //nothing inside [start..end] reappears later, so cut here
-      result.push(end - start + 1)
-      start = i + 1
+        for (int i = 0; i < s.length(); i++) {
+            //the current piece must stretch at least as far as this character's last home
+            end = Math.max(end, lastIndex[s.charAt(i) - 'a']);
+
+            if (i == end) {
+                //nothing inside [start..end] reappears later, so cut here
+                result.add(end - start + 1);
+                start = i + 1;
+            }
+        }
+        return result;
     }
-  }
-  return result
+
+    public static void main(String[] args) {
+        System.out.println(partitionLabels("ababcbacadefegdehijhklij"));
+        //[ 9, 7, 8 ]
+        //The parts are "ababcbaca", "defegde", "hijhklij".
+
+        System.out.println(partitionLabels("eccbbbbdec"));
+        //[ 10 ]
+        //The trailing 'c' and 'e' force the whole string into one part.
+
+        System.out.println(partitionLabels("a"));
+        //[ 1 ]
+
+        System.out.println(partitionLabels("abcdef"));
+        //[ 1, 1, 1, 1, 1, 1 ]
+        //All characters are distinct, so every one of them is its own part.
+
+        System.out.println(partitionLabels("abac"));
+        //[ 3, 1 ]
+    }
 }
-
-console.log(partitionLabels('ababcbacadefegdehijhklij'))
-//[ 9, 7, 8 ]
-//The parts are "ababcbaca", "defegde", "hijhklij".
-
-console.log(partitionLabels('eccbbbbdec'))
-//[ 10 ]
-//The trailing 'c' and 'e' force the whole string into one part.
-
-console.log(partitionLabels('a'))
-//[ 1 ]
-
-console.log(partitionLabels('abcdef'))
-//[ 1, 1, 1, 1, 1, 1 ]
-//All characters are distinct, so every one of them is its own part.
-
-console.log(partitionLabels('abac'))
-//[ 3, 1 ]
-````
+```
 
 - The <b>time complexity</b> of the above algorithm is `O(N)`, where `N` is the length of `s`. We make two passes over the string, and both are linear.
 - The <b>space complexity</b> is `O(1)` if the alphabet is fixed — the `lastIndex` map holds at most 26 entries for lowercase input — or `O(K)` in general, where `K` is the size of the character set. The output list is not counted.
@@ -524,46 +554,52 @@ Then sweep: keep the first interval, and keep each subsequent interval whose `st
 
 This is worth contrasting with <b>Pattern 04</b> directly: there we sorted on `startTime` because we were <i>merging</i> intervals into their union, and start order is what makes a single left-to-right merge sweep work. Here we are <i>selecting</i> a subset, and the resource being consumed is the timeline going forward — so the right key is whichever interval releases that resource earliest. Same pattern family, opposite sort key, and interviewers love the distinction.
 
-````js
-function eraseOverlapIntervals(intervals) {
-  if (intervals == null || intervals.length < 2) return 0
+```java
+import java.util.*;
 
-  //sort on endTime: the interval that frees the timeline soonest comes first
-  intervals.sort((a, b) => a[1] - b[1])
+class Solution {
+    public static int eraseOverlapIntervals(int[][] intervals) {
+        if (intervals == null || intervals.length < 2) return 0;
 
-  let kept = 1
-  let lastEnd = intervals[0][1]
+        //sort on endTime: the interval that frees the timeline soonest comes first
+        Arrays.sort(intervals, (a, b) -> Integer.compare(a[1], b[1]));
 
-  for (let i = 1; i < intervals.length; i++) {
-    if (intervals[i][0] >= lastEnd) {
-      //no overlap with the last interval we kept, so keep this one too
-      kept++
-      lastEnd = intervals[i][1]
+        int kept = 1;
+        int lastEnd = intervals[0][1];
+
+        for (int i = 1; i < intervals.length; i++) {
+            if (intervals[i][0] >= lastEnd) {
+                //no overlap with the last interval we kept, so keep this one too
+                kept++;
+                lastEnd = intervals[i][1];
+            }
+            //otherwise we simply drop intervals[i] -- it is the removal we are counting
+        }
+        return intervals.length - kept;
     }
-    //otherwise we simply drop intervals[i] -- it is the removal we are counting
-  }
-  return intervals.length - kept
+
+    public static void main(String[] args) {
+        System.out.println(eraseOverlapIntervals(new int[][]{{1, 2}, {2, 3}, {3, 4}, {1, 3}}));
+        //1
+        //Removing [1,3] leaves [1,2], [2,3], [3,4] non-overlapping.
+
+        System.out.println(eraseOverlapIntervals(new int[][]{{1, 2}, {1, 2}, {1, 2}}));
+        //2
+        //Two of the three identical intervals must go.
+
+        System.out.println(eraseOverlapIntervals(new int[][]{{1, 2}, {2, 3}}));
+        //0
+        //Touching endpoints do not count as an overlap.
+
+        System.out.println(eraseOverlapIntervals(new int[][]{{1, 100}, {11, 22}, {1, 11}, {2, 12}}));
+        //2
+        //Sorting by endTime keeps [1,11] and [11,22]; the greedy sort key is the whole trick here.
+
+        System.out.println(eraseOverlapIntervals(new int[][]{{1, 2}}));
+        //0
+    }
 }
-
-console.log(eraseOverlapIntervals([[1, 2], [2, 3], [3, 4], [1, 3]]))
-//1
-//Removing [1,3] leaves [1,2], [2,3], [3,4] non-overlapping.
-
-console.log(eraseOverlapIntervals([[1, 2], [1, 2], [1, 2]]))
-//2
-//Two of the three identical intervals must go.
-
-console.log(eraseOverlapIntervals([[1, 2], [2, 3]]))
-//0
-//Touching endpoints do not count as an overlap.
-
-console.log(eraseOverlapIntervals([[1, 100], [11, 22], [1, 11], [2, 12]]))
-//2
-//Sorting by endTime keeps [1,11] and [11,22]; the greedy sort key is the whole trick here.
-
-console.log(eraseOverlapIntervals([[1, 2]]))
-//0
-````
+```
 
 - The <b>time complexity</b> of the above algorithm is `O(N * logN)`, where `N` is the number of intervals. The sweep itself is `O(N)`, but the sort dominates.
 - The <b>space complexity</b> is `O(N)` for the sort, or `O(logN)` for an in-place sort implementation. We allocate nothing ourselves.
@@ -588,58 +624,69 @@ The resolution is a <b>two-pass sweep</b>. Each child sits under two independent
 
 That last argument is the general shape for two-pass greedy: <b>show each element's final value equals the maximum of its independent lower bounds.</b> When that holds, no coordination between elements is needed and DP is unnecessary.
 
-````js
-function candy(ratings) {
-  if (ratings == null || ratings.length === 0) return 0
+```java
+import java.util.*;
 
-  const n = ratings.length
-  //everybody is entitled to one candy
-  const candies = new Array(n).fill(1)
+class Solution {
+    public static int candy(int[] ratings) {
+        if (ratings == null || ratings.length == 0) return 0;
 
-  //pass 1, left to right: satisfy every "higher than my left neighbour" rule
-  for (let i = 1; i < n; i++) {
-    if (ratings[i] > ratings[i - 1]) {
-      candies[i] = candies[i - 1] + 1
+        int n = ratings.length;
+        //everybody is entitled to one candy
+        int[] candies = new int[n];
+        Arrays.fill(candies, 1);
+
+        //pass 1, left to right: satisfy every "higher than my left neighbour" rule
+        for (int i = 1; i < n; i++) {
+            if (ratings[i] > ratings[i - 1]) {
+                candies[i] = candies[i - 1] + 1;
+            }
+        }
+
+        //pass 2, right to left: satisfy the mirror rule without breaking pass 1
+        for (int i = n - 2; i >= 0; i--) {
+            if (ratings[i] > ratings[i + 1]) {
+                candies[i] = Math.max(candies[i], candies[i + 1] + 1);
+            }
+        }
+
+        int total = 0;
+        for (int c : candies) {
+            total += c;
+        }
+        return total;
     }
-  }
 
-  //pass 2, right to left: satisfy the mirror rule without breaking pass 1
-  for (let i = n - 2; i >= 0; i--) {
-    if (ratings[i] > ratings[i + 1]) {
-      candies[i] = Math.max(candies[i], candies[i + 1] + 1)
+    public static void main(String[] args) {
+        System.out.println(candy(new int[]{1, 0, 2}));
+        //5
+        //The distribution is [2, 1, 2].
+
+        System.out.println(candy(new int[]{1, 2, 2}));
+        //4
+        //The distribution is [1, 2, 1]; the third child ties the second, so it gets the minimum.
+
+        System.out.println(candy(new int[]{1, 3, 2, 2, 1}));
+        //7
+        //The distribution is [1, 2, 1, 2, 1].
+
+        System.out.println(candy(new int[]{1}));
+        //1
+
+        System.out.println(candy(new int[]{1, 2, 3, 4, 5}));
+        //15
+        //A pure ascent needs 1+2+3+4+5.
+
+        System.out.println(candy(new int[]{5, 4, 3, 2, 1}));
+        //15
+        //A pure descent needs the same total, but only the backward pass discovers it.
+
+        System.out.println(candy(new int[]{2, 2, 2}));
+        //3
+        //Equal ratings impose no constraint at all, so everyone gets the floor of 1.
     }
-  }
-
-  return candies.reduce((total, c) => total + c, 0)
 }
-
-console.log(candy([1, 0, 2]))
-//5
-//The distribution is [2, 1, 2].
-
-console.log(candy([1, 2, 2]))
-//4
-//The distribution is [1, 2, 1]; the third child ties the second, so it gets the minimum.
-
-console.log(candy([1, 3, 2, 2, 1]))
-//7
-//The distribution is [1, 2, 1, 2, 1].
-
-console.log(candy([1]))
-//1
-
-console.log(candy([1, 2, 3, 4, 5]))
-//15
-//A pure ascent needs 1+2+3+4+5.
-
-console.log(candy([5, 4, 3, 2, 1]))
-//15
-//A pure descent needs the same total, but only the backward pass discovers it.
-
-console.log(candy([2, 2, 2]))
-//3
-//Equal ratings impose no constraint at all, so everyone gets the floor of 1.
-````
+```
 
 - The <b>time complexity</b> of the above algorithm is `O(N)`, where `N` is the number of children. We make three linear passes — forward, backward, and the sum — which is still `O(N)`.
 - The <b>space complexity</b> is `O(N)` for the `candies` array. Unlike the running-frontier problems above, a two-pass sweep needs to remember its first pass, so constant space is not available here.

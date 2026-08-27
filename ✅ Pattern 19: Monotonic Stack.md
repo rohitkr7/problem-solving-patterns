@@ -8,26 +8,33 @@ The <b>brute-force</b> algorithm is the obvious one: stand on each element and s
 
 ![](./images/monotonic_stack.jpg)
 
-````js
-function nextGreaterBruteForce(arr) {
-  const result = new Array(arr.length).fill(-1)
+```java
+import java.util.Arrays;
 
-  for (let i = 0; i < arr.length; i++) {
-    //scan forward looking for the first bigger number
-    for (let j = i + 1; j < arr.length; j++) {
-      if (arr[j] > arr[i]) {
-        result[i] = arr[j]
-        break
-      }
+class Solution {
+    public static int[] nextGreaterBruteForce(int[] arr) {
+        int[] result = new int[arr.length];
+        Arrays.fill(result, -1);
+
+        for (int i = 0; i < arr.length; i++) {
+            //scan forward looking for the first bigger number
+            for (int j = i + 1; j < arr.length; j++) {
+                if (arr[j] > arr[i]) {
+                    result[i] = arr[j];
+                    break;
+                }
+            }
+        }
+
+        return result;
     }
-  }
 
-  return result
+    public static void main(String[] args) {
+        System.out.println(Arrays.toString(nextGreaterBruteForce(new int[]{2, 1, 2, 4, 3}))); //[4, 2, 4, -1, -1]
+        System.out.println(Arrays.toString(nextGreaterBruteForce(new int[]{5, 4, 3, 2, 1}))); //[-1, -1, -1, -1, -1]
+    }
 }
-
-console.log(JSON.stringify(nextGreaterBruteForce([2, 1, 2, 4, 3])))//[4,2,4,-1,-1]
-console.log(JSON.stringify(nextGreaterBruteForce([5, 4, 3, 2, 1])))//[-1,-1,-1,-1,-1]
-````
+```
 
 <b>Time complexity: </b> the inner scan can run to the end of the array for every element, so the time complexity is `O(N^2)`, where `N` is the number of elements in the input array. On a strictly decreasing array like `[5, 4, 3, 2, 1]` we do the full quadratic work and find nothing at all.
 
@@ -73,42 +80,52 @@ We want the <b>next greater</b> element, so by the rule above we pop while the s
 
 For this problem the stack can hold plain values, because the answer is a value and no distance arithmetic is involved.
 
-````js
-function nextGreaterElement(nums1, nums2) {
-  //value -> its next greater element inside nums2
-  const nextGreater = new Map()
+```java
+import java.util.*;
 
-  //the stack holds values in DECREASING order
-  const stack = []
+class Solution {
+    public static int[] nextGreaterElement(int[] nums1, int[] nums2) {
+        //value -> its next greater element inside nums2
+        Map<Integer, Integer> nextGreater = new HashMap<>();
 
-  for (let i = 0; i < nums2.length; i++) {
-    const current = nums2[i]
+        //the stack holds values in DECREASING order
+        Deque<Integer> stack = new ArrayDeque<>();
 
-    //current breaks the decreasing order, so it is the answer
-    //for every smaller value still waiting on the stack
-    while (stack.length > 0 && stack[stack.length - 1] < current) {
-      const smaller = stack.pop()
-      nextGreater.set(smaller, current)
+        for (int i = 0; i < nums2.length; i++) {
+            int current = nums2[i];
+
+            //current breaks the decreasing order, so it is the answer
+            //for every smaller value still waiting on the stack
+            while (!stack.isEmpty() && stack.peek() < current) {
+                int smaller = stack.pop();
+                nextGreater.put(smaller, current);
+            }
+
+            stack.push(current);
+        }
+
+        //whatever is left never found anything greater to its right
+        while (!stack.isEmpty()) {
+            nextGreater.put(stack.pop(), -1);
+        }
+
+        //nums1 is a subset of nums2, so every lookup is a hit
+        int[] result = new int[nums1.length];
+        for (int i = 0; i < nums1.length; i++) {
+            result[i] = nextGreater.get(nums1[i]);
+        }
+        return result;
     }
 
-    stack.push(current)
-  }
-
-  //whatever is left never found anything greater to its right
-  while (stack.length > 0) {
-    nextGreater.set(stack.pop(), -1)
-  }
-
-  //nums1 is a subset of nums2, so every lookup is a hit
-  return nums1.map((num) => nextGreater.get(num))
+    public static void main(String[] args) {
+        System.out.println(Arrays.toString(nextGreaterElement(new int[]{4, 1, 2}, new int[]{1, 3, 4, 2}))); //[-1, 3, -1]
+        System.out.println(Arrays.toString(nextGreaterElement(new int[]{2, 4}, new int[]{1, 2, 3, 4}))); //[3, -1]
+        System.out.println(Arrays.toString(nextGreaterElement(new int[]{1, 3, 5, 2, 4}, new int[]{6, 5, 4, 3, 2, 1, 7}))); //[7, 7, 7, 7, 7]
+        System.out.println(Arrays.toString(nextGreaterElement(new int[]{5}, new int[]{5}))); //[-1]
+        System.out.println(Arrays.toString(nextGreaterElement(new int[]{}, new int[]{1, 2, 3}))); //[]
+    }
 }
-
-console.log(JSON.stringify(nextGreaterElement([4, 1, 2], [1, 3, 4, 2])))//[-1,3,-1]
-console.log(JSON.stringify(nextGreaterElement([2, 4], [1, 2, 3, 4])))//[3,-1]
-console.log(JSON.stringify(nextGreaterElement([1, 3, 5, 2, 4], [6, 5, 4, 3, 2, 1, 7])))//[7,7,7,7,7]
-console.log(JSON.stringify(nextGreaterElement([5], [5])))//[-1]
-console.log(JSON.stringify(nextGreaterElement([], [1, 2, 3])))//[]
-````
+```
 
 That third example is the one that shows off the pattern. `nums2` is `[6, 5, 4, 3, 2, 1, 7]`, so the stack grows to hold all six decreasing values, and then the single arrival of `7` pops all six in one burst. The <b>brute force</b> would have walked the tail of the array six separate times.
 
@@ -128,38 +145,45 @@ The only thing the circularity changes is what happens to the <b>leftovers</b>. 
 
 Two details make this correct. First, we only <b>push during the first lap</b> — the second lap exists purely to resolve elements left over from the first, and pushing again would let an element find an "answer" more than one full revolution away. Second, we must store <b>indices</b> now rather than values, because after wrapping we need to write into `result[originalIndex]`, and duplicate values are allowed in this problem so a value-keyed map would be ambiguous. Anything still unresolved after two laps truly has no greater element anywhere in the ring, and the `-1` we pre-filled stands.
 
-````js
-function nextGreaterElements(nums) {
-  const n = nums.length
-  const result = new Array(n).fill(-1)
+```java
+import java.util.*;
 
-  //stack of INDICES whose values are in decreasing order
-  const stack = []
+class Solution {
+    public static int[] nextGreaterElements(int[] nums) {
+        int n = nums.length;
+        int[] result = new int[n];
+        Arrays.fill(result, -1);
 
-  //walk the array twice to simulate the wrap-around
-  for (let i = 0; i < 2 * n; i++) {
-    const current = nums[i % n]
+        //stack of INDICES whose values are in decreasing order
+        Deque<Integer> stack = new ArrayDeque<>();
 
-    while (stack.length > 0 && nums[stack[stack.length - 1]] < current) {
-      result[stack.pop()] = current
+        //walk the array twice to simulate the wrap-around
+        for (int i = 0; i < 2 * n; i++) {
+            int current = nums[i % n];
+
+            while (!stack.isEmpty() && nums[stack.peek()] < current) {
+                result[stack.pop()] = current;
+            }
+
+            //only push on the first pass, the second pass exists
+            //purely to resolve the leftovers from the first
+            if (i < n) {
+                stack.push(i);
+            }
+        }
+
+        return result;
     }
 
-    //only push on the first pass, the second pass exists
-    //purely to resolve the leftovers from the first
-    if (i < n) {
-      stack.push(i)
+    public static void main(String[] args) {
+        System.out.println(Arrays.toString(nextGreaterElements(new int[]{1, 2, 1}))); //[2, -1, 2]
+        System.out.println(Arrays.toString(nextGreaterElements(new int[]{1, 2, 3, 4, 3}))); //[2, 3, 4, -1, 4]
+        System.out.println(Arrays.toString(nextGreaterElements(new int[]{5, 4, 3, 2, 1}))); //[-1, 5, 5, 5, 5]
+        System.out.println(Arrays.toString(nextGreaterElements(new int[]{2, 2, 2}))); //[-1, -1, -1]
+        System.out.println(Arrays.toString(nextGreaterElements(new int[]{}))); //[]
     }
-  }
-
-  return result
 }
-
-console.log(JSON.stringify(nextGreaterElements([1, 2, 1])))//[2,-1,2]
-console.log(JSON.stringify(nextGreaterElements([1, 2, 3, 4, 3])))//[2,3,4,-1,4]
-console.log(JSON.stringify(nextGreaterElements([5, 4, 3, 2, 1])))//[-1,5,5,5,5]
-console.log(JSON.stringify(nextGreaterElements([2, 2, 2])))//[-1,-1,-1]
-console.log(JSON.stringify(nextGreaterElements([])))//[]
-````
+```
 
 Notice `[2, 2, 2]` returns all `-1`. The comparison is `<`, i.e. <i>strictly</i> greater, so equal elements never resolve each other — a detail that quietly decides several of the problems below.
 
@@ -177,37 +201,43 @@ Everything else is identical. We still want the next <i>greater</i> temperature,
 
 It is worth reading the stack as a queue of unfinished business: at any moment it holds exactly the days that are <i>still waiting</i> for a warmer day, and they are necessarily in decreasing temperature order, because a warmer day would have already discharged the colder ones below it.
 
-````js
-function dailyTemperatures(temperatures) {
-  const n = temperatures.length
-  const answer = new Array(n).fill(0)
+```java
+import java.util.*;
 
-  //stack of DAY INDICES with decreasing temperatures
-  const stack = []
+class Solution {
+    public static int[] dailyTemperatures(int[] temperatures) {
+        int n = temperatures.length;
+        int[] answer = new int[n];
 
-  for (let day = 0; day < n; day++) {
-    const today = temperatures[day]
+        //stack of DAY INDICES with decreasing temperatures
+        Deque<Integer> stack = new ArrayDeque<>();
 
-    //today is warmer than every colder day still on the stack,
-    //and the distance is simply the difference of the two indices
-    while (stack.length > 0 && temperatures[stack[stack.length - 1]] < today) {
-      const colderDay = stack.pop()
-      answer[colderDay] = day - colderDay
+        for (int day = 0; day < n; day++) {
+            int today = temperatures[day];
+
+            //today is warmer than every colder day still on the stack,
+            //and the distance is simply the difference of the two indices
+            while (!stack.isEmpty() && temperatures[stack.peek()] < today) {
+                int colderDay = stack.pop();
+                answer[colderDay] = day - colderDay;
+            }
+
+            stack.push(day);
+        }
+
+        return answer;
     }
 
-    stack.push(day)
-  }
-
-  return answer
+    public static void main(String[] args) {
+        System.out.println(Arrays.toString(dailyTemperatures(new int[]{73, 74, 75, 71, 69, 72, 76, 73}))); //[1, 1, 4, 2, 1, 1, 0, 0]
+        System.out.println(Arrays.toString(dailyTemperatures(new int[]{30, 40, 50, 60}))); //[1, 1, 1, 0]
+        System.out.println(Arrays.toString(dailyTemperatures(new int[]{30, 60, 90}))); //[1, 1, 0]
+        System.out.println(Arrays.toString(dailyTemperatures(new int[]{90, 80, 70}))); //[0, 0, 0]
+        System.out.println(Arrays.toString(dailyTemperatures(new int[]{50, 50, 50}))); //[0, 0, 0]
+        System.out.println(Arrays.toString(dailyTemperatures(new int[]{}))); //[]
+    }
 }
-
-console.log(JSON.stringify(dailyTemperatures([73, 74, 75, 71, 69, 72, 76, 73])))//[1,1,4,2,1,1,0,0]
-console.log(JSON.stringify(dailyTemperatures([30, 40, 50, 60])))//[1,1,1,0]
-console.log(JSON.stringify(dailyTemperatures([30, 60, 90])))//[1,1,0]
-console.log(JSON.stringify(dailyTemperatures([90, 80, 70])))//[0,0,0]
-console.log(JSON.stringify(dailyTemperatures([50, 50, 50])))//[0,0,0]
-console.log(JSON.stringify(dailyTemperatures([])))//[]
-````
+```
 
 The two degenerate cases are instructive. A strictly <b>increasing</b> input `[30, 40, 50, 60]` never lets the stack grow beyond one element — every arrival immediately pops its predecessor. A strictly <b>decreasing</b> input `[90, 80, 70]` never pops anything at all, so the stack grows to size `N` and every answer stays `0`. Those are exactly the two extremes of the space usage.
 
@@ -230,44 +260,53 @@ Two loose ends have to be tied off, and both are common sources of wrong answers
 1. <b>We may exit the loop with removals unspent.</b> That happens exactly when the remaining digits are already non-decreasing (`"112"`, for instance). In a non-decreasing string the largest digits are at the end, so the correct move is to <b>truncate from the back</b>.
 2. <b>Leading zeros and the empty string.</b> `"10200"` with `k = 1` produces the digits `"0200"`, which as an integer is `200`; and removing every digit must yield `"0"`, not `""`.
 
-````js
-function removeKdigits(num, k) {
-  //the stack holds the digits we are keeping, in INCREASING order
-  const stack = []
+```java
+class Solution {
+    public static String removeKdigits(String num, int k) {
+        //the stack holds the digits we are keeping, in INCREASING order
+        StringBuilder stack = new StringBuilder();
 
-  for (let i = 0; i < num.length; i++) {
-    const digit = num[i]
+        for (int i = 0; i < num.length(); i++) {
+            char digit = num.charAt(i);
 
-    //a digit bigger than the one arriving is a "peak"
-    //deleting it shrinks a high-order place value, the best possible trade
-    while (k > 0 && stack.length > 0 && stack[stack.length - 1] > digit) {
-      stack.pop()
-      k--
+            //a digit bigger than the one arriving is a "peak"
+            //deleting it shrinks a high-order place value, the best possible trade
+            while (k > 0 && stack.length() > 0 && stack.charAt(stack.length() - 1) > digit) {
+                stack.deleteCharAt(stack.length() - 1);
+                k--;
+            }
+
+            stack.append(digit);
+        }
+
+        //if removals are still left the remaining string is non-decreasing,
+        //so the most expensive digits are the ones at the very end
+        while (k > 0 && stack.length() > 0) {
+            stack.deleteCharAt(stack.length() - 1);
+            k--;
+        }
+
+        //strip leading zeros, and never return an empty string
+        int nonZeroIndex = 0;
+        while (nonZeroIndex < stack.length() && stack.charAt(nonZeroIndex) == '0') {
+            nonZeroIndex++;
+        }
+        
+        String result = stack.substring(nonZeroIndex);
+        return result.isEmpty() ? "0" : result;
     }
 
-    stack.push(digit)
-  }
-
-  //if removals are still left the remaining string is non-decreasing,
-  //so the most expensive digits are the ones at the very end
-  while (k > 0) {
-    stack.pop()
-    k--
-  }
-
-  //strip leading zeros, and never return an empty string
-  const result = stack.join('').replace(/^0+/, '')
-  return result === '' ? '0' : result
+    public static void main(String[] args) {
+        System.out.println(removeKdigits("1432219", 3)); //1219
+        System.out.println(removeKdigits("10200", 1)); //200
+        System.out.println(removeKdigits("10", 2)); //0
+        System.out.println(removeKdigits("112", 1)); //11
+        System.out.println(removeKdigits("9876543210", 5)); //43210
+        System.out.println(removeKdigits("1234567890", 9)); //0
+        System.out.println(removeKdigits("100", 1)); //0
+    }
 }
-
-console.log(removeKdigits('1432219', 3))//1219
-console.log(removeKdigits('10200', 1))//200
-console.log(removeKdigits('10', 2))//0
-console.log(removeKdigits('112', 1))//11
-console.log(removeKdigits('9876543210', 5))//43210
-console.log(removeKdigits('1234567890', 9))//0
-console.log(removeKdigits('100', 1))//0
-````
+```
 
 Trace `'112'` with `k = 1` to see loose end #1 in action: the string is non-decreasing, so no pop ever fires inside the main loop, and the answer `"11"` comes entirely from the trailing truncation. Then trace `'1234567890'` with `k = 9`: the stack climbs to `123456789`, and the arriving `'0'` pops all nine of them, leaving `"0"`.
 
@@ -295,43 +334,59 @@ So we sort by position descending and keep a stack of <b>fleet arrival times</b>
 
 The `<=` rather than `<` in the merge test is doing real work: it encodes the rule that catching a fleet <i>exactly at</i> the destination still counts as merging.
 
-````js
-function carFleet(target, position, speed) {
-  //pair every car with its speed, then sort from the car
-  //closest to the target backwards to the one furthest away
-  const cars = position.map((pos, i) => [pos, speed[i]])
-  cars.sort((a, b) => b[0] - a[0])
+```java
+import java.util.Arrays;
 
-  //stack of arrival times, kept increasing from the bottom up
-  const stack = []
+class Solution {
+    public static int carFleet(int target, int[] position, int[] speed) {
+        int n = position.length;
+        if (n == 0) return 0;
+        //pair every car with its speed, then sort from the car
+        //closest to the target backwards to the one furthest away
+        double[][] cars = new double[n][2];
+        for (int i = 0; i < n; i++) {
+            cars[i][0] = position[i];
+            cars[i][1] = speed[i];
+        }
+        
+        Arrays.sort(cars, (a, b) -> Double.compare(b[0], a[0]));
 
-  for (let i = 0; i < cars.length; i++) {
-    const carPosition = cars[i][0]
-    const carSpeed = cars[i][1]
+        //stack of arrival times, kept increasing from the bottom up
+        //here we just use a variable to keep track of the max time
+        int fleets = 0;
+        double maxTime = 0.0;
 
-    //how long this car needs if nothing ever blocked it
-    const time = (target - carPosition) / carSpeed
+        for (int i = 0; i < n; i++) {
+            double carPosition = cars[i][0];
+            double carSpeed = cars[i][1];
 
-    //if it would arrive no later than the fleet immediately ahead,
-    //it catches that fleet before the target and merges into it
-    if (stack.length > 0 && time <= stack[stack.length - 1]) {
-      continue
+            //how long this car needs if nothing ever blocked it
+            double time = (target - carPosition) / carSpeed;
+
+            //if it would arrive no later than the fleet immediately ahead,
+            //it catches that fleet before the target and merges into it
+            if (time <= maxTime) {
+                continue;
+            }
+
+            //otherwise it is slower than everything ahead, so it leads a new fleet
+            maxTime = time;
+            fleets++;
+        }
+
+        return fleets;
     }
 
-    //otherwise it is slower than everything ahead, so it leads a new fleet
-    stack.push(time)
-  }
-
-  return stack.length
+    public static void main(String[] args) {
+        System.out.println(carFleet(12, new int[]{10, 8, 0, 5, 3}, new int[]{2, 4, 1, 1, 3})); //3
+        System.out.println(carFleet(10, new int[]{3}, new int[]{3})); //1
+        System.out.println(carFleet(100, new int[]{0, 2, 4}, new int[]{4, 2, 1})); //1
+        System.out.println(carFleet(10, new int[]{0, 4, 2}, new int[]{2, 1, 3})); //1
+        System.out.println(carFleet(10, new int[]{6, 8}, new int[]{3, 2})); //2
+        System.out.println(carFleet(10, new int[]{}, new int[]{})); //0
+    }
 }
-
-console.log(carFleet(12, [10, 8, 0, 5, 3], [2, 4, 1, 1, 3]))//3
-console.log(carFleet(10, [3], [3]))//1
-console.log(carFleet(100, [0, 2, 4], [4, 2, 1]))//1
-console.log(carFleet(10, [0, 4, 2], [2, 1, 3]))//1
-console.log(carFleet(10, [6, 8], [3, 2]))//2
-console.log(carFleet(10, [], []))//0
-````
+```
 
 Because we only ever compare against the top and never need the earlier times again, this can also be written with a single `maxTime` variable instead of an array. Keeping the stack is worth it here mainly because it makes the shared structure with the rest of the pattern visible.
 
@@ -356,49 +411,55 @@ The slab of water above that floor is therefore `width * boundedHeight` where `w
 
 Two subtleties worth noting. First, the water is summed in <i>layers</i>, not columns: a deep basin gets filled by several successive pops, each contributing one horizontal slab. Second, equal heights are handled correctly by the strict `<` in the pop condition — equal bars stay on the stack, and when one is eventually popped its `boundedHeight` computes to `0`, contributing nothing rather than double counting.
 
-````js
-function trap(height) {
-  //stack of INDICES whose bar heights are non-increasing
-  const stack = []
-  let water = 0
+```java
+import java.util.*;
 
-  for (let i = 0; i < height.length; i++) {
-    //bar i is taller than the stack top, so the top is the FLOOR
-    //of a basin whose right wall is i
-    while (stack.length > 0 && height[stack[stack.length - 1]] < height[i]) {
-      const floor = stack.pop()
+class Solution {
+    public static int trap(int[] height) {
+        //stack of INDICES whose bar heights are non-increasing
+        Deque<Integer> stack = new ArrayDeque<>();
+        int water = 0;
 
-      //no bar to the left means no left wall, so nothing is trapped
-      if (stack.length === 0) {
-        break
-      }
+        for (int i = 0; i < height.length; i++) {
+            //bar i is taller than the stack top, so the top is the FLOOR
+            //of a basin whose right wall is i
+            while (!stack.isEmpty() && height[stack.peek()] < height[i]) {
+                int floor = stack.pop();
 
-      const leftWall = stack[stack.length - 1]
+                //no bar to the left means no left wall, so nothing is trapped
+                if (stack.isEmpty()) {
+                    break;
+                }
 
-      //the floor itself is excluded from the span on both sides
-      const width = i - leftWall - 1
+                int leftWall = stack.peek();
 
-      //water rises only as high as the SHORTER of the two walls
-      const boundedHeight = Math.min(height[leftWall], height[i]) - height[floor]
+                //the floor itself is excluded from the span on both sides
+                int width = i - leftWall - 1;
 
-      water += width * boundedHeight
+                //water rises only as high as the SHORTER of the two walls
+                int boundedHeight = Math.min(height[leftWall], height[i]) - height[floor];
+
+                water += width * boundedHeight;
+            }
+
+            stack.push(i);
+        }
+
+        return water;
     }
 
-    stack.push(i)
-  }
-
-  return water
+    public static void main(String[] args) {
+        System.out.println(trap(new int[]{0, 1, 0, 2, 1, 0, 1, 3, 2, 1, 2, 1})); //6
+        System.out.println(trap(new int[]{4, 2, 0, 3, 2, 5})); //9
+        System.out.println(trap(new int[]{4, 2, 3})); //1
+        System.out.println(trap(new int[]{5, 0, 0, 0, 5})); //15
+        System.out.println(trap(new int[]{})); //0
+        System.out.println(trap(new int[]{1, 2, 3, 4, 5})); //0
+        System.out.println(trap(new int[]{5, 4, 3, 2, 1})); //0
+        System.out.println(trap(new int[]{3, 3, 3, 3})); //0
+    }
 }
-
-console.log(trap([0, 1, 0, 2, 1, 0, 1, 3, 2, 1, 2, 1]))//6
-console.log(trap([4, 2, 0, 3, 2, 5]))//9
-console.log(trap([4, 2, 3]))//1
-console.log(trap([5, 0, 0, 0, 5]))//15
-console.log(trap([]))//0
-console.log(trap([1, 2, 3, 4, 5]))//0
-console.log(trap([5, 4, 3, 2, 1]))//0
-console.log(trap([3, 3, 3, 3]))//0
-````
+```
 
 The last four cases are the ones that catch bugs. A <b>strictly increasing</b> ramp traps nothing, because every pop finds an empty stack beneath it and bails out. A <b>strictly decreasing</b> ramp traps nothing either, because no pop ever fires. <b>All-equal</b> bars trap nothing, which is the `boundedHeight === 0` case. And the <b>empty array</b> must return `0` rather than throwing.
 
@@ -411,40 +472,44 @@ It is worth putting the alternative next to it, because this problem sits in the
 
 The two-pointer version goes back to the column-by-column framing. Walk `left` and `right` inwards, tracking `leftMax` and `rightMax`. The key realization is that you never need to <i>know</i> both maxima exactly: if `height[left] < height[right]`, then whatever the true right-hand maximum turns out to be, it is at least `height[right]`, so the water above `left` is limited by `leftMax` alone and can be settled immediately. So you always advance the pointer standing on the shorter bar.
 
-````js
-function trapTwoPointers(height) {
-  let left = 0
-  let right = height.length - 1
-  let leftMax = 0
-  let rightMax = 0
-  let water = 0
+```java
+class Solution {
+    public static int trapTwoPointers(int[] height) {
+        int left = 0;
+        int right = height.length - 1;
+        int leftMax = 0;
+        int rightMax = 0;
+        int water = 0;
 
-  while (left < right) {
-    //always move the pointer standing on the SHORTER bar, because
-    //that side's wall is the one limiting how high the water can rise
-    if (height[left] < height[right]) {
-      leftMax = Math.max(leftMax, height[left])
-      water += leftMax - height[left]
-      left++
-    } else {
-      rightMax = Math.max(rightMax, height[right])
-      water += rightMax - height[right]
-      right--
+        while (left < right) {
+            //always move the pointer standing on the SHORTER bar, because
+            //that side's wall is the one limiting how high the water can rise
+            if (height[left] < height[right]) {
+                leftMax = Math.max(leftMax, height[left]);
+                water += leftMax - height[left];
+                left++;
+            } else {
+                rightMax = Math.max(rightMax, height[right]);
+                water += rightMax - height[right];
+                right--;
+            }
+        }
+
+        return water;
     }
-  }
 
-  return water
+    public static void main(String[] args) {
+        System.out.println(trapTwoPointers(new int[]{0, 1, 0, 2, 1, 0, 1, 3, 2, 1, 2, 1})); //6
+        System.out.println(trapTwoPointers(new int[]{4, 2, 0, 3, 2, 5})); //9
+        System.out.println(trapTwoPointers(new int[]{4, 2, 3})); //1
+        System.out.println(trapTwoPointers(new int[]{5, 0, 0, 0, 5})); //15
+        System.out.println(trapTwoPointers(new int[]{})); //0
+        System.out.println(trapTwoPointers(new int[]{1, 2, 3, 4, 5})); //0
+        System.out.println(trapTwoPointers(new int[]{5, 4, 3, 2, 1})); //0
+        System.out.println(trapTwoPointers(new int[]{3, 3, 3, 3})); //0
+    }
 }
-
-console.log(trapTwoPointers([0, 1, 0, 2, 1, 0, 1, 3, 2, 1, 2, 1]))//6
-console.log(trapTwoPointers([4, 2, 0, 3, 2, 5]))//9
-console.log(trapTwoPointers([4, 2, 3]))//1
-console.log(trapTwoPointers([5, 0, 0, 0, 5]))//15
-console.log(trapTwoPointers([]))//0
-console.log(trapTwoPointers([1, 2, 3, 4, 5]))//0
-console.log(trapTwoPointers([5, 4, 3, 2, 1]))//0
-console.log(trapTwoPointers([3, 3, 3, 3]))//0
-````
+```
 
 - The <b>time complexity</b> of the above algorithm is `O(N)`, the same as the stack version, since the two pointers together traverse the array exactly once.
 - The <b>space complexity</b> is `O(1)`, which is the reason to prefer <b>Two Pointers</b> for this specific problem. The monotonic stack is still the more valuable thing to understand, because it generalizes to the histogram problem below where no two-pointer formulation exists.
@@ -469,45 +534,51 @@ The remaining problem is the <b>leftovers</b>: bars still on the stack when the 
 
 One last detail: the pop condition uses `>=`, not `>`. With equal heights, the earlier bar gets popped and computes a rectangle that is too narrow — but that is harmless, because the <i>last</i> bar of the equal run is popped later and computes the full correct width. Using `>=` keeps the stack smaller at no cost to correctness.
 
-````js
-function largestRectangleArea(heights) {
-  //stack of INDICES whose bar heights are increasing
-  const stack = []
-  let maxArea = 0
+```java
+import java.util.*;
 
-  //iterate one step PAST the end using a sentinel height of 0,
-  //which forces every bar still on the stack to be settled
-  for (let i = 0; i <= heights.length; i++) {
-    const currentHeight = i === heights.length ? 0 : heights[i]
+class Solution {
+    public static int largestRectangleArea(int[] heights) {
+        //stack of INDICES whose bar heights are increasing
+        Deque<Integer> stack = new ArrayDeque<>();
+        int maxArea = 0;
 
-    while (stack.length > 0 && heights[stack[stack.length - 1]] >= currentHeight) {
-      //this bar cannot extend any further to the right
-      const height = heights[stack.pop()]
+        //iterate one step PAST the end using a sentinel height of 0,
+        //which forces every bar still on the stack to be settled
+        for (int i = 0; i <= heights.length; i++) {
+            int currentHeight = i == heights.length ? 0 : heights[i];
 
-      //after the pop, the new stack top is the nearest bar to the left
-      //that is shorter, so the rectangle spans strictly between them
-      const leftBoundary = stack.length === 0 ? -1 : stack[stack.length - 1]
-      const width = i - leftBoundary - 1
+            while (!stack.isEmpty() && heights[stack.peek()] >= currentHeight) {
+                //this bar cannot extend any further to the right
+                int height = heights[stack.pop()];
 
-      maxArea = Math.max(maxArea, height * width)
+                //after the pop, the new stack top is the nearest bar to the left
+                //that is shorter, so the rectangle spans strictly between them
+                int leftBoundary = stack.isEmpty() ? -1 : stack.peek();
+                int width = i - leftBoundary - 1;
+
+                maxArea = Math.max(maxArea, height * width);
+            }
+
+            stack.push(i);
+        }
+
+        return maxArea;
     }
 
-    stack.push(i)
-  }
-
-  return maxArea
+    public static void main(String[] args) {
+        System.out.println(largestRectangleArea(new int[]{2, 1, 5, 6, 2, 3})); //10
+        System.out.println(largestRectangleArea(new int[]{2, 4})); //4
+        System.out.println(largestRectangleArea(new int[]{6, 7, 5, 2, 4, 5, 9, 3})); //16
+        System.out.println(largestRectangleArea(new int[]{})); //0
+        System.out.println(largestRectangleArea(new int[]{1, 2, 3, 4, 5})); //9
+        System.out.println(largestRectangleArea(new int[]{5, 4, 3, 2, 1})); //9
+        System.out.println(largestRectangleArea(new int[]{3, 3, 3, 3})); //12
+        System.out.println(largestRectangleArea(new int[]{0})); //0
+        System.out.println(largestRectangleArea(new int[]{2, 1, 2})); //3
+    }
 }
-
-console.log(largestRectangleArea([2, 1, 5, 6, 2, 3]))//10
-console.log(largestRectangleArea([2, 4]))//4
-console.log(largestRectangleArea([6, 7, 5, 2, 4, 5, 9, 3]))//16
-console.log(largestRectangleArea([]))//0
-console.log(largestRectangleArea([1, 2, 3, 4, 5]))//9
-console.log(largestRectangleArea([5, 4, 3, 2, 1]))//9
-console.log(largestRectangleArea([3, 3, 3, 3]))//12
-console.log(largestRectangleArea([0]))//0
-console.log(largestRectangleArea([2, 1, 2]))//3
-````
+```
 
 The `[2, 1, 5, 6, 2, 3]` case yields `10` from the bars `5` and `6` taken at height `5` over width `2`. The edge cases are worth checking by hand: both `[1, 2, 3, 4, 5]` and `[5, 4, 3, 2, 1]` give `9` (the bar of height `3` spanning three columns), <b>all-equal</b> bars give the full `3 * 4 = 12`, and `[2, 1, 2]` gives `3` — the height-`1` bar stretching across all three columns, which beats either height-`2` bar alone. That last one is the case a broken implementation almost always gets wrong.
 
@@ -534,45 +605,53 @@ Then push `i`, and once the first full window has formed (`i >= k - 1`), read th
 
 Note the `<=` in the back-eviction: dropping equal values is safe because the newer index survives longer, and it keeps the deque compact.
 
-````js
-function maxSlidingWindow(nums, k) {
-  const result = []
+```java
+import java.util.*;
 
-  //deque of INDICES; the values they point at are decreasing,
-  //so the FRONT is always the maximum of the current window
-  const deque = []
+class Solution {
+    public static int[] maxSlidingWindow(int[] nums, int k) {
+        if (nums.length == 0 || k == 0) return new int[0];
+        int[] result = new int[nums.length - k + 1];
+        int resultIndex = 0;
 
-  for (let i = 0; i < nums.length; i++) {
-    //1. evict from the FRONT if it has slid out of the window
-    if (deque.length > 0 && deque[0] <= i - k) {
-      deque.shift()
+        //deque of INDICES; the values they point at are decreasing,
+        //so the FRONT is always the maximum of the current window
+        Deque<Integer> deque = new ArrayDeque<>();
+
+        for (int i = 0; i < nums.length; i++) {
+            //1. evict from the FRONT if it has slid out of the window
+            if (!deque.isEmpty() && deque.peekFirst() <= i - k) {
+                deque.pollFirst();
+            }
+
+            //2. evict from the BACK every index whose value is <= the incoming
+            //value, they are shadowed and can never be a maximum again
+            while (!deque.isEmpty() && nums[deque.peekLast()] <= nums[i]) {
+                deque.pollLast();
+            }
+
+            deque.offerLast(i);
+
+            //3. once the first full window exists, the front is the answer
+            if (i >= k - 1) {
+                result[resultIndex++] = nums[deque.peekFirst()];
+            }
+        }
+
+        return result;
     }
 
-    //2. evict from the BACK every index whose value is <= the incoming
-    //value, they are shadowed and can never be a maximum again
-    while (deque.length > 0 && nums[deque[deque.length - 1]] <= nums[i]) {
-      deque.pop()
+    public static void main(String[] args) {
+        System.out.println(Arrays.toString(maxSlidingWindow(new int[]{1, 3, -1, -3, 5, 3, 6, 7}, 3))); //[3, 3, 5, 5, 6, 7]
+        System.out.println(Arrays.toString(maxSlidingWindow(new int[]{1}, 1))); //[1]
+        System.out.println(Arrays.toString(maxSlidingWindow(new int[]{1, 2, 3, 4, 5}, 2))); //[2, 3, 4, 5]
+        System.out.println(Arrays.toString(maxSlidingWindow(new int[]{5, 4, 3, 2, 1}, 2))); //[5, 4, 3, 2]
+        System.out.println(Arrays.toString(maxSlidingWindow(new int[]{7, 7, 7, 7}, 2))); //[7, 7, 7]
+        System.out.println(Arrays.toString(maxSlidingWindow(new int[]{9, 8, 7, 6, 5}, 5))); //[9]
+        System.out.println(Arrays.toString(maxSlidingWindow(new int[]{}, 1))); //[]
     }
-
-    deque.push(i)
-
-    //3. once the first full window exists, the front is the answer
-    if (i >= k - 1) {
-      result.push(nums[deque[0]])
-    }
-  }
-
-  return result
 }
-
-console.log(JSON.stringify(maxSlidingWindow([1, 3, -1, -3, 5, 3, 6, 7], 3)))//[3,3,5,5,6,7]
-console.log(JSON.stringify(maxSlidingWindow([1], 1)))//[1]
-console.log(JSON.stringify(maxSlidingWindow([1, 2, 3, 4, 5], 2)))//[2,3,4,5]
-console.log(JSON.stringify(maxSlidingWindow([5, 4, 3, 2, 1], 2)))//[5,4,3,2]
-console.log(JSON.stringify(maxSlidingWindow([7, 7, 7, 7], 2)))//[7,7,7]
-console.log(JSON.stringify(maxSlidingWindow([9, 8, 7, 6, 5], 5)))//[9]
-console.log(JSON.stringify(maxSlidingWindow([], 1)))//[]
-````
+```
 
 The `[5, 4, 3, 2, 1]` case shows the front-eviction earning its keep: the deque holds the whole decreasing run, and each step the expired maximum is dropped off the front, exposing the next one already waiting behind it. The `[7, 7, 7, 7]` case shows the `<=` back-eviction keeping the deque at size `1` throughout instead of letting duplicates pile up.
 

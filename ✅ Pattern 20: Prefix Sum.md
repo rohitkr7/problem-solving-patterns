@@ -14,38 +14,44 @@ Notice the off-by-one: `prefixSum[i]` deliberately stops <i>before</i> index `i`
 
 The intuition is simply <i>"everything up to `right`, minus everything before `left`"</i>. The overlapping head of the two prefixes cancels out, leaving exactly the slice we wanted. A range query that used to cost `O(N)` now costs `O(1)`.
 
-```js
-function buildPrefixSum(nums) {
-  //prefixSum[i] holds the sum of nums[0...i-1]
-  //prefixSum[0] = 0 is the "empty prefix" sentinel
-  const prefixSum = new Array(nums.length + 1).fill(0);
+```java
+import java.util.Arrays;
 
-  for (let i = 0; i < nums.length; i++) {
-    prefixSum[i + 1] = prefixSum[i] + nums[i];
-  }
+class Solution {
+    public static int[] buildPrefixSum(int[] nums) {
+        //prefixSum[i] holds the sum of nums[0...i-1]
+        //prefixSum[0] = 0 is the "empty prefix" sentinel
+        int[] prefixSum = new int[nums.length + 1];
 
-  return prefixSum;
+        for (int i = 0; i < nums.length; i++) {
+            prefixSum[i + 1] = prefixSum[i] + nums[i];
+        }
+
+        return prefixSum;
+    }
+
+    public static int rangeSum(int[] prefixSum, int left, int right) {
+        //sum of nums[left...right] inclusive
+        return prefixSum[right + 1] - prefixSum[left];
+    }
+
+    public static void main(String[] args) {
+        int[] nums = {1, 3, 2, 6, -1, 4, 1, 8, 2};
+        int[] prefixSum = buildPrefixSum(nums);
+
+        System.out.println(Arrays.toString(prefixSum));
+        //[0, 1, 4, 6, 12, 11, 15, 16, 24, 26]
+
+        System.out.println(rangeSum(prefixSum, 2, 5));
+        //11
+
+        System.out.println(rangeSum(prefixSum, 0, 8));
+        //26
+
+        System.out.println(rangeSum(prefixSum, 4, 4));
+        //-1
+    }
 }
-
-function rangeSum(prefixSum, left, right) {
-  //sum of nums[left...right] inclusive
-  return prefixSum[right + 1] - prefixSum[left];
-}
-
-const nums = [1, 3, 2, 6, -1, 4, 1, 8, 2];
-const prefixSum = buildPrefixSum(nums);
-
-console.log(prefixSum);
-//[ 0, 1, 4, 6, 12, 11, 15, 16, 24, 26 ]
-
-console.log(rangeSum(prefixSum, 2, 5));
-//11
-
-console.log(rangeSum(prefixSum, 0, 8));
-//26
-
-console.log(rangeSum(prefixSum, 4, 4));
-//-1
 ```
 
 - The <b>time complexity</b> of building the array is `O(N)`, where `N` is the number of elements, and every subsequent range query is `O(1)`.
@@ -71,35 +77,39 @@ The <i>Sliding Window</i> shrink step — <i>"while the window sum is too big, d
 
 Here is that failure, side by side with an honest `O(N²)` reference:
 
-```js
-//This is the Sliding Window solution from Pattern 01, unchanged.
-function smallestSubarrayWithGivenSum(arr, s) {
-  let windowSum = 0;
-  let minLength = Infinity;
-  let windowStart = 0;
+```java
+class Solution {
+    //This is the Sliding Window solution from Pattern 01, unchanged.
+    public static int smallestSubarrayWithGivenSum(int[] arr, int s) {
+        int windowSum = 0;
+        int minLength = Integer.MAX_VALUE;
+        int windowStart = 0;
 
-  for (let windowEnd = 0; windowEnd < arr.length; windowEnd++) {
-    windowSum += arr[windowEnd];
+        for (int windowEnd = 0; windowEnd < arr.length; windowEnd++) {
+            windowSum += arr[windowEnd];
 
-    //shrink from the left while the window still reaches s
-    while (windowSum >= s) {
-      minLength = Math.min(minLength, windowEnd - windowStart + 1);
-      windowSum -= arr[windowStart];
-      windowStart++;
+            //shrink from the left while the window still reaches s
+            while (windowSum >= s) {
+                minLength = Math.min(minLength, windowEnd - windowStart + 1);
+                windowSum -= arr[windowStart];
+                windowStart++;
+            }
+        }
+
+        return minLength == Integer.MAX_VALUE ? 0 : minLength;
     }
-  }
 
-  return minLength === Infinity ? 0 : minLength;
+    public static void main(String[] args) {
+        //all positive: the window's sum grows as the window grows,
+        //so shrinking from the left can never skip a better answer
+        System.out.println(smallestSubarrayWithGivenSum(new int[]{2, 1, 5, 2, 3, 2}, 7));
+        //2, and 2 is genuinely correct here
+
+        //add one negative number and that guarantee is gone
+        System.out.println(smallestSubarrayWithGivenSum(new int[]{1, 2, -3, 4, 5}, 9));
+        //5, but the true answer is 2, because [4, 5] also sums to 9
+    }
 }
-
-//all positive: the window's sum grows as the window grows,
-//so shrinking from the left can never skip a better answer
-console.log(smallestSubarrayWithGivenSum([2, 1, 5, 2, 3, 2], 7));
-//2, and 2 is genuinely correct here
-
-//add one negative number and that guarantee is gone
-console.log(smallestSubarrayWithGivenSum([1, 2, -3, 4, 5], 9));
-//5, but the true answer is 2, because [4, 5] also sums to 9
 ```
 
 The <i>Sliding Window</i> settles for the whole array while the true answer is `2`, because `[4, 5]` also sums to `9`. Once the window sum reached `9` at the last index, shrinking stopped as soon as the running sum dipped below `9`, and the shorter window further right was never considered. This is not a one-off: sweeping thousands of random arrays containing negatives turns up disagreements with an `O(N²)` reference constantly.
@@ -127,38 +137,46 @@ The word that matters in the title is <b>Immutable</b>. The array never changes 
 
 Note how the `prefixSum[0] = 0` sentinel earns its keep: `sumRange(0, right)` needs <i>"everything before index 0"</i>, and without the sentinel we would need a special case for `left === 0`. With it, the formula is uniform.
 
-```js
+```java
+import java.util.Arrays;
+
 class NumArray {
-  constructor(nums) {
-    //prefixSum[i] = sum of nums[0...i-1]
-    //prefixSum has length nums.length + 1 so that
-    //prefixSum[0] = 0 represents the empty prefix
-    this.prefixSum = new Array(nums.length + 1).fill(0);
+    int[] prefixSum;
 
-    for (let i = 0; i < nums.length; i++) {
-      this.prefixSum[i + 1] = this.prefixSum[i] + nums[i];
+    public NumArray(int[] nums) {
+        //prefixSum[i] = sum of nums[0...i-1]
+        //prefixSum has length nums.length + 1 so that
+        //prefixSum[0] = 0 represents the empty prefix
+        prefixSum = new int[nums.length + 1];
+
+        for (int i = 0; i < nums.length; i++) {
+            prefixSum[i + 1] = prefixSum[i] + nums[i];
+        }
     }
-  }
 
-  sumRange(left, right) {
-    //sum(nums[0...right]) - sum(nums[0...left-1])
-    return this.prefixSum[right + 1] - this.prefixSum[left];
-  }
+    public int sumRange(int left, int right) {
+        //sum(nums[0...right]) - sum(nums[0...left-1])
+        return prefixSum[right + 1] - prefixSum[left];
+    }
 }
 
-const numArray = new NumArray([-2, 0, 3, -5, 2, -1]);
+class Solution {
+    public static void main(String[] args) {
+        NumArray numArray = new NumArray(new int[]{-2, 0, 3, -5, 2, -1});
 
-console.log(numArray.prefixSum);
-//[ 0, -2, -2, 1, -4, -2, -3 ]
+        System.out.println(Arrays.toString(numArray.prefixSum));
+        //[0, -2, -2, 1, -4, -2, -3]
 
-console.log(numArray.sumRange(0, 2));
-//1
-console.log(numArray.sumRange(2, 5));
-//-1
-console.log(numArray.sumRange(0, 5));
-//-3
-console.log(numArray.sumRange(3, 3));
-//-5
+        System.out.println(numArray.sumRange(0, 2));
+        //1
+        System.out.println(numArray.sumRange(2, 5));
+        //-1
+        System.out.println(numArray.sumRange(0, 5));
+        //-3
+        System.out.println(numArray.sumRange(3, 3));
+        //-5
+    }
+}
 ```
 
 Note that the input contains negative numbers and the algorithm does not care in the slightest — nothing about the subtraction identity depends on sign.
@@ -188,39 +206,43 @@ So we compute `totalSum` in one pass, then sweep left to right maintaining `left
 
 The ordering inside the loop is the part that trips people up. We must test the condition <b>before</b> folding `nums[i]` into `leftSum`, because `leftSum` is defined as the sum of everything <i>strictly to the left</i> of `i`. Adding first and testing second would silently include the pivot element on the left side.
 
-```js
-function pivotIndex(nums) {
-  //totalSum is the sum of the whole array
-  let totalSum = 0;
-  for (let i = 0; i < nums.length; i++) {
-    totalSum += nums[i];
-  }
+```java
+class Solution {
+    public static int pivotIndex(int[] nums) {
+        //totalSum is the sum of the whole array
+        int totalSum = 0;
+        for (int i = 0; i < nums.length; i++) {
+            totalSum += nums[i];
+        }
 
-  //leftSum is the running prefix sum of everything BEFORE index i
-  let leftSum = 0;
+        //leftSum is the running prefix sum of everything BEFORE index i
+        int leftSum = 0;
 
-  for (let i = 0; i < nums.length; i++) {
-    //rightSum = totalSum - leftSum - nums[i]
-    //we want leftSum === rightSum
-    if (leftSum === totalSum - leftSum - nums[i]) {
-      return i;
+        for (int i = 0; i < nums.length; i++) {
+            //rightSum = totalSum - leftSum - nums[i]
+            //we want leftSum === rightSum
+            if (leftSum == totalSum - leftSum - nums[i]) {
+                return i;
+            }
+            leftSum += nums[i];
+        }
+
+        return -1;
     }
-    leftSum += nums[i];
-  }
 
-  return -1;
+    public static void main(String[] args) {
+        System.out.println(pivotIndex(new int[]{1, 7, 3, 6, 5, 6}));
+        //3, left sum is 1 + 7 + 3 = 11 and right sum is 5 + 6 = 11
+        System.out.println(pivotIndex(new int[]{1, 2, 3}));
+        //-1, there is no index that satisfies the condition
+        System.out.println(pivotIndex(new int[]{2, 1, -1}));
+        //0, left sum is 0 (no elements) and right sum is 1 + -1 = 0
+        System.out.println(pivotIndex(new int[]{-1, -1, -1, 0, 1, 1}));
+        //0, left sum is 0 and right sum is -1 + -1 + 0 + 1 + 1 = 0
+        System.out.println(pivotIndex(new int[]{0}));
+        //0, both sides are empty and therefore both 0
+    }
 }
-
-console.log(pivotIndex([1, 7, 3, 6, 5, 6]));
-//3, left sum is 1 + 7 + 3 = 11 and right sum is 5 + 6 = 11
-console.log(pivotIndex([1, 2, 3]));
-//-1, there is no index that satisfies the condition
-console.log(pivotIndex([2, 1, -1]));
-//0, left sum is 0 (no elements) and right sum is 1 + -1 = 0
-console.log(pivotIndex([-1, -1, -1, 0, 1, 1]));
-//0, left sum is 0 and right sum is -1 + -1 + 0 + 1 + 1 = 0
-console.log(pivotIndex([0]));
-//0, both sides are empty and therefore both 0
 ```
 
 The last three cases are the ones worth studying. They confirm that the <i>"edges count as `0`"</i> rule falls out of the code for free, and that negative numbers cause no trouble.
@@ -242,30 +264,34 @@ This is <b>the key idea</b> of the pattern, and the one problem here most worth 
 
 We could enumerate every subarray and keep a running sum for each starting point.
 
-```js
-function subarraySumBruteForce(nums, k) {
-  let count = 0;
+```java
+class Solution {
+    public static int subarraySumBruteForce(int[] nums, int k) {
+        int count = 0;
 
-  for (let start = 0; start < nums.length; start++) {
-    let sum = 0;
-    //re-walk every subarray that begins at start
-    for (let end = start; end < nums.length; end++) {
-      sum += nums[end];
-      if (sum === k) {
-        count++;
-      }
+        for (int start = 0; start < nums.length; start++) {
+            int sum = 0;
+            //re-walk every subarray that begins at start
+            for (int end = start; end < nums.length; end++) {
+                sum += nums[end];
+                if (sum == k) {
+                    count++;
+                }
+            }
+        }
+
+        return count;
     }
-  }
 
-  return count;
+    public static void main(String[] args) {
+        System.out.println(subarraySumBruteForce(new int[]{1, 1, 1}, 2));
+        //2
+        System.out.println(subarraySumBruteForce(new int[]{1, 2, 3}, 3));
+        //2
+        System.out.println(subarraySumBruteForce(new int[]{3, 4, 7, 2, -3, 1, 4, 2}, 7));
+        //4
+    }
 }
-
-console.log(subarraySumBruteForce([1, 1, 1], 2));
-//2
-console.log(subarraySumBruteForce([1, 2, 3], 3));
-//2
-console.log(subarraySumBruteForce([3, 4, 7, 2, -3, 1, 4, 2], 7));
-//4
 ```
 
 - The <b>time complexity</b> is `O(N²)` and the <b>space complexity</b> is `O(1)`. With `N` up to `2 * 10^4` this will time out.
@@ -293,51 +319,57 @@ Two details deserve attention:
 1. <b>Seed the map with `prefixSumCount.set(0, 1)`.</b> This registers the empty prefix — the running total before we consumed any elements. Without it, a subarray that starts at index `0` would have no left edge to find and would be missed entirely. It is the same sentinel idea as `prefixSum[0] = 0` from the template.
 2. <b>Look up before inserting.</b> We query the map for `prefixSum - k` and only then record the current `prefixSum`. If we inserted first, then when `k === 0` the current prefix would match itself and we would count a bogus empty subarray.
 
-```js
-function subarraySum(nums, k) {
-  //maps a prefix sum value -> how many times we have seen it
-  const prefixSumCount = new Map();
+```java
+import java.util.*;
 
-  //the empty prefix has sum 0, and we have seen it once
-  //this is what lets a subarray starting at index 0 be counted
-  prefixSumCount.set(0, 1);
+class Solution {
+    public static int subarraySum(int[] nums, int k) {
+        //maps a prefix sum value -> how many times we have seen it
+        Map<Integer, Integer> prefixSumCount = new HashMap<>();
 
-  let prefixSum = 0;
-  let count = 0;
+        //the empty prefix has sum 0, and we have seen it once
+        //this is what lets a subarray starting at index 0 be counted
+        prefixSumCount.put(0, 1);
 
-  for (let i = 0; i < nums.length; i++) {
-    prefixSum += nums[i];
+        int prefixSum = 0;
+        int count = 0;
 
-    //if some earlier prefix had sum (prefixSum - k), then the
-    //slice between that earlier point and here sums to exactly k
-    if (prefixSumCount.has(prefixSum - k)) {
-      count += prefixSumCount.get(prefixSum - k);
+        for (int i = 0; i < nums.length; i++) {
+            prefixSum += nums[i];
+
+            //if some earlier prefix had sum (prefixSum - k), then the
+            //slice between that earlier point and here sums to exactly k
+            if (prefixSumCount.containsKey(prefixSum - k)) {
+                count += prefixSumCount.get(prefixSum - k);
+            }
+
+            //record the current prefix sum for future indices
+            prefixSumCount.put(prefixSum, prefixSumCount.getOrDefault(prefixSum, 0) + 1);
+        }
+
+        return count;
     }
 
-    //record the current prefix sum for future indices
-    prefixSumCount.set(prefixSum, (prefixSumCount.get(prefixSum) || 0) + 1);
-  }
+    public static void main(String[] args) {
+        System.out.println(subarraySum(new int[]{1, 1, 1}, 2));
+        //2, the subarrays are [1, 1] starting at index 0 and [1, 1] starting at index 1
 
-  return count;
+        System.out.println(subarraySum(new int[]{1, 2, 3}, 3));
+        //2, the subarrays are [1, 2] and [3]
+
+        System.out.println(subarraySum(new int[]{3, 4, 7, 2, -3, 1, 4, 2}, 7));
+        //4, the subarrays are [3, 4], [7], [7, 2, -3, 1] and [1, 4, 2]
+
+        System.out.println(subarraySum(new int[]{1, -1, 0}, 0));
+        //3, the subarrays are [1, -1], [1, -1, 0] and [0]
+
+        System.out.println(subarraySum(new int[]{-1, -1, 1}, 0));
+        //1, the only subarray is [-1, 1] at indices 1 and 2
+
+        System.out.println(subarraySum(new int[]{1}, 0));
+        //0, the seeded 0 is never miscounted as an empty subarray
+    }
 }
-
-console.log(subarraySum([1, 1, 1], 2));
-//2, the subarrays are [1, 1] starting at index 0 and [1, 1] starting at index 1
-
-console.log(subarraySum([1, 2, 3], 3));
-//2, the subarrays are [1, 2] and [3]
-
-console.log(subarraySum([3, 4, 7, 2, -3, 1, 4, 2], 7));
-//4, the subarrays are [3, 4], [7], [7, 2, -3, 1] and [1, 4, 2]
-
-console.log(subarraySum([1, -1, 0], 0));
-//3, the subarrays are [1, -1], [1, -1, 0] and [0]
-
-console.log(subarraySum([-1, -1, 1], 0));
-//1, the only subarray is [-1, 1] at indices 1 and 2
-
-console.log(subarraySum([1], 0));
-//0, the seeded 0 is never miscounted as an empty subarray
 ```
 
 Trace the third example to see the counting work. The prefix sums are `3, 7, 14, 16, 13, 14, 18, 20`. When we reach the running total `14` a second time (at index `5`), the map already holds `14` once, so we add `1` — that is the subarray `[7, 2, -3, 1]` sitting between the two occurrences. Equal prefix sums always bracket a subarray summing to zero, and `k = 7` is the same statement shifted by `7`.
@@ -371,55 +403,61 @@ As in the previous problem we seed the map, this time with remainder `0` at inde
 
 <b>A note on the modulo.</b> `nums` here is constrained to non-negative values, but `k` may be negative, and a running sum can still produce a negative remainder in the general case. So we normalize defensively — see the next problem for why this matters so much.
 
-```js
-function checkSubarraySum(nums, k) {
-  //maps a prefix-sum remainder -> the EARLIEST index where we saw it
-  const remainderIndex = new Map();
+```java
+import java.util.*;
 
-  //the empty prefix (before index 0) has remainder 0 at index -1
-  remainderIndex.set(0, -1);
+class Solution {
+    public static boolean checkSubarraySum(int[] nums, int k) {
+        //maps a prefix-sum remainder -> the EARLIEST index where we saw it
+        Map<Integer, Integer> remainderIndex = new HashMap<>();
 
-  let prefixSum = 0;
+        //the empty prefix (before index 0) has remainder 0 at index -1
+        remainderIndex.put(0, -1);
 
-  for (let i = 0; i < nums.length; i++) {
-    prefixSum += nums[i];
+        int prefixSum = 0;
 
-    //normalize so the remainder is always in [0, |k|)
-    let remainder = prefixSum % k;
-    if (remainder < 0) {
-      remainder += Math.abs(k);
+        for (int i = 0; i < nums.length; i++) {
+            prefixSum += nums[i];
+
+            //normalize so the remainder is always in [0, |k|)
+            int remainder = prefixSum % k;
+            if (remainder < 0) {
+                remainder += Math.abs(k);
+            }
+
+            if (remainderIndex.containsKey(remainder)) {
+                //the subarray between that earlier index and i is divisible by k
+                //we need its length to be at least 2
+                if (i - remainderIndex.get(remainder) >= 2) {
+                    return true;
+                }
+            } else {
+                //only store the FIRST time we see a remainder, to keep
+                //the subarray we find as long as possible
+                remainderIndex.put(remainder, i);
+            }
+        }
+
+        return false;
     }
 
-    if (remainderIndex.has(remainder)) {
-      //the subarray between that earlier index and i is divisible by k
-      //we need its length to be at least 2
-      if (i - remainderIndex.get(remainder) >= 2) {
-        return true;
-      }
-    } else {
-      //only store the FIRST time we see a remainder, to keep
-      //the subarray we find as long as possible
-      remainderIndex.set(remainder, i);
+    public static void main(String[] args) {
+        System.out.println(checkSubarraySum(new int[]{23, 2, 4, 6, 7}, 6));
+        //true, [2, 4] sums to 6 which is a multiple of 6
+        System.out.println(checkSubarraySum(new int[]{23, 2, 6, 4, 7}, 6));
+        //true, the whole array sums to 42 which is 7 * 6
+        System.out.println(checkSubarraySum(new int[]{23, 2, 6, 4, 7}, 13));
+        //false, no subarray of length at least 2 sums to a multiple of 13
+        System.out.println(checkSubarraySum(new int[]{1, 0}, 2));
+        //false, the only subarray of length 2 sums to 1
+        System.out.println(checkSubarraySum(new int[]{0, 0}, -1));
+        //true, 0 is a multiple of -1, and the negative k is handled by the normalization
+        System.out.println(checkSubarraySum(new int[]{-1, -1, 3}, 2));
+        //true, [-1, -1] sums to -2 which is a multiple of 2
+        System.out.println(checkSubarraySum(new int[]{5, 0, 0, 0}, 3));
+        //true, [0, 0] sums to 0 which is a multiple of every integer
     }
-  }
-
-  return false;
 }
-
-console.log(checkSubarraySum([23, 2, 4, 6, 7], 6));
-//true, [2, 4] sums to 6 which is a multiple of 6
-console.log(checkSubarraySum([23, 2, 6, 4, 7], 6));
-//true, the whole array sums to 42 which is 7 * 6
-console.log(checkSubarraySum([23, 2, 6, 4, 7], 13));
-//false, no subarray of length at least 2 sums to a multiple of 13
-console.log(checkSubarraySum([1, 0], 2));
-//false, the only subarray of length 2 sums to 1
-console.log(checkSubarraySum([0, 0], -1));
-//true, 0 is a multiple of -1, and the negative k is handled by the normalization
-console.log(checkSubarraySum([-1, -1, 3], 2));
-//true, [-1, -1] sums to -2 which is a multiple of 2
-console.log(checkSubarraySum([5, 0, 0, 0], 3));
-//true, [0, 0] sums to 0 which is a multiple of every integer
 ```
 
 The `[1, 0]` case with `k = 2` is a good sanity check on the <i>earliest index</i> rule. Both index `0` and index `1` produce remainder `1`, but we stored only index `0`, and `1 - 0 = 1` is below the length-`2` threshold, so we correctly return `false` rather than being fooled by the repeat.
@@ -441,73 +479,87 @@ If a given remainder has been seen `n` times before, then the current index clos
 
 ### The negative modulo trap
 
-Here is the <b>classic trap</b>, and it bites almost everyone the first time. Unlike Python, <b>JavaScript's `%` operator is a remainder, not a true modulo</b>: its result takes the sign of the <b>dividend</b> (the left operand), not the divisor. So:
+Here is the <b>classic trap</b>, and it bites almost everyone the first time. Unlike Python, <b>Java's `%` operator is a remainder, not a true modulo</b>: its result takes the sign of the <b>dividend</b> (the left operand), not the divisor. So:
 
-```js
-console.log(-7 % 5);
-//-2
+```java
+class Solution {
+    public static void main(String[] args) {
+        System.out.println(-7 % 5);
+        //-2
+    }
+}
 ```
 
-Mathematically we want `-7 mod 5 = 3`, because `-7 = (-2 * 5) + 3`. JavaScript hands us `-2` instead.
+Mathematically we want `-7 mod 5 = 3`, because `-7 = (-2 * 5) + 3`. Java hands us `-2` instead.
 
 Why does that break the algorithm? Because `-2` and `3` describe the <b>same congruence class</b> — the prefix sums `-7` and `3` differ by `10`, a multiple of `5`, so the subarray between them is divisible by `5` and must be counted. But if one of them keys the map under `-2` and the other under `3`, they never meet, and we undercount. The bug is silent: the code runs, returns a plausible number, and is simply wrong on any input containing negatives.
 
 The fix is the standard normalization idiom, which maps every remainder into the range `[0, k)`:
 
-```js
-console.log(((-7 % 5) + 5) % 5);
-//3
+```java
+class Solution {
+    public static void main(String[] args) {
+        System.out.println(((-7 % 5) + 5) % 5);
+        //3
+    }
+}
 ```
 
 Adding `k` shifts a negative remainder into positive territory, and the second `% k` handles the case where the remainder was already non-negative (adding `k` would have pushed it out of range). Both `%` operations are necessary.
 
-```js
-function subarraysDivByK(nums, k) {
-  //maps a normalized remainder -> how many prefixes had it
-  const remainderCount = new Map();
+```java
+import java.util.*;
 
-  //the empty prefix has remainder 0
-  remainderCount.set(0, 1);
+class Solution {
+    public static int subarraysDivByK(int[] nums, int k) {
+        //maps a normalized remainder -> how many prefixes had it
+        Map<Integer, Integer> remainderCount = new HashMap<>();
 
-  let prefixSum = 0;
-  let count = 0;
+        //the empty prefix has remainder 0
+        remainderCount.put(0, 1);
 
-  for (let i = 0; i < nums.length; i++) {
-    prefixSum += nums[i];
+        int prefixSum = 0;
+        int count = 0;
 
-    //JavaScript's % keeps the sign of the DIVIDEND, so
-    //-7 % 5 is -2, not 3. we push it back into [0, k)
-    const remainder = ((prefixSum % k) + k) % k;
+        for (int i = 0; i < nums.length; i++) {
+            prefixSum += nums[i];
 
-    if (remainderCount.has(remainder)) {
-      count += remainderCount.get(remainder);
+            //Java's % keeps the sign of the DIVIDEND, so
+            //-7 % 5 is -2, not 3. we push it back into [0, k)
+            int remainder = ((prefixSum % k) + k) % k;
+
+            if (remainderCount.containsKey(remainder)) {
+                count += remainderCount.get(remainder);
+            }
+
+            remainderCount.put(remainder, remainderCount.getOrDefault(remainder, 0) + 1);
+        }
+
+        return count;
     }
 
-    remainderCount.set(remainder, (remainderCount.get(remainder) || 0) + 1);
-  }
+    public static void main(String[] args) {
+        //the trap, demonstrated
+        System.out.println(-7 % 5);
+        //-2
+        System.out.println(((-7 % 5) + 5) % 5);
+        //3
 
-  return count;
+        System.out.println(subarraysDivByK(new int[]{4, 5, 0, -2, -3, 1}, 5));
+        //7, the subarrays are [4, 5, 0, -2, -3], [5], [5, 0], [5, 0, -2, -3], [0], [0, -2, -3] and [-2, -3]
+        System.out.println(subarraysDivByK(new int[]{5}, 9));
+        //0, 5 is not divisible by 9
+        System.out.println(subarraysDivByK(new int[]{-1, 2, 9}, 2));
+        //2, the subarrays are [-1, 2, 9] summing to 10 and [2]
+        System.out.println(subarraysDivByK(new int[]{-5, -5, -5}, 5));
+        //6, every one of the 6 subarrays is divisible by 5
+        System.out.println(subarraysDivByK(new int[]{2, -2, 2, -4}, 6));
+        //2, the subarrays are [2, -2] and [-2, 2], both summing to 0
+    }
 }
-
-//the trap, demonstrated
-console.log(-7 % 5);
-//-2
-console.log(((-7 % 5) + 5) % 5);
-//3
-
-console.log(subarraysDivByK([4, 5, 0, -2, -3, 1], 5));
-//7, the subarrays are [4, 5, 0, -2, -3], [5], [5, 0], [5, 0, -2, -3], [0], [0, -2, -3] and [-2, -3]
-console.log(subarraysDivByK([5], 9));
-//0, 5 is not divisible by 9
-console.log(subarraysDivByK([-1, 2, 9], 2));
-//2, the subarrays are [-1, 2, 9] summing to 10 and [2]
-console.log(subarraysDivByK([-5, -5, -5], 5));
-//6, every one of the 6 subarrays is divisible by 5
-console.log(subarraysDivByK([2, -2, 2, -4], 6));
-//2, the subarrays are [2, -2] and [-2, 2], both summing to 0
 ```
 
-The examples above are chosen to exercise the negative path hard. `[-5, -5, -5]` with `k = 5` produces the raw prefix sums `-5, -10, -15`, all of which JavaScript's `%` would report as `-0`; the normalization maps them all to `0`, they collide with the seeded empty prefix, and we correctly count all `6` subarrays. Without the normalization the mixed-sign case `[4, 5, 0, -2, -3, 1]` is where the undercount shows up.
+The examples above are chosen to exercise the negative path hard. `[-5, -5, -5]` with `k = 5` produces the raw prefix sums `-5, -10, -15`, all of which Java's `%` would report as `0` (or negative zero if using floats, but integers gives 0); the normalization maps them all to `0`, they collide with the seeded empty prefix, and we correctly count all `6` subarrays. Without the normalization the mixed-sign case `[4, 5, 0, -2, -3, 1]` is where the undercount shows up.
 
 - The <b>time complexity</b> of the above algorithm is `O(N)`, where `N` is the number of elements in `nums`, since we make one pass with constant-time <b>HashMap</b> operations.
 - The <b>space complexity</b> of the above algorithm is `O(min(N, k))`, because there are only `k` distinct normalized remainders.
@@ -532,47 +584,52 @@ Those are a <b>prefix product</b> and a <b>suffix product</b>, and each is compu
 
 But we can do better on space. The trick is to use the output array itself as the prefix-product buffer on the way up, then multiply the suffix products in on the way back down, carrying the suffix in a single variable. That drops the auxiliary arrays entirely.
 
-```js
-function productExceptSelf(nums) {
-  const n = nums.length;
-  const result = new Array(n).fill(1);
+```java
+import java.util.Arrays;
 
-  //first pass, left to right
-  //result[i] becomes the product of everything BEFORE i
-  let prefixProduct = 1;
-  for (let i = 0; i < n; i++) {
-    result[i] = prefixProduct;
-    prefixProduct *= nums[i];
-  }
+class Solution {
+    public static int[] productExceptSelf(int[] nums) {
+        int n = nums.length;
+        int[] result = new int[n];
+        Arrays.fill(result, 1);
 
-  //second pass, right to left
-  //multiply in the product of everything AFTER i
-  let suffixProduct = 1;
-  for (let i = n - 1; i >= 0; i--) {
-    result[i] *= suffixProduct;
-    suffixProduct *= nums[i];
-  }
+        //first pass, left to right
+        //result[i] becomes the product of everything BEFORE i
+        int prefixProduct = 1;
+        for (int i = 0; i < n; i++) {
+            result[i] = prefixProduct;
+            prefixProduct *= nums[i];
+        }
 
-  return result;
+        //second pass, right to left
+        //multiply in the product of everything AFTER i
+        int suffixProduct = 1;
+        for (int i = n - 1; i >= 0; i--) {
+            result[i] *= suffixProduct;
+            suffixProduct *= nums[i];
+        }
+
+        return result;
+    }
+
+    public static void main(String[] args) {
+        System.out.println(Arrays.toString(productExceptSelf(new int[]{1, 2, 3, 4})));
+        //[24, 12, 8, 6]
+
+        System.out.println(Arrays.toString(productExceptSelf(new int[]{-1, 1, 0, -3, 3})));
+        //[0, 0, 9, 0, 0]
+
+        System.out.println(Arrays.toString(productExceptSelf(new int[]{2, 3})));
+        //[3, 2]
+
+        System.out.println(Arrays.toString(productExceptSelf(new int[]{0, 0, 3})));
+        //[0, 0, 0]
+
+        System.out.println(Arrays.toString(productExceptSelf(new int[]{-2, -3, -4})));
+        //[12, 8, 6]
+    }
 }
-
-console.log(productExceptSelf([1, 2, 3, 4]));
-//[ 24, 12, 8, 6 ]
-
-console.log(productExceptSelf([-1, 1, 0, -3, 3]));
-//[ -0, 0, 9, -0, 0 ]
-
-console.log(productExceptSelf([2, 3]));
-//[ 3, 2 ]
-
-console.log(productExceptSelf([0, 0, 3]));
-//[ 0, 0, 0 ]
-
-console.log(productExceptSelf([-2, -3, -4]));
-//[ 12, 8, 6 ]
 ```
-
-The `[-0, 0, 9, -0, 0]` output is worth a word, since it looks like a bug and is not. JavaScript numbers are IEEE-754 doubles, which carry a <b>signed zero</b>: multiplying `0` by a negative number yields `-0`, and `console.log` faithfully prints the sign. Arithmetically `-0` is indistinguishable from `0` — `-0 === 0` evaluates to `true` — so the values are correct and any judge comparing numerically will accept them. The expected answer for that input is `[0, 0, 9, 0, 0]`, and that is precisely what we have.
 
 Note also that the two-zero case `[0, 0, 3]` correctly gives all zeros, which is exactly where the division-based shortcut would have fallen apart.
 
@@ -603,74 +660,75 @@ We define `prefixSum[r][c]` as the sum of the entire rectangle from the origin `
 
 The alternating signs are the signature of inclusion-exclusion, and once you have seen it in 2D the pattern extends naturally to higher dimensions.
 
-```js
+```java
 class NumMatrix {
-  constructor(matrix) {
-    const rows = matrix.length;
-    const cols = matrix[0].length;
+    int[][] prefixSum;
 
-    //prefixSum[r][c] = sum of the rectangle from (0,0) to (r-1, c-1)
-    //the extra row & column of zeros removes all the edge cases
-    this.prefixSum = [];
-    for (let r = 0; r <= rows; r++) {
-      this.prefixSum.push(new Array(cols + 1).fill(0));
+    public NumMatrix(int[][] matrix) {
+        int rows = matrix.length;
+        int cols = matrix[0].length;
+
+        //prefixSum[r][c] = sum of the rectangle from (0,0) to (r-1, c-1)
+        //the extra row & column of zeros removes all the edge cases
+        prefixSum = new int[rows + 1][cols + 1];
+
+        for (int r = 0; r < rows; r++) {
+            for (int c = 0; c < cols; c++) {
+                prefixSum[r + 1][c + 1] =
+                        matrix[r][c] +
+                                prefixSum[r][c + 1] + //rectangle above
+                                prefixSum[r + 1][c] - //rectangle to the left
+                                prefixSum[r][c]; //the overlap, added twice above
+            }
+        }
     }
 
-    for (let r = 0; r < rows; r++) {
-      for (let c = 0; c < cols; c++) {
-        this.prefixSum[r + 1][c + 1] =
-          matrix[r][c] +
-          this.prefixSum[r][c + 1] + //rectangle above
-          this.prefixSum[r + 1][c] - //rectangle to the left
-          this.prefixSum[r][c]; //the overlap, added twice above
-      }
+    public int sumRegion(int row1, int col1, int row2, int col2) {
+        //inclusion-exclusion on the four corners
+        return prefixSum[row2 + 1][col2 + 1] -
+                prefixSum[row1][col2 + 1] - //strip above the rectangle
+                prefixSum[row2 + 1][col1] + //strip left of the rectangle
+                prefixSum[row1][col1]; //we removed this corner twice
     }
-  }
-
-  sumRegion(row1, col1, row2, col2) {
-    //inclusion-exclusion on the four corners
-    return (
-      this.prefixSum[row2 + 1][col2 + 1] -
-      this.prefixSum[row1][col2 + 1] - //strip above the rectangle
-      this.prefixSum[row2 + 1][col1] + //strip left of the rectangle
-      this.prefixSum[row1][col1] //we removed this corner twice
-    );
-  }
 }
 
-const numMatrix = new NumMatrix([
-  [3, 0, 1, 4, 2],
-  [5, 6, 3, 2, 1],
-  [1, 2, 0, 1, 5],
-  [4, 1, 0, 1, 7],
-  [1, 0, 3, 0, 5],
-]);
+class Solution {
+    public static void main(String[] args) {
+        NumMatrix numMatrix = new NumMatrix(new int[][]{
+                {3, 0, 1, 4, 2},
+                {5, 6, 3, 2, 1},
+                {1, 2, 0, 1, 5},
+                {4, 1, 0, 1, 7},
+                {1, 0, 3, 0, 5}
+        });
 
-console.log(numMatrix.sumRegion(2, 1, 4, 3));
-//8
+        System.out.println(numMatrix.sumRegion(2, 1, 4, 3));
+        //8
 
-console.log(numMatrix.sumRegion(1, 1, 2, 2));
-//11
+        System.out.println(numMatrix.sumRegion(1, 1, 2, 2));
+        //11
 
-console.log(numMatrix.sumRegion(1, 2, 2, 4));
-//12
+        System.out.println(numMatrix.sumRegion(1, 2, 2, 4));
+        //12
 
-console.log(numMatrix.sumRegion(0, 0, 4, 4));
-//58, the sum of the entire matrix
+        System.out.println(numMatrix.sumRegion(0, 0, 4, 4));
+        //58, the sum of the entire matrix
 
-console.log(numMatrix.sumRegion(3, 3, 3, 3));
-//1, a single cell
+        System.out.println(numMatrix.sumRegion(3, 3, 3, 3));
+        //1, a single cell
 
-const negMatrix = new NumMatrix([
-  [-1, 2],
-  [3, -4],
-]);
+        NumMatrix negMatrix = new NumMatrix(new int[][]{
+                {-1, 2},
+                {3, -4}
+        });
 
-console.log(negMatrix.sumRegion(0, 0, 1, 1));
-//0, -1 + 2 + 3 + -4
+        System.out.println(negMatrix.sumRegion(0, 0, 1, 1));
+        //0, -1 + 2 + 3 + -4
 
-console.log(negMatrix.sumRegion(0, 0, 0, 1));
-//1, -1 + 2
+        System.out.println(negMatrix.sumRegion(0, 0, 0, 1));
+        //1, -1 + 2
+    }
+}
 ```
 
 The degenerate queries are the useful ones to check. `sumRegion(3, 3, 3, 3)` asks for a single cell and `sumRegion(0, 0, 4, 4)` asks for the whole matrix; both come out right with no special handling, which is the payoff for the zero-padding. The small negative matrix confirms that, as ever, signs are irrelevant to the arithmetic.
@@ -686,10 +744,10 @@ The pattern comes down to a handful of reusable moves:
 2. <b>Range sums are subtractions.</b> `sum(left...right) = prefixSum[right + 1] - prefixSum[left]`. Precompute once, answer forever in `O(1)`.
 3. <b>Rearrange to find left edges.</b> A subarray ending here sums to `k` when some earlier prefix equals `prefixSum - k`. Ask a <b>HashMap</b> that question and an `O(N²)` scan becomes `O(N)`.
 4. <b>Store counts to count, store earliest index to measure length.</b> Counting problems want frequencies; problems with a minimum-length constraint want the first index a value appeared.
-5. <b>Divisibility means equal remainders.</b> Key the map on `prefixSum % k` instead of `prefixSum`, and <b>always normalize with `((x % k) + k) % k`</b> in JavaScript, because `%` inherits the sign of the dividend.
+5. <b>Divisibility means equal remainders.</b> Key the map on `prefixSum % k` instead of `prefixSum`, and <b>always normalize with `((x % k) + k) % k`</b> in Java, because `%` inherits the sign of the dividend.
 6. <b>The operation need not be addition.</b> Prefix and suffix <i>products</i> solve <b>[Product of Array Except Self](#product-of-array-except-self-medium)</b>; the identity element becomes `1` instead of `0`.
 7. <b>It generalizes past 1D.</b> In two dimensions, build and query with <b>inclusion-exclusion</b> over four corners.
 
 And the decision rule against its closest neighbour: reach for <b>[Sliding Window](./%E2%9C%85%20%20Pattern%2001%20:%20Sliding%20Window.md)</b> when values are non-negative and you want one shortest or longest window in `O(1)` space; reach for <b>Prefix Sum</b> when negatives are in play, when you must <b>count</b> subarrays, or when the array is static and the queries are many.
 
-###### #PrefixSum #JavaScript #GrokkingTheCodingInterviewPatterns #LeetCode #DataStructures #Algorithms
+###### #PrefixSum #Java #GrokkingTheCodingInterviewPatterns #LeetCode #DataStructures #Algorithms

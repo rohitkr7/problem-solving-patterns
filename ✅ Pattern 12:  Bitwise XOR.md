@@ -16,27 +16,33 @@ It is surprising to know the approaches that the XOR operator enables us to solv
 A straight forward approach to solve this problem can be:
 1. Find the sum of all integers from `1` to `n`; let’s call it `s1`.
 2. Subtract all the numbers in the input array from `s1`; this will give us the missing number.
-````js
-function findMissingNumber(arr) {
-  const n = arr.length + 1
-  
-  //find sum of all numbers from 1 to n
-  let s1 = 0
-  for(let i = 1; i <= n; i++) {
-    s1 += i
-  }
-  
-  //subtract all numbers in input from sum
-  arr.forEach((num) => {
-    s1 -= num
-  })
-  
-  //s1, is now the missing number
-  return s1
-}
+```java
+import java.util.*;
 
-findMissingNumber([1,5,2,6,4])//3
-````
+class Solution {
+    public static int findMissingNumber(int[] arr) {
+        int n = arr.length + 1;
+
+        //find sum of all numbers from 1 to n
+        int s1 = 0;
+        for (int i = 1; i <= n; i++) {
+            s1 += i;
+        }
+
+        //subtract all numbers in input from sum
+        for (int num : arr) {
+            s1 -= num;
+        }
+
+        //s1, is now the missing number
+        return s1;
+    }
+
+    public static void main(String[] args) {
+        System.out.println(findMissingNumber(new int[]{1, 5, 2, 6, 4})); // 3
+    }
+}
+```
 - The time complexity of the above algorithm is `O(n)` and the space complexity is `O(1)`.
 ### What could go wrong with the above algorithm? 
 > While finding the sum of numbers from `1` to `n`, we can get integer overflow when `n` is large.
@@ -47,29 +53,32 @@ Remember the important property of XOR that it returns 0 if both the bits in com
 1. XOR all the numbers from `1` to `n`, let’s call it `x1`.
 2. XOR all the numbers in the input array, let’s call it `x2`.
 3. The missing number can be found by `x1` XOR `x2`.
-````js
-function findMissingNumber(arr) {
-  const n = arr.length + 1
-  
-  //x1 represents XOR of all values from 1 to n
-  //find sum of all numbers from 1 to n
-  let x1 = 1
-  for(let i = 2; i <= n; i++) {
-    x1 = x1 ^ i
-  }
-  
-  //x2 represents XOR of all values in arr
-  let x2 = arr[0]
-  for(let i = 1; i < n-1; i++) {
-    x2 = x2 ^ arr[i]
-  }
-  
-  //missing number is the xor of x1 and x2
-  return x1 ^ x2
-}
+```java
+class Solution {
+    public static int findMissingNumber(int[] arr) {
+        int n = arr.length + 1;
 
-findMissingNumber([1,5,2,6,4])//3
-````
+        //x1 represents XOR of all values from 1 to n
+        int x1 = 1;
+        for (int i = 2; i <= n; i++) {
+            x1 = x1 ^ i;
+        }
+
+        //x2 represents XOR of all values in arr
+        int x2 = arr[0];
+        for (int i = 1; i < n - 1; i++) {
+            x2 = x2 ^ arr[i];
+        }
+
+        //missing number is the xor of x1 and x2
+        return x1 ^ x2;
+    }
+
+    public static void main(String[] args) {
+        System.out.println(findMissingNumber(new int[]{1, 5, 2, 6, 4})); // 3
+    }
+}
+```
 - The time complexity of the above algorithm is `O(n)` and the space complexity is `O(1)`. The time and space complexities are the same as that of the previous solution but, in this algorithm, we will not have any integer overflow problem.
 ### Important properties of XOR to remember 
 Following are some important properties of XOR to remember:
@@ -92,46 +101,62 @@ One straight forward solution can be to use a <b>HashMap</b> kind of data struct
 - If number is not present in <b>HashMap</b>, add it.
 - In the end, only number left in the <b>HashMap</b> is our required single number.
 ### using Map class
-````js
-function findSingleNumber(arr) {
-  const numberMap = new Map()
-  
-  for(let i = 0; i < arr.length; i++) {
-    if(numberMap.has(arr[i])){
-      numberMap.delete(arr[i])
-    } else {
-      numberMap.set(arr[i], 0)
-    }
-  }
-  for(const k of numberMap.keys()){
-    return k
-  }
-}
-  
-findSingleNumber([1, 4, 2, 1, 3, 2, 3])//4
-findSingleNumber([7, 9, 7])//9
-````
-### using Map object
-````js
-function singleNumber(arr) {
-  //HashMap
-  let numberMap = {}
-  for(let i of arr) {
-    //if number is already in HashMap, remove it
-    if(numberMap[i] !== undefined) {
-      delete numberMap[i]
-    } else {
-      //if number is not in HashMap, add it
-      numberMap[i] = true
-    }
-  }
-  //number left at the end is our required single number
-  return Number(Object.keys(numberMap)[0])
-}
+```java
+import java.util.*;
 
-singleNumber([1, 4, 2, 1, 3, 2, 3])//4
-singleNumber([7, 9, 7])//9
-````
+class Solution {
+    public static int findSingleNumber(int[] arr) {
+        Map<Integer, Integer> numberMap = new HashMap<>();
+
+        for (int i = 0; i < arr.length; i++) {
+            if (numberMap.containsKey(arr[i])) {
+                numberMap.remove(arr[i]);
+            } else {
+                numberMap.put(arr[i], 0);
+            }
+        }
+        for (int k : numberMap.keySet()) {
+            return k;
+        }
+        return -1;
+    }
+
+    public static void main(String[] args) {
+        System.out.println(findSingleNumber(new int[]{1, 4, 2, 1, 3, 2, 3})); // 4
+        System.out.println(findSingleNumber(new int[]{7, 9, 7})); // 9
+    }
+}
+```
+### using Map object
+```java
+import java.util.*;
+
+class Solution {
+    public static int singleNumber(int[] arr) {
+        //HashMap
+        Map<Integer, Boolean> numberMap = new HashMap<>();
+        for (int i : arr) {
+            //if number is already in HashMap, remove it
+            if (numberMap.containsKey(i)) {
+                numberMap.remove(i);
+            } else {
+                //if number is not in HashMap, add it
+                numberMap.put(i, true);
+            }
+        }
+        //number left at the end is our required single number
+        for (int k : numberMap.keySet()) {
+            return k;
+        }
+        return -1;
+    }
+
+    public static void main(String[] args) {
+        System.out.println(singleNumber(new int[]{1, 4, 2, 1, 3, 2, 3})); // 4
+        System.out.println(singleNumber(new int[]{7, 9, 7})); // 9
+    }
+}
+```
 Time and space complexity Time Complexity of the above solution will be `O(n)`and space complexity will also be `O(n)`.
 
 Can we do better than this using the <b>XOR</b> Pattern?
@@ -141,21 +166,25 @@ Recall the following two properties of XOR:
 - It returns the same number if we XOR with zero.
 So we can XOR all the numbers in the input; duplicate numbers will zero out each other and we will be left with the single number.
 
-````js
-function singleNumber(arr) {
-  //So we can XOR all the numbers in the input 
-  //duplicate numbers will zero out each other and we will be left with the single number.
-  let num = 0
-  
-  for(let i = 0; i < arr.length; i++) {
-    num ^= arr[i]
-  }
-  return num
-}
+```java
+class Solution {
+    public static int singleNumber(int[] arr) {
+        //So we can XOR all the numbers in the input 
+        //duplicate numbers will zero out each other and we will be left with the single number.
+        int num = 0;
 
-singleNumber([1, 4, 2, 1, 3, 2, 3])//4
-singleNumber([7, 9, 7])//9
-````
+        for (int i = 0; i < arr.length; i++) {
+            num ^= arr[i];
+        }
+        return num;
+    }
+
+    public static void main(String[] args) {
+        System.out.println(singleNumber(new int[]{1, 4, 2, 1, 3, 2, 3})); // 4
+        System.out.println(singleNumber(new int[]{7, 9, 7})); // 9
+    }
+}
+```
 - Time complexity of this solution is `O(n)` as we iterate through all numbers of the input once.
 - The algorithm runs in constant space `O(1)`.
 ## 😕 Two Single Numbers (medium)
@@ -178,45 +207,46 @@ We can take any bit which is ‘1’ in `n1xn2` and partition all numbers in the
 2. Find any bit which is set in `n1xn2`. We can take the rightmost bit which is ‘1’. Let’s call this `rightmostSetBit`.
 3. Iterate through all numbers of the input array to partition them into two groups based on `rightmostSetBit`. Take XOR of all numbers in both the groups separately. Both these XORs are our required numbers.
 
-````js
-function findSingleNumbers(nums) {
-  //get the XOR of all the numbers
-  
-  let n1xn2 = 0
-  
-  nums.forEach((n)=> {
-    n1xn2 ^= n
-  })
-  
-  //get the rightmost bit that is 1
-  let right = 1
-  while((right & n1xn2) === 0) {
-    //& is bitwise AND
-    //This operator expects two numbers and retuns a number. 
-    //In case they are not numbers, they are cast to numbers.
-    right = right << 1
-    //The left shift operator ( << ) shifts the first operand the specified number of bits to the left.
-    //Excess bits shifted off to the left are discarded. 
-    //Zero bits are shifted in from the right.
-  }
-  
-  let num1 = 0; num2 = 0
-  
-  nums.forEach((n) => {
-    if((n & right) !== 0) {
-      //the bit is set
-      num2 ^= n
-    } else {
-      //the bit is not set
-      num1 ^= n
-    }
-  })
-  return [num1, num2];
-}
+```java
+import java.util.*;
 
-findSingleNumbers([1, 4, 2, 1, 3, 5, 6, 2, 3, 5])//[4, 6]
-findSingleNumbers([2, 1, 3, 2])//[1,3]
-````
+class Solution {
+    public static int[] findSingleNumbers(int[] nums) {
+        //get the XOR of all the numbers
+        int n1xn2 = 0;
+
+        for (int n : nums) {
+            n1xn2 ^= n;
+        }
+
+        //get the rightmost bit that is 1
+        int right = 1;
+        while ((right & n1xn2) == 0) {
+            //& is bitwise AND
+            right = right << 1;
+            //The left shift operator ( << ) shifts the first operand the specified number of bits to the left.
+        }
+
+        int num1 = 0, num2 = 0;
+
+        for (int n : nums) {
+            if ((n & right) != 0) {
+                //the bit is set
+                num2 ^= n;
+            } else {
+                //the bit is not set
+                num1 ^= n;
+            }
+        }
+        return new int[]{num1, num2};
+    }
+
+    public static void main(String[] args) {
+        System.out.println(Arrays.toString(findSingleNumbers(new int[]{1, 4, 2, 1, 3, 5, 6, 2, 3, 5}))); // [4, 6]
+        System.out.println(Arrays.toString(findSingleNumbers(new int[]{2, 1, 3, 2}))); // [1, 3]
+    }
+}
+```
 - The time complexity of this solution is `O(n)` where `n` is the number of elements in the input array.
 - The algorithm runs in constant space `O(1)`.
 ## 😕 Complement of Base 10 Number (medium)
@@ -255,30 +285,34 @@ We can use the above fact to find the complement of any number.
 
 <b>How do we calculate `all_bits_set`?</b> One way to calculate `all_bits_set` will be to first count the bits required to store the given number. We can then use the fact that for a number which is a complete power of ‘2’ i.e., it can be written as pow(2, n), if we subtract ‘1’ from such a number, we get a number which has ‘n’ least significant bits set to ‘1’. For example, ‘4’ which is a complete power of ‘2’, and ‘3’ (which is one less than 4) has a binary representation of ‘11’ i.e., it has ‘2’ least significant bits set to ‘1’.
 
-````js
-function calculateBitwiseComplement(n) {
-  // count number of total bits in 'num'
-  let bitCount = 0
-  let num = n
-  
-  while(num > 0){
-    bitCount++
-    num = num >> 1
-  }
-  
-   // for a number which is a complete power of '2' i.e., it can be written as pow(2, n), if we
-  // subtract '1' from such a number, we get a number which has 'n' least significant bits set to '1'.
-  // For example, '4' which is a complete power of '2', and '3' (which is one less than 4) has a binary 
-  // representation of '11' i.e., it has '2' least significant bits set to '1' 
-  let allBitsSet = Math.pow(2, bitCount) -1
-  
-  // from the solution description: complement = number ^ allBitsSet
-  return n ^ allBitsSet
-}
+```java
+class Solution {
+    public static int calculateBitwiseComplement(int n) {
+        // count number of total bits in 'num'
+        int bitCount = 0;
+        int num = n;
 
-calculateBitwiseComplement(8)//7,  is 1000 in binary, its complement is 0111 in binary, which is 7 in base-10.
-calculateBitwiseComplement(10)//5, 10 is 1010 in binary, its complement is 0101 in binary, which is 5 in base-10.
-````
+        while (num > 0) {
+            bitCount++;
+            num = num >> 1;
+        }
+
+        // for a number which is a complete power of '2' i.e., it can be written as pow(2, n), if we
+        // subtract '1' from such a number, we get a number which has 'n' least significant bits set to '1'.
+        // For example, '4' which is a complete power of '2', and '3' (which is one less than 4) has a binary 
+        // representation of '11' i.e., it has '2' least significant bits set to '1' 
+        int allBitsSet = (int) Math.pow(2, bitCount) - 1;
+
+        // from the solution description: complement = number ^ allBitsSet
+        return n ^ allBitsSet;
+    }
+
+    public static void main(String[] args) {
+        System.out.println(calculateBitwiseComplement(8)); // 7, is 1000 in binary, its complement is 0111 in binary, which is 7 in base-10.
+        System.out.println(calculateBitwiseComplement(10)); // 5, 10 is 1010 in binary, its complement is 0101 in binary, which is 5 in base-10.
+    }
+}
+```
 
 - Time complexity of this solution is `O(b)`where `b` is the number of bits required to store the given number.
 - Space complexity of this solution is `O(1)`.
@@ -293,23 +327,32 @@ https://leetcode.com/problems/flipping-an-image/
 - <b>Flip:</b> We can flip the image in place by replacing <i>ith</i> element from left with the <i>ith</i> element from the right.
 - <b>Invert:</b> We can take XOR of each element with `1`. If it is `1` then it will become `0` and if it is `0` then it will become `1`.
 
-````js
-function flipAndInvertImage(matrix) {
-  let c = matrix.length
-  
-  for(let row = 0; row < c; ++row){
-    for(let col = 0; col < Math.floor((c+1)/2); ++col){
-      let temp = matrix[row][col] ^ 1
-      matrix[row][col] = matrix[row][c - 1 -col] ^ 1
-      matrix[row][c - 1 - col] = temp
-    }
-  }
-  return matrix
-}
+```java
+import java.util.*;
 
-flipAndInvertImage([[1,0,1], [1,1,1], [0,1,1]])//First reverse each row: [[1,0,1],[1,1,1],[1,1,0]]. Then, invert the image: [[0,1,0],[0,0,0],[0,0,1]]
-flipAndInvertImage([[1,1,0,0],[1,0,0,1],[0,1,1,1],[1,0,1,0]])//First reverse each row: [[0,0,1,1],[1,0,0,1],[1,1,1,0],[0,1,0,1]]. Then invert the image: [[1,1,0,0],[0,1,1,0],[0,0,0,1],[1,0,1,0]]
-````
+class Solution {
+    public static int[][] flipAndInvertImage(int[][] matrix) {
+        int c = matrix.length;
+
+        for (int row = 0; row < c; ++row) {
+            for (int col = 0; col < (c + 1) / 2; ++col) {
+                int temp = matrix[row][col] ^ 1;
+                matrix[row][col] = matrix[row][c - 1 - col] ^ 1;
+                matrix[row][c - 1 - col] = temp;
+            }
+        }
+        return matrix;
+    }
+
+    public static void main(String[] args) {
+        int[][] res1 = flipAndInvertImage(new int[][]{{1, 0, 1}, {1, 1, 1}, {0, 1, 1}});
+        System.out.println(Arrays.deepToString(res1)); // [[0,1,0],[0,0,0],[0,0,1]]
+
+        int[][] res2 = flipAndInvertImage(new int[][]{{1, 1, 0, 0}, {1, 0, 0, 1}, {0, 1, 1, 1}, {1, 0, 1, 0}});
+        System.out.println(Arrays.deepToString(res2)); // [[1,1,0,0],[0,1,1,0],[0,0,0,1],[1,0,1,0]]
+    }
+}
+```
 
 - The time complexity of this solution is `O(n)` as we iterate through all elements of the input.
 - The space complexity of this solution is `O(1)`.

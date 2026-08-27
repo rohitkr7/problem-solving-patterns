@@ -47,60 +47,77 @@ The tempting answer is a single `min` variable. That works for `push` — a new 
 
 The fix is to notice that a stack's minimum is a <b>history</b>, not a single value, and that history has exactly the same shape as the stack itself. So we <b>carry the running minimum alongside each entry</b>. Pushing `val` also records what the minimum is at that moment; popping discards that entry's minimum with it, and the new top already knows the minimum of everything beneath it. This is the pattern in its simplest form: store a <b>pair</b> per slot, where the second half answers the query the first half cannot.
 
-```js
+```java
+import java.util.*;
+
 class MinStack {
-  constructor() {
+    private static class Node {
+        int val;
+        int min;
+        Node(int val, int min) {
+            this.val = val;
+            this.min = min;
+        }
+    }
+    
     //every entry carries the running minimum of the stack
     //at the moment that entry was pushed
-    this.stack = [];
-  }
+    private Deque<Node> stack;
 
-  push(val) {
-    const currentMin = this.stack.length === 0 ? val : Math.min(val, this.getMin());
-    this.stack.push({ val: val, min: currentMin });
-  }
+    public MinStack() {
+        stack = new ArrayDeque<>();
+    }
 
-  pop() {
-    this.stack.pop();
-  }
+    public void push(int val) {
+        int currentMin = stack.isEmpty() ? val : Math.min(val, getMin());
+        stack.push(new Node(val, currentMin));
+    }
 
-  top() {
-    return this.stack[this.stack.length - 1].val;
-  }
+    public void pop() {
+        stack.pop();
+    }
 
-  getMin() {
-    //the top entry always knows the min of everything beneath it
-    return this.stack[this.stack.length - 1].min;
-  }
+    public int top() {
+        return stack.peek().val;
+    }
+
+    public int getMin() {
+        //the top entry always knows the min of everything beneath it
+        return stack.peek().min;
+    }
 }
 
-// Input  ["MinStack","push","push","push","getMin","pop","top","getMin"]
-//        [[],[-2],[0],[-3],[],[],[],[]]
-// Output [null,null,null,null,-3,null,0,-2]
+class Solution {
+    public static void main(String[] args) {
+        // Input  ["MinStack","push","push","push","getMin","pop","top","getMin"]
+        //        [[],[-2],[0],[-3],[],[],[],[]]
+        // Output [null,null,null,null,-3,null,0,-2]
 
-const minStack = new MinStack();
-minStack.push(-2);
-minStack.push(0);
-minStack.push(-3);
-console.log(minStack.getMin());
-//-3
-minStack.pop();
-console.log(minStack.top());
-//0
-console.log(minStack.getMin());
-//-2
+        MinStack minStack = new MinStack();
+        minStack.push(-2);
+        minStack.push(0);
+        minStack.push(-3);
+        System.out.println(minStack.getMin());
+        //-3
+        minStack.pop();
+        System.out.println(minStack.top());
+        //0
+        System.out.println(minStack.getMin());
+        //-2
 
-//duplicates are safe, because each copy of '2' recorded its own minimum
-const stackOfDuplicates = new MinStack();
-stackOfDuplicates.push(2);
-stackOfDuplicates.push(2);
-stackOfDuplicates.push(5);
-console.log(stackOfDuplicates.getMin());
-//2
-stackOfDuplicates.pop();
-stackOfDuplicates.pop();
-console.log(stackOfDuplicates.getMin());
-//2
+        //duplicates are safe, because each copy of '2' recorded its own minimum
+        MinStack stackOfDuplicates = new MinStack();
+        stackOfDuplicates.push(2);
+        stackOfDuplicates.push(2);
+        stackOfDuplicates.push(5);
+        System.out.println(stackOfDuplicates.getMin());
+        //2
+        stackOfDuplicates.pop();
+        stackOfDuplicates.pop();
+        System.out.println(stackOfDuplicates.getMin());
+        //2
+    }
+}
 ```
 
 - `push(val)` ➡️ `O(1)`. One `Math.min` and one array push.
@@ -133,88 +150,100 @@ But a hash function squeezes a large key space into a small array, so two keys w
 
 Again the two structures cover for each other: the array supplies `O(1)` indexing but cannot hold two things in one slot; the per-bucket list supplies unbounded storage but no fast indexing. The complexity is `O(1)` <i>on average</i> precisely because a good hash keeps chains short — with `N` keys over `B` buckets the average chain is `N/B`. A <b>prime</b> bucket count helps, since real inputs often share factors with round numbers like `1000` and would clump.
 
-```js
+```java
+import java.util.*;
+
 class MyHashMap {
-  constructor() {
     //a prime bucket count spreads key % size more evenly
-    this.size = 1009;
-    this.buckets = new Array(this.size);
-  }
+    private int size;
+    private List<int[]>[] buckets;
 
-  hash(key) {
-    return key % this.size;
-  }
-
-  put(key, value) {
-    const index = this.hash(key);
-    if (!this.buckets[index]) this.buckets[index] = [];
-
-    const bucket = this.buckets[index];
-    for (const pair of bucket) {
-      //key already in this chain, overwrite in place
-      if (pair[0] === key) {
-        pair[1] = value;
-        return;
-      }
+    @SuppressWarnings("unchecked")
+    public MyHashMap() {
+        this.size = 1009;
+        this.buckets = new List[size];
     }
-    bucket.push([key, value]);
-  }
 
-  get(key) {
-    const bucket = this.buckets[this.hash(key)];
-    if (!bucket) return -1;
-
-    for (const pair of bucket) {
-      if (pair[0] === key) return pair[1];
+    private int hash(int key) {
+        return key % this.size;
     }
-    return -1;
-  }
 
-  remove(key) {
-    const bucket = this.buckets[this.hash(key)];
-    if (!bucket) return;
+    public void put(int key, int value) {
+        int index = hash(key);
+        if (buckets[index] == null) {
+            buckets[index] = new ArrayList<>();
+        }
 
-    for (let i = 0; i < bucket.length; i++) {
-      if (bucket[i][0] === key) {
-        bucket.splice(i, 1);
-        return;
-      }
+        List<int[]> bucket = buckets[index];
+        for (int[] pair : bucket) {
+            //key already in this chain, overwrite in place
+            if (pair[0] == key) {
+                pair[1] = value;
+                return;
+            }
+        }
+        bucket.add(new int[]{key, value});
     }
-  }
+
+    public int get(int key) {
+        List<int[]> bucket = buckets[hash(key)];
+        if (bucket == null) return -1;
+
+        for (int[] pair : bucket) {
+            if (pair[0] == key) return pair[1];
+        }
+        return -1;
+    }
+
+    public void remove(int key) {
+        List<int[]> bucket = buckets[hash(key)];
+        if (bucket == null) return;
+
+        for (int i = 0; i < bucket.size(); i++) {
+            if (bucket.get(i)[0] == key) {
+                bucket.remove(i);
+                return;
+            }
+        }
+    }
 }
 
-// Input  ["MyHashMap", "put", "put", "get", "get", "put", "get", "remove", "get"]
-//        [[], [1, 1], [2, 2], [1], [3], [2, 1], [2], [2], [2]]
-// Output [null, null, null, 1, -1, null, 1, null, -1]
+class Solution {
+    public static void main(String[] args) {
+        // Input  ["MyHashMap", "put", "put", "get", "get", "put", "get", "remove", "get"]
+        //        [[], [1, 1], [2, 2], [1], [3], [2, 1], [2], [2], [2]]
+        // Output [null, null, null, 1, -1, null, 1, null, -1]
+        
+        MyHashMap myHashMap = new MyHashMap();
+        myHashMap.put(1, 1);
+        myHashMap.put(2, 2);
+        System.out.println(myHashMap.get(1));
+        //1
+        System.out.println(myHashMap.get(3));
+        //-1
+        myHashMap.put(2, 1);
+        System.out.println(myHashMap.get(2));
+        //1
+        myHashMap.remove(2);
+        System.out.println(myHashMap.get(2));
+        //-1
 
-const myHashMap = new MyHashMap();
-myHashMap.put(1, 1);
-myHashMap.put(2, 2);
-console.log(myHashMap.get(1));
-//1
-console.log(myHashMap.get(3));
-//-1
-myHashMap.put(2, 1);
-console.log(myHashMap.get(2));
-//1
-myHashMap.remove(2);
-console.log(myHashMap.get(2));
-//-1
-
-//two keys that collide into the same bucket: 5 and 5 + 1009
-const collisionMap = new MyHashMap();
-collisionMap.put(5, 500);
-collisionMap.put(1014, 1400);
-console.log(collisionMap.get(5));
-//500
-console.log(collisionMap.get(1014));
-//1400
-collisionMap.remove(5);
-console.log(collisionMap.get(5));
-//-1
-//removing one key from a shared bucket leaves its chain-mate intact
-console.log(collisionMap.get(1014));
-//1400
+        //two keys that collide into the same bucket: 5 and 5 + 1009
+        MyHashMap collisionMap = new MyHashMap();
+        collisionMap.put(5, 500);
+        collisionMap.put(1014, 1400);
+        System.out.println(collisionMap.get(5));
+        //500
+        System.out.println(collisionMap.get(1014));
+        //1400
+        collisionMap.remove(5);
+        System.out.println(collisionMap.get(5));
+        //-1
+        //removing one key from a shared bucket leaves its chain-mate intact
+        System.out.println(collisionMap.get(1014));
+        //1400
+    }
+}
 ```
 
 - `put(key, value)` ➡️ `O(1)` average, `O(N/B)` to walk the chain. Worst case `O(N)` if every key collides.
@@ -248,78 +277,90 @@ So: array for `getRandom`, hash map for membership. We keep `values`, an array o
 
 Note the ordering of the final lines: we `indices.set(lastValue, index)` <b>before</b> `indices.delete(val)`. If `val` happens to <i>be</i> the last element those two calls touch the same key, and this order lets the `delete` correctly have the last word. Reversing them leaves a stale index behind — exactly the kind of one-line bug this pattern is full of.
 
-```js
+```java
+import java.util.*;
+
 class RandomizedSet {
-  constructor() {
     //values gives us O(1) indexing for getRandom()
-    this.values = [];
+    List<Integer> values;
     //indices maps value -> its position in this.values
-    this.indices = new Map();
-  }
+    Map<Integer, Integer> indices;
+    Random rand;
 
-  insert(val) {
-    if (this.indices.has(val)) return false;
+    public RandomizedSet() {
+        values = new ArrayList<>();
+        indices = new HashMap<>();
+        rand = new Random();
+    }
 
-    this.indices.set(val, this.values.length);
-    this.values.push(val);
-    return true;
-  }
+    public boolean insert(int val) {
+        if (indices.containsKey(val)) return false;
 
-  remove(val) {
-    if (!this.indices.has(val)) return false;
+        indices.put(val, values.size());
+        values.add(val);
+        return true;
+    }
 
-    const index = this.indices.get(val);
-    const lastValue = this.values[this.values.length - 1];
+    public boolean remove(int val) {
+        if (!indices.containsKey(val)) return false;
 
-    //overwrite the hole with the last value, then pop the tail
-    this.values[index] = lastValue;
-    this.indices.set(lastValue, index);
+        int index = indices.get(val);
+        int lastValue = values.get(values.size() - 1);
 
-    this.values.pop();
-    this.indices.delete(val);
-    return true;
-  }
+        //overwrite the hole with the last value, then pop the tail
+        values.set(index, lastValue);
+        indices.put(lastValue, index);
 
-  getRandom() {
-    const randomIndex = Math.floor(Math.random() * this.values.length);
-    return this.values[randomIndex];
-  }
+        values.remove(values.size() - 1);
+        indices.remove(val);
+        return true;
+    }
+
+    public int getRandom() {
+        int randomIndex = rand.nextInt(values.size());
+        return values.get(randomIndex);
+    }
 }
 
-// Input  ["RandomizedSet", "insert", "remove", "insert", "getRandom", "remove", "insert", "getRandom"]
-//        [[], [1], [2], [2], [], [1], [2], []]
-// Output [null, true, false, true, 2, true, false, 2]
+class Solution {
+    public static void main(String[] args) {
+        // Input  ["RandomizedSet", "insert", "remove", "insert", "getRandom", "remove", "insert", "getRandom"]
+        //        [[], [1], [2], [2], [], [1], [2], []]
+        // Output [null, true, false, true, 2, true, false, 2]
 
-const randomizedSet = new RandomizedSet();
-console.log(randomizedSet.insert(1));
-//true
-console.log(randomizedSet.remove(2));
-//false
-console.log(randomizedSet.insert(2));
-//true
-console.log(randomizedSet.remove(1));
-//true
-console.log(randomizedSet.insert(2));
-//false
-//the set is now {2}, so getRandom() can only ever return 2
+        RandomizedSet randomizedSet = new RandomizedSet();
+        System.out.println(randomizedSet.insert(1));
+        //true
+        System.out.println(randomizedSet.remove(2));
+        //false
+        System.out.println(randomizedSet.insert(2));
+        //true
+        System.out.println(randomizedSet.remove(1));
+        //true
+        System.out.println(randomizedSet.insert(2));
+        //false
+        //the set is now {2}, so getRandom() can only ever return 2
 
-//getRandom() is random by definition, so assert membership, never a fixed value
-const set = new RandomizedSet();
-set.insert(10);
-set.insert(20);
-set.insert(30);
-set.remove(20);
+        //getRandom() is random by definition, so assert membership, never a fixed value
+        RandomizedSet set = new RandomizedSet();
+        set.insert(10);
+        set.insert(20);
+        set.insert(30);
+        set.remove(20);
 
-const allowed = [10, 30];
-let everyDrawIsAMember = true;
-for (let i = 0; i < 1000; i++) {
-  if (!allowed.includes(set.getRandom())) everyDrawIsAMember = false;
+        List<Integer> allowed = Arrays.asList(10, 30);
+        boolean everyDrawIsAMember = true;
+        for (int i = 0; i < 1000; i++) {
+            if (!allowed.contains(set.getRandom())) everyDrawIsAMember = false;
+        }
+        System.out.println(everyDrawIsAMember);
+        //true
+        //removing 20 swapped 30 into its slot, so the array stays gap-free
+        Collections.sort(set.values);
+        System.out.println(set.values);
+        //[ 10, 30 ]
+    }
 }
-console.log(everyDrawIsAMember);
-//true
-//removing 20 swapped 30 into its slot, so the array stays gap-free
-console.log(set.values.slice().sort((a, b) => a - b));
-//[ 10, 30 ]
 ```
 
 - `insert(val)` ➡️ `O(1)` average. One map write, one array push.
@@ -374,113 +415,128 @@ after:    head &lt;-&gt; N &lt;-&gt; A &lt;-&gt; tail
 
 Step 3 <b>must</b> precede step 4. Overwrite `head.next` first and you lose the reference to `A`, so step 3 would point `N.prev` back at `N` itself, silently corrupting the list. This is exactly where these solutions break.
 
-```js
+```java
 class DoublyLinkedNode {
-  constructor(key, value) {
-    this.key = key;
-    this.value = value;
-    this.prev = null;
-    this.next = null;
-  }
+    int key;
+    int value;
+    DoublyLinkedNode prev;
+    DoublyLinkedNode next;
+
+    public DoublyLinkedNode(int key, int value) {
+        this.key = key;
+        this.value = value;
+        this.prev = null;
+        this.next = null;
+    }
 }
 
 class LRUCache {
-  constructor(capacity) {
-    this.capacity = capacity;
+    int capacity;
     //key -> node, so lookup is O(1)
-    this.map = new Map();
-
+    java.util.Map<Integer, DoublyLinkedNode> map;
     //sentinel head/tail so no insert or remove is ever a special case
     //head.next is the most recently used, tail.prev is the least
-    this.head = new DoublyLinkedNode(null, null);
-    this.tail = new DoublyLinkedNode(null, null);
-    this.head.next = this.tail;
-    this.tail.prev = this.head;
-  }
+    DoublyLinkedNode head;
+    DoublyLinkedNode tail;
 
-  removeNode(node) {
-    node.prev.next = node.next;
-    node.next.prev = node.prev;
-    node.prev = null;
-    node.next = null;
-  }
-
-  addToFront(node) {
-    node.next = this.head.next;
-    node.prev = this.head;
-    this.head.next.prev = node;
-    this.head.next = node;
-  }
-
-  get(key) {
-    if (!this.map.has(key)) return -1;
-
-    const node = this.map.get(key);
-    //a read counts as a use, so move it back to the front
-    this.removeNode(node);
-    this.addToFront(node);
-    return node.value;
-  }
-
-  put(key, value) {
-    if (this.map.has(key)) {
-      const node = this.map.get(key);
-      node.value = value;
-      this.removeNode(node);
-      this.addToFront(node);
-      return;
+    public LRUCache(int capacity) {
+        this.capacity = capacity;
+        this.map = new java.util.HashMap<>();
+        this.head = new DoublyLinkedNode(-1, -1);
+        this.tail = new DoublyLinkedNode(-1, -1);
+        this.head.next = this.tail;
+        this.tail.prev = this.head;
     }
 
-    if (this.map.size === this.capacity) {
-      //evict from the tail, the least recently used end
-      const leastRecentlyUsed = this.tail.prev;
-      this.removeNode(leastRecentlyUsed);
-      //we need the node's own key to evict it from the map,
-      //which is why every node stores its key alongside its value
-      this.map.delete(leastRecentlyUsed.key);
+    private void removeNode(DoublyLinkedNode node) {
+        node.prev.next = node.next;
+        node.next.prev = node.prev;
+        node.prev = null;
+        node.next = null;
     }
 
-    const node = new DoublyLinkedNode(key, value);
-    this.map.set(key, node);
-    this.addToFront(node);
-  }
+    private void addToFront(DoublyLinkedNode node) {
+        node.next = this.head.next;
+        node.prev = this.head;
+        this.head.next.prev = node;
+        this.head.next = node;
+    }
 
-  //not part of the interview answer, just to inspect the list order
-  toArray() {
-    const order = [];
-    for (let n = this.head.next; n !== this.tail; n = n.next) order.push(`${n.key}=${n.value}`);
-    return order;
-  }
+    public int get(int key) {
+        if (!this.map.containsKey(key)) return -1;
+
+        DoublyLinkedNode node = this.map.get(key);
+        //a read counts as a use, so move it back to the front
+        this.removeNode(node);
+        this.addToFront(node);
+        return node.value;
+    }
+
+    public void put(int key, int value) {
+        if (this.map.containsKey(key)) {
+            DoublyLinkedNode node = this.map.get(key);
+            node.value = value;
+            this.removeNode(node);
+            this.addToFront(node);
+            return;
+        }
+
+        if (this.map.size() == this.capacity) {
+            //evict from the tail, the least recently used end
+            DoublyLinkedNode leastRecentlyUsed = this.tail.prev;
+            this.removeNode(leastRecentlyUsed);
+            //we need the node's own key to evict it from the map,
+            //which is why every node stores its key alongside its value
+            this.map.remove(leastRecentlyUsed.key);
+        }
+
+        DoublyLinkedNode node = new DoublyLinkedNode(key, value);
+        this.map.put(key, node);
+        this.addToFront(node);
+    }
+
+    //not part of the interview answer, just to inspect the list order
+    public java.util.List<String> toArray() {
+        java.util.List<String> order = new java.util.ArrayList<>();
+        for (DoublyLinkedNode n = this.head.next; n != this.tail; n = n.next) {
+            order.add(n.key + "=" + n.value);
+        }
+        return order;
+    }
 }
 
-// Input  ["LRUCache", "put", "put", "get", "put", "get", "put", "get", "get", "get"]
-//        [[2], [1, 1], [2, 2], [1], [3, 3], [2], [4, 4], [1], [3], [4]]
-// Output [null, null, null, 1, null, -1, null, -1, 3, 4]
+class Solution {
+    public static void main(String[] args) {
+        // Input  ["LRUCache", "put", "put", "get", "put", "get", "put", "get", "get", "get"]
+        //        [[2], [1, 1], [2, 2], [1], [3, 3], [2], [4, 4], [1], [3], [4]]
+        // Output [null, null, null, 1, null, -1, null, -1, 3, 4]
 
-const lruCache = new LRUCache(2);
-lruCache.put(1, 1);
-lruCache.put(2, 2);
-//cache is {1=1, 2=2}
-console.log(lruCache.get(1));
-//1
-//reading 1 makes it most recent, so 2 is now the eviction candidate
-lruCache.put(3, 3);
-//capacity reached, evicts key 2 -> cache is {1=1, 3=3}
-//3 is freshly inserted, so 1 is the next candidate
-console.log(lruCache.get(2));
-//-1
-lruCache.put(4, 4);
-//capacity reached, evicts key 1 -> cache is {3=3, 4=4}
-console.log(lruCache.get(1));
-//-1
-console.log(lruCache.get(3));
-//3
-console.log(lruCache.get(4));
-//4
+        LRUCache lruCache = new LRUCache(2);
+        lruCache.put(1, 1);
+        lruCache.put(2, 2);
+        //cache is {1=1, 2=2}
+        System.out.println(lruCache.get(1));
+        //1
+        //reading 1 makes it most recent, so 2 is now the eviction candidate
+        lruCache.put(3, 3);
+        //capacity reached, evicts key 2 -> cache is {1=1, 3=3}
+        //3 is freshly inserted, so 1 is the next candidate
+        System.out.println(lruCache.get(2));
+        //-1
+        lruCache.put(4, 4);
+        //capacity reached, evicts key 1 -> cache is {3=3, 4=4}
+        System.out.println(lruCache.get(1));
+        //-1
+        System.out.println(lruCache.get(3));
+        //3
+        System.out.println(lruCache.get(4));
+        //4
 
-//most recent first: we read 3 then 4, so 4 sits at the front
-console.log(lruCache.toArray());
-//[ '4=4', '3=3' ]
+        //most recent first: we read 3 then 4, so 4 sits at the front
+        System.out.println(lruCache.toArray());
+        //[ '4=4', '3=3' ]
+    }
+}
 ```
 
 Note the small design decision inside `put`: each node stores its own `key`, not just its `value`. It looks redundant, since we reached the node <i>through</i> the key. But on eviction we start from the <b>list</b> — we grab `tail.prev` — and then have to delete that entry from the <b>map</b>. Without the `key` on the node there is no way to do that in `O(1)`. This is the second structure needing a back-reference into the first, and forgetting it is the most common reason an otherwise correct LRU fails.
@@ -489,74 +545,75 @@ Note the small design decision inside `put`: each node stores its own `key`, not
 - `put(key, value)` ➡️ `O(1)` average. Same, plus at most one eviction, itself `O(1)`.
 - <b>Space</b> ➡️ `O(capacity)`. The map and the list hold at most `capacity` entries between them, never more.
 
-### A shorter approach using JavaScript's `Map`
+### A shorter approach using Java's `LinkedHashMap`
 
-The verbose version above is what an interviewer usually wants, because it shows you know <i>why</i> a doubly linked list is required. But <i>JavaScript</i> hands you most of that machinery for free.
+The verbose version above is what an interviewer usually wants, because it shows you know <i>why</i> a doubly linked list is required. But <i>Java</i> hands you most of that machinery for free.
 
-A <b>`Map`</b> is not just a hash table — it <b>preserves insertion order</b> when iterated, and `delete` followed by `set` re-inserts a key at the <b>back</b> of that order, both `O(1)`. That is precisely the "move to most recent" operation we built the list for. A `Map` is in effect already a <b>linked hash map</b>, its ordering maintained internally by the very doubly linked list we just wrote by hand. That gives two `O(1)` primitives: `map.delete(key)` then `map.set(key, value)` marks an entry most recently used, and `map.keys().next().value` finds the least recently used.
+A <b>`LinkedHashMap`</b> is not just a hash table — it <b>preserves access order</b> when configured, and automatically maintains an internal doubly linked list. That is precisely the "move to most recent" operation we built the list for. By passing `accessOrder = true` to its constructor and overriding `removeEldestEntry`, a `LinkedHashMap` manages the LRU logic internally. 
 
-The cache collapses to a dozen lines. Note the recency ordering runs the <i>opposite</i> way from the list version: the front of the `Map`'s iteration order is the <b>oldest</b> entry, whereas `head.next` above was the <b>newest</b>.
+The cache collapses to a dozen lines. 
 
-```js
+```java
+import java.util.LinkedHashMap;
+import java.util.Map;
+
 class LRUCache {
-  constructor(capacity) {
-    this.capacity = capacity;
-    //a JavaScript Map iterates in insertion order,
-    //so the Map itself is already the doubly linked list
-    this.map = new Map();
-  }
+    int capacity;
+    LinkedHashMap<Integer, Integer> map;
 
-  get(key) {
-    if (!this.map.has(key)) return -1;
-
-    const value = this.map.get(key);
-    //delete + set re-inserts at the back, i.e. marks it most recently used
-    this.map.delete(key);
-    this.map.set(key, value);
-    return value;
-  }
-
-  put(key, value) {
-    if (this.map.has(key)) {
-      this.map.delete(key);
-    } else if (this.map.size === this.capacity) {
-      //the first key in iteration order is the least recently used
-      const leastRecentlyUsedKey = this.map.keys().next().value;
-      this.map.delete(leastRecentlyUsedKey);
+    public LRUCache(int capacity) {
+        this.capacity = capacity;
+        // LinkedHashMap with accessOrder = true iterates in least-recently-accessed order
+        this.map = new LinkedHashMap<Integer, Integer>(capacity, 0.75f, true) {
+            @Override
+            protected boolean removeEldestEntry(Map.Entry<Integer, Integer> eldest) {
+                return size() > capacity;
+            }
+        };
     }
-    this.map.set(key, value);
-  }
+
+    public int get(int key) {
+        return map.getOrDefault(key, -1);
+    }
+
+    public void put(int key, int value) {
+        map.put(key, value);
+    }
 }
 
-//the same official sequence, for the same expected output
-//[null, null, null, 1, null, -1, null, -1, 3, 4]
+class Solution {
+    public static void main(String[] args) {
+        //the same official sequence, for the same expected output
+        //[null, null, null, 1, null, -1, null, -1, 3, 4]
+        
+        LRUCache lruCache = new LRUCache(2);
+        lruCache.put(1, 1);
+        lruCache.put(2, 2);
+        System.out.println(lruCache.get(1));
+        //1
+        lruCache.put(3, 3);
+        System.out.println(lruCache.get(2));
+        //-1
+        lruCache.put(4, 4);
+        System.out.println(lruCache.get(1));
+        //-1
+        System.out.println(lruCache.get(3));
+        //3
+        System.out.println(lruCache.get(4));
+        //4
 
-const lruCache = new LRUCache(2);
-lruCache.put(1, 1);
-lruCache.put(2, 2);
-console.log(lruCache.get(1));
-//1
-lruCache.put(3, 3);
-console.log(lruCache.get(2));
-//-1
-lruCache.put(4, 4);
-console.log(lruCache.get(1));
-//-1
-console.log(lruCache.get(3));
-//3
-console.log(lruCache.get(4));
-//4
-
-//oldest first here, the mirror image of the linked-list version's order
-console.log([...lruCache.map.entries()]);
-//[ [ 3, 3 ], [ 4, 4 ] ]
+        //oldest first here, the mirror image of the linked-list version's order
+        System.out.println(lruCache.map);
+        //{ 3=3, 4=4 }
+    }
+}
 ```
 
-- `get(key)` ➡️ `O(1)`. `has`, `get`, `delete` and `set` are all `O(1)` on a `Map`.
-- `put(key, value)` ➡️ `O(1)`. `map.keys().next()` grabs one key, it does not walk the map.
+- `get(key)` ➡️ `O(1)`. Internally it updates the linked list.
+- `put(key, value)` ➡️ `O(1)`.
 - <b>Space</b> ➡️ `O(capacity)`.
 
-<b>Note:</b> `map.keys().next().value` is `O(1)` because it pulls a single value from a lazy iterator. Writing `[...map.keys()][0]` instead would materialise every key into an array and quietly make `put` cost `O(N)`, failing the stated complexity target. Same-looking code, very different complexity.
+<b>Note:</b> You should still mention how the underlying linked list handles the ordering so the interviewer knows you understand the data structure.
 
 ## Time Based Key-Value Store (medium)
 
@@ -582,67 +639,86 @@ And now the problem's last line stops looking like trivia and starts looking lik
 
 The search itself is the <b>floor / upper-bound</b> variant from <b>[Pattern 11: Modified Binary Search](./✅%20%20Pattern%2011:%20Modified%20Binary%20Search.md)</b>, not a plain equality search — the exact `timestamp` may never have been `set` at all. The idiom: whenever `entries[mid][0] <= timestamp`, record that entry as a <b>candidate</b> and keep searching <b>right</b> for a later one; otherwise discard the right half. When the loop ends the last candidate is the answer. Because `result` starts as `""`, the "no valid value" case needs no extra handling — if every timestamp was too large we simply never recorded a candidate.
 
-```js
+```java
+import java.util.*;
+
 class TimeMap {
-  constructor() {
-    //key -> array of [timestamp, value], kept sorted because
-    //the problem guarantees strictly increasing timestamps per key
-    this.store = new Map();
-  }
-
-  set(key, value, timestamp) {
-    if (!this.store.has(key)) this.store.set(key, []);
-    this.store.get(key).push([timestamp, value]);
-  }
-
-  get(key, timestamp) {
-    const entries = this.store.get(key);
-    if (!entries) return '';
-
-    //binary search for the rightmost entry with timestamp_prev <= timestamp
-    let start = 0;
-    let end = entries.length - 1;
-    let result = '';
-
-    while (start <= end) {
-      const mid = start + Math.floor((end - start) / 2);
-
-      if (entries[mid][0] <= timestamp) {
-        //candidate answer, but keep looking right for a later one
-        result = entries[mid][1];
-        start = mid + 1;
-      } else {
-        end = mid - 1;
-      }
+    static class Pair {
+        int timestamp;
+        String value;
+        Pair(int timestamp, String value) {
+            this.timestamp = timestamp;
+            this.value = value;
+        }
     }
 
-    return result;
-  }
+    //key -> array of [timestamp, value], kept sorted because
+    //the problem guarantees strictly increasing timestamps per key
+    Map<String, List<Pair>> store;
+
+    public TimeMap() {
+        store = new HashMap<>();
+    }
+
+    public void set(String key, String value, int timestamp) {
+        if (!store.containsKey(key)) {
+            store.put(key, new ArrayList<>());
+        }
+        store.get(key).add(new Pair(timestamp, value));
+    }
+
+    public String get(String key, int timestamp) {
+        List<Pair> entries = store.get(key);
+        if (entries == null) return "";
+
+        //binary search for the rightmost entry with timestamp_prev <= timestamp
+        int start = 0;
+        int end = entries.size() - 1;
+        String result = "";
+
+        while (start <= end) {
+            int mid = start + (end - start) / 2;
+
+            if (entries.get(mid).timestamp <= timestamp) {
+                //candidate answer, but keep looking right for a later one
+                result = entries.get(mid).value;
+                start = mid + 1;
+            } else {
+                end = mid - 1;
+            }
+        }
+
+        return result;
+    }
 }
 
-// Input  ["TimeMap", "set", "get", "get", "set", "get", "get"]
-//        [[], ["foo", "bar", 1], ["foo", 1], ["foo", 3], ["foo", "bar2", 4], ["foo", 4], ["foo", 5]]
-// Output [null, null, "bar", "bar", null, "bar2", "bar2"]
+class Solution {
+    public static void main(String[] args) {
+        // Input  ["TimeMap", "set", "get", "get", "set", "get", "get"]
+        //        [[], ["foo", "bar", 1], ["foo", 1], ["foo", 3], ["foo", "bar2", 4], ["foo", 4], ["foo", 5]]
+        // Output [null, null, "bar", "bar", null, "bar2", "bar2"]
 
-const timeMap = new TimeMap();
-timeMap.set('foo', 'bar', 1);
-console.log(timeMap.get('foo', 1));
-//bar
-//nothing was set at 3, so we fall back to the latest value at or before it
-console.log(timeMap.get('foo', 3));
-//bar
-timeMap.set('foo', 'bar2', 4);
-console.log(timeMap.get('foo', 4));
-//bar2
-console.log(timeMap.get('foo', 5));
-//bar2
+        TimeMap timeMap = new TimeMap();
+        timeMap.set("foo", "bar", 1);
+        System.out.println(timeMap.get("foo", 1));
+        //bar
+        //nothing was set at 3, so we fall back to the latest value at or before it
+        System.out.println(timeMap.get("foo", 3));
+        //bar
+        timeMap.set("foo", "bar2", 4);
+        System.out.println(timeMap.get("foo", 4));
+        //bar2
+        System.out.println(timeMap.get("foo", 5));
+        //bar2
 
-//no value was set at or before the requested timestamp
-console.log(JSON.stringify(timeMap.get('foo', 0)));
-//""
-//the key was never set at all
-console.log(JSON.stringify(timeMap.get('missing', 10)));
-//""
+        //no value was set at or before the requested timestamp
+        System.out.println("\"" + timeMap.get("foo", 0) + "\"");
+        //""
+        //the key was never set at all
+        System.out.println("\"" + timeMap.get("missing", 10) + "\"");
+        //""
+    }
+}
 ```
 
 - `set(key, value, timestamp)` ➡️ `O(1)`. One map lookup and one array push, because the guaranteed increasing timestamps mean appending keeps the array sorted.
@@ -686,165 +762,191 @@ Maintaining `minFreq` looks like it should be hard, and why it is not is what ma
 
 That second case is the crucial one: the minimum can never jump by more than one, so we never search for it and a single `minFreq++` is always correct. Note also that we never delete empty buckets — an empty list is harmless, and skipping the cleanup keeps every operation constant-time. Eviction never needs to touch `minFreq` either, since we immediately insert a new node at frequency `1` afterwards and reset it.
 
-```js
+```java
 class LFUNode {
-  constructor(key, value) {
-    this.key = key;
-    this.value = value;
-    this.freq = 1;
-    this.prev = null;
-    this.next = null;
-  }
+    int key;
+    int value;
+    int freq;
+    LFUNode prev;
+    LFUNode next;
+
+    public LFUNode(int key, int value) {
+        this.key = key;
+        this.value = value;
+        this.freq = 1;
+        this.prev = null;
+        this.next = null;
+    }
 }
 
 //one LRU list per frequency bucket, front = most recently used
 class LFUList {
-  constructor() {
-    this.head = new LFUNode(null, null);
-    this.tail = new LFUNode(null, null);
-    this.head.next = this.tail;
-    this.tail.prev = this.head;
-    this.size = 0;
-  }
+    LFUNode head;
+    LFUNode tail;
+    int size;
 
-  addToFront(node) {
-    node.next = this.head.next;
-    node.prev = this.head;
-    this.head.next.prev = node;
-    this.head.next = node;
-    this.size++;
-  }
+    public LFUList() {
+        this.head = new LFUNode(-1, -1);
+        this.tail = new LFUNode(-1, -1);
+        this.head.next = this.tail;
+        this.tail.prev = this.head;
+        this.size = 0;
+    }
 
-  removeNode(node) {
-    node.prev.next = node.next;
-    node.next.prev = node.prev;
-    node.prev = null;
-    node.next = null;
-    this.size--;
-  }
+    public void addToFront(LFUNode node) {
+        node.next = this.head.next;
+        node.prev = this.head;
+        this.head.next.prev = node;
+        this.head.next = node;
+        this.size++;
+    }
 
-  removeLeastRecent() {
-    if (this.size === 0) return null;
-    const node = this.tail.prev;
-    this.removeNode(node);
-    return node;
-  }
+    public void removeNode(LFUNode node) {
+        node.prev.next = node.next;
+        node.next.prev = node.prev;
+        node.prev = null;
+        node.next = null;
+        this.size--;
+    }
 
-  isEmpty() {
-    return this.size === 0;
-  }
+    public LFUNode removeLeastRecent() {
+        if (this.size == 0) return null;
+        LFUNode node = this.tail.prev;
+        this.removeNode(node);
+        return node;
+    }
+
+    public boolean isEmpty() {
+        return this.size == 0;
+    }
 }
 
 class LFUCache {
-  constructor(capacity) {
-    this.capacity = capacity;
+    int capacity;
     //key -> node
-    this.nodes = new Map();
+    java.util.Map<Integer, LFUNode> nodes;
     //frequency -> LFUList of every node with that frequency
-    this.freqLists = new Map();
+    java.util.Map<Integer, LFUList> freqLists;
     //smallest frequency currently present, so eviction is O(1)
-    this.minFreq = 0;
-  }
+    int minFreq;
 
-  //promote a node from its bucket into the next one up
-  touch(node) {
-    const currentList = this.freqLists.get(node.freq);
-    currentList.removeNode(node);
-
-    //if we just emptied the minimum bucket, the new minimum is one higher
-    if (currentList.isEmpty() && this.minFreq === node.freq) {
-      this.minFreq++;
+    public LFUCache(int capacity) {
+        this.capacity = capacity;
+        this.nodes = new java.util.HashMap<>();
+        this.freqLists = new java.util.HashMap<>();
+        this.minFreq = 0;
     }
 
-    node.freq++;
-    if (!this.freqLists.has(node.freq)) {
-      this.freqLists.set(node.freq, new LFUList());
-    }
-    this.freqLists.get(node.freq).addToFront(node);
-  }
+    //promote a node from its bucket into the next one up
+    private void touch(LFUNode node) {
+        LFUList currentList = this.freqLists.get(node.freq);
+        currentList.removeNode(node);
 
-  get(key) {
-    if (!this.nodes.has(key)) return -1;
+        //if we just emptied the minimum bucket, the new minimum is one higher
+        if (currentList.isEmpty() && this.minFreq == node.freq) {
+            this.minFreq++;
+        }
 
-    const node = this.nodes.get(key);
-    this.touch(node);
-    return node.value;
-  }
-
-  put(key, value) {
-    if (this.capacity === 0) return;
-
-    if (this.nodes.has(key)) {
-      const node = this.nodes.get(key);
-      node.value = value;
-      //an overwrite counts as a use, just like a read does
-      this.touch(node);
-      return;
+        node.freq++;
+        if (!this.freqLists.containsKey(node.freq)) {
+            this.freqLists.put(node.freq, new LFUList());
+        }
+        this.freqLists.get(node.freq).addToFront(node);
     }
 
-    if (this.nodes.size === this.capacity) {
-      //evict the least recently used node inside the least frequent bucket
-      const leastFrequentList = this.freqLists.get(this.minFreq);
-      const evicted = leastFrequentList.removeLeastRecent();
-      this.nodes.delete(evicted.key);
+    public int get(int key) {
+        if (!this.nodes.containsKey(key)) return -1;
+
+        LFUNode node = this.nodes.get(key);
+        this.touch(node);
+        return node.value;
     }
 
-    const node = new LFUNode(key, value);
-    this.nodes.set(key, node);
-    if (!this.freqLists.has(1)) this.freqLists.set(1, new LFUList());
-    this.freqLists.get(1).addToFront(node);
-    //a brand new node always has frequency 1
-    this.minFreq = 1;
-  }
+    public void put(int key, int value) {
+        if (this.capacity == 0) return;
 
-  //not part of the interview answer, just to inspect the buckets
-  toBuckets() {
-    const snapshot = {};
-    for (const [freq, list] of this.freqLists) {
-      const order = [];
-      for (let n = list.head.next; n !== list.tail; n = n.next) order.push(`${n.key}=${n.value}`);
-      if (order.length > 0) snapshot[freq] = order;
+        if (this.nodes.containsKey(key)) {
+            LFUNode node = this.nodes.get(key);
+            node.value = value;
+            //an overwrite counts as a use, just like a read does
+            this.touch(node);
+            return;
+        }
+
+        if (this.nodes.size() == this.capacity) {
+            //evict the least recently used node inside the least frequent bucket
+            LFUList leastFrequentList = this.freqLists.get(this.minFreq);
+            LFUNode evicted = leastFrequentList.removeLeastRecent();
+            this.nodes.remove(evicted.key);
+        }
+
+        LFUNode node = new LFUNode(key, value);
+        this.nodes.put(key, node);
+        if (!this.freqLists.containsKey(1)) {
+            this.freqLists.put(1, new LFUList());
+        }
+        this.freqLists.get(1).addToFront(node);
+        //a brand new node always has frequency 1
+        this.minFreq = 1;
     }
-    return snapshot;
-  }
+
+    //not part of the interview answer, just to inspect the buckets
+    public java.util.Map<Integer, java.util.List<String>> toBuckets() {
+        java.util.Map<Integer, java.util.List<String>> snapshot = new java.util.HashMap<>();
+        for (java.util.Map.Entry<Integer, LFUList> entry : this.freqLists.entrySet()) {
+            java.util.List<String> order = new java.util.ArrayList<>();
+            LFUList list = entry.getValue();
+            for (LFUNode n = list.head.next; n != list.tail; n = n.next) {
+                order.add(n.key + "=" + n.value);
+            }
+            if (!order.isEmpty()) {
+                snapshot.put(entry.getKey(), order);
+            }
+        }
+        return snapshot;
+    }
 }
 
-// Input  ["LFUCache", "put", "put", "get", "put", "get", "get", "put", "get", "get", "get"]
-//        [[2], [1, 1], [2, 2], [1], [3, 3], [2], [3], [4, 4], [1], [3], [4]]
-// Output [null, null, null, 1, null, -1, 3, null, -1, 3, 4]
+class Solution {
+    public static void main(String[] args) {
+        // Input  ["LFUCache", "put", "put", "get", "put", "get", "get", "put", "get", "get", "get"]
+        //        [[2], [1, 1], [2, 2], [1], [3, 3], [2], [3], [4, 4], [1], [3], [4]]
+        // Output [null, null, null, 1, null, -1, 3, null, -1, 3, 4]
 
-const lfuCache = new LFUCache(2);
-lfuCache.put(1, 1);
-lfuCache.put(2, 2);
-//bucket 1 holds [2, 1], minFreq is 1
-console.log(lfuCache.get(1));
-//1
-//key 1 moves up: bucket 1 holds [2], bucket 2 holds [1]
-lfuCache.put(3, 3);
-//full, so evict from bucket 1 -> key 2 goes
-//bucket 1 holds [3], bucket 2 holds [1], minFreq is 1
-console.log(lfuCache.get(2));
-//-1
-console.log(lfuCache.get(3));
-//3
-//bucket 1 is now empty and was the min, so minFreq becomes 2
-//bucket 2 holds [3, 1]
-lfuCache.put(4, 4);
-//full, so evict from bucket 2. Keys 1 and 3 tie on frequency,
-//and 1 is the least recently used of the two, so key 1 goes
-//bucket 1 holds [4], bucket 2 holds [3], minFreq is 1
-console.log(lfuCache.get(1));
-//-1
-console.log(lfuCache.get(3));
-//3
-console.log(lfuCache.get(4));
-//4
+        LFUCache lfuCache = new LFUCache(2);
+        lfuCache.put(1, 1);
+        lfuCache.put(2, 2);
+        //bucket 1 holds [2, 1], minFreq is 1
+        System.out.println(lfuCache.get(1));
+        //1
+        //key 1 moves up: bucket 1 holds [2], bucket 2 holds [1]
+        lfuCache.put(3, 3);
+        //full, so evict from bucket 1 -> key 2 goes
+        //bucket 1 holds [3], bucket 2 holds [1], minFreq is 1
+        System.out.println(lfuCache.get(2));
+        //-1
+        System.out.println(lfuCache.get(3));
+        //3
+        //bucket 1 is now empty and was the min, so minFreq becomes 2
+        //bucket 2 holds [3, 1]
+        lfuCache.put(4, 4);
+        //full, so evict from bucket 2. Keys 1 and 3 tie on frequency,
+        //and 1 is the least recently used of the two, so key 1 goes
+        //bucket 1 holds [4], bucket 2 holds [3], minFreq is 1
+        System.out.println(lfuCache.get(1));
+        //-1
+        System.out.println(lfuCache.get(3));
+        //3
+        System.out.println(lfuCache.get(4));
+        //4
 
-//key 4 used twice, key 3 three times; empty bucket 1 is left in place
-console.log(lfuCache.toBuckets());
-//{ '2': [ '4=4' ], '3': [ '3=3' ] }
-console.log(lfuCache.minFreq);
-//2
+        //key 4 used twice, key 3 three times; empty bucket 1 is left in place
+        System.out.println(lfuCache.toBuckets());
+        //{ 2=[ 4=4 ], 3=[ 3=3 ] }
+        System.out.println(lfuCache.minFreq);
+        //2
+    }
+}
 ```
 
 The `put(4, 4)` step is the one that actually tests the design, so it is worth pausing on. At that moment keys `1` and `3` both sit at frequency `2` — the frequency dimension cannot separate them. The tiebreak comes entirely from their order <i>inside</i> bucket 2, which reads `[3, 1]` because `3` was read more recently. Taking the list's tail therefore evicts `1`, exactly as specified. A design tracking frequency alone would be free to evict either, and would fail this test roughly half the time.

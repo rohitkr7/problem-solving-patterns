@@ -19,39 +19,47 @@ The distinction matters more than it looks. <b>BFS visits cells in non-decreasin
 
 <b>Bounds checking.</b> Grids have edges and a graph traversal has no idea about them, so every candidate neighbour must be validated before we dereference it. Check bounds <i>before</i> reading the cell's value — `grid[-1]` is `undefined`, so `grid[-1][0]` would throw — which means the order of these conditions is not a matter of taste:
 
-````js
-const grid = [
-  [1, 1, 0],
-  [0, 1, 0],
-];
+```java
+import java.util.*;
 
-const rows = grid.length;
-const cols = grid[0].length;
-const directions = [
-  [-1, 0], [1, 0], [0, -1], [0, 1],
-];
+class Solution {
+    public static void main(String[] args) {
+        int[][] grid = {
+            {1, 1, 0},
+            {0, 1, 0}
+        };
 
-//collect the land neighbours of the top-left corner
-const row = 0;
-const col = 0;
-const neighbours = [];
+        int rows = grid.length;
+        int cols = grid[0].length;
+        int[][] directions = {
+            {-1, 0}, {1, 0}, {0, -1}, {0, 1}
+        };
 
-for (const [rowDelta, colDelta] of directions) {
-  const nextRow = row + rowDelta;
-  const nextCol = col + colDelta;
+        //collect the land neighbours of the top-left corner
+        int row = 0;
+        int col = 0;
+        List<int[]> neighbours = new ArrayList<>();
 
-  //bounds check BEFORE reading the cell
-  if (nextRow < 0 || nextRow >= rows) continue;
-  if (nextCol < 0 || nextCol >= cols) continue;
-  if (grid[nextRow][nextCol] !== 1) continue;
+        for (int[] dir : directions) {
+            int nextRow = row + dir[0];
+            int nextCol = col + dir[1];
 
-  neighbours.push([nextRow, nextCol]);
+            //bounds check BEFORE reading the cell
+            if (nextRow < 0 || nextRow >= rows) continue;
+            if (nextCol < 0 || nextCol >= cols) continue;
+            if (grid[nextRow][nextCol] != 1) continue;
+
+            neighbours.add(new int[]{nextRow, nextCol});
+        }
+
+        //the corner has only two in-bounds neighbours, and just one of them is land
+        for (int[] n : neighbours) {
+            System.out.println(Arrays.toString(n));
+        }
+        //[0, 1]
+    }
 }
-
-//the corner has only two in-bounds neighbours, and just one of them is land
-console.log(JSON.stringify(neighbours));
-//[[0,1]]
-````
+```
 
 <b>Marking cells visited: in place vs. a separate set.</b> Without a visited marker, any traversal will bounce between two adjacent cells forever. Two options:
 
@@ -73,133 +81,148 @@ The key observation: the number of islands is the number of <b>connected compone
 
 That consuming step is the whole algorithm. Here it is with <b>DFS</b>:
 
-````js
-function numIslands(grid) {
-  //an empty grid has no islands
-  if (!grid || grid.length === 0 || grid[0].length === 0) return 0;
+```java
+class Solution {
+    public static int numIslands(char[][] grid) {
+        //an empty grid has no islands
+        if (grid == null || grid.length == 0 || grid[0].length == 0) return 0;
 
-  const rows = grid.length;
-  const cols = grid[0].length;
-  let islandCount = 0;
+        int rows = grid.length;
+        int cols = grid[0].length;
+        int islandCount = 0;
 
-  //flood-fill every land cell reachable from (row, col)
-  function dfs(row, col) {
-    //bounds check: we walked off the grid
-    if (row < 0 || row >= rows || col < 0 || col >= cols) return;
+        for (int row = 0; row < rows; row++) {
+            for (int col = 0; col < cols; col++) {
+                //every unvisited land cell is the seed of a brand new island
+                if (grid[row][col] == '1') {
+                    islandCount++;
+                    dfs(grid, row, col);
+                }
+            }
+        }
 
-    //not land (either water, or land we already sank)
-    if (grid[row][col] !== '1') return;
-
-    //mark visited in place by sinking the island
-    grid[row][col] = '0';
-
-    //recurse into the four neighbours
-    dfs(row + 1, col);
-    dfs(row - 1, col);
-    dfs(row, col + 1);
-    dfs(row, col - 1);
-  }
-
-  for (let row = 0; row < rows; row++) {
-    for (let col = 0; col < cols; col++) {
-      //every unvisited land cell is the seed of a brand new island
-      if (grid[row][col] === '1') {
-        islandCount++;
-        dfs(row, col);
-      }
+        return islandCount;
     }
-  }
 
-  return islandCount;
+    //flood-fill every land cell reachable from (row, col)
+    private static void dfs(char[][] grid, int row, int col) {
+        int rows = grid.length;
+        int cols = grid[0].length;
+
+        //bounds check: we walked off the grid
+        if (row < 0 || row >= rows || col < 0 || col >= cols) return;
+
+        //not land (either water, or land we already sank)
+        if (grid[row][col] != '1') return;
+
+        //mark visited in place by sinking the island
+        grid[row][col] = '0';
+
+        //recurse into the four neighbours
+        dfs(grid, row + 1, col);
+        dfs(grid, row - 1, col);
+        dfs(grid, row, col + 1);
+        dfs(grid, row, col - 1);
+    }
+
+    public static void main(String[] args) {
+        //each example gets its own fresh grid, because numIslands() mutates its input
+        char[][] grid1 = {
+            {'1', '1', '1', '1', '0'},
+            {'1', '1', '0', '1', '0'},
+            {'1', '1', '0', '0', '0'},
+            {'0', '0', '0', '0', '0'}
+        };
+        System.out.println("Number of islands: " + numIslands(grid1));
+        //Number of islands: 1
+
+        char[][] grid2 = {
+            {'1', '1', '0', '0', '0'},
+            {'1', '1', '0', '0', '0'},
+            {'0', '0', '1', '0', '0'},
+            {'0', '0', '0', '1', '1'}
+        };
+        System.out.println("Number of islands: " + numIslands(grid2));
+        //Number of islands: 3
+    }
 }
-
-//each example gets its own fresh grid, because numIslands() mutates its input
-const grid1 = [
-  ['1', '1', '1', '1', '0'],
-  ['1', '1', '0', '1', '0'],
-  ['1', '1', '0', '0', '0'],
-  ['0', '0', '0', '0', '0'],
-];
-console.log(`Number of islands: ${numIslands(grid1)}`);
-//Number of islands: 1
-
-const grid2 = [
-  ['1', '1', '0', '0', '0'],
-  ['1', '1', '0', '0', '0'],
-  ['0', '0', '1', '0', '0'],
-  ['0', '0', '0', '1', '1'],
-];
-console.log(`Number of islands: ${numIslands(grid2)}`);
-//Number of islands: 3
-````
+```
 
 <b>Sinking the island as we go is what makes the outer double loop safe.</b> Without it, the second cell of the first island would be counted as a second island.
 
 Here is the same algorithm with <b>BFS</b>, worth writing out at least once because it is the shape we reuse for <b>Rotting Oranges</b> and <b>01 Matrix</b>. Instead of recursing, we keep a <b>Queue</b> of cells still to expand:
 
-````js
-const directions = [
-  [-1, 0], [1, 0], [0, -1], [0, 1],
-];
+```java
+import java.util.*;
 
-function numIslands(grid) {
-  if (!grid || grid.length === 0 || grid[0].length === 0) return 0;
+class Solution {
+    public static int numIslands(char[][] grid) {
+        if (grid == null || grid.length == 0 || grid[0].length == 0) return 0;
 
-  const rows = grid.length;
-  const cols = grid[0].length;
-  let islandCount = 0;
+        int rows = grid.length;
+        int cols = grid[0].length;
+        int islandCount = 0;
+        int[][] directions = {
+            {-1, 0}, {1, 0}, {0, -1}, {0, 1}
+        };
 
-  for (let row = 0; row < rows; row++) {
-    for (let col = 0; col < cols; col++) {
-      if (grid[row][col] !== '1') continue;
+        for (int row = 0; row < rows; row++) {
+            for (int col = 0; col < cols; col++) {
+                if (grid[row][col] != '1') continue;
 
-      //found a new island, expand it outwards with BFS
-      islandCount++;
+                //found a new island, expand it outwards with BFS
+                islandCount++;
 
-      const queue = [[row, col]];
-      //mark it visited the moment it is enqueued, never when it is dequeued,
-      //otherwise the same cell can be pushed twice
-      grid[row][col] = '0';
+                Queue<int[]> queue = new LinkedList<>();
+                queue.offer(new int[]{row, col});
+                //mark it visited the moment it is enqueued, never when it is dequeued,
+                //otherwise the same cell can be pushed twice
+                grid[row][col] = '0';
 
-      while (queue.length > 0) {
-        const [currRow, currCol] = queue.shift();
+                while (!queue.isEmpty()) {
+                    int[] curr = queue.poll();
+                    int currRow = curr[0];
+                    int currCol = curr[1];
 
-        for (const [rowDelta, colDelta] of directions) {
-          const nextRow = currRow + rowDelta;
-          const nextCol = currCol + colDelta;
+                    for (int[] dir : directions) {
+                        int nextRow = currRow + dir[0];
+                        int nextCol = currCol + dir[1];
 
-          //bounds check first, then the land check
-          if (nextRow < 0 || nextRow >= rows) continue;
-          if (nextCol < 0 || nextCol >= cols) continue;
-          if (grid[nextRow][nextCol] !== '1') continue;
+                        //bounds check first, then the land check
+                        if (nextRow < 0 || nextRow >= rows) continue;
+                        if (nextCol < 0 || nextCol >= cols) continue;
+                        if (grid[nextRow][nextCol] != '1') continue;
 
-          grid[nextRow][nextCol] = '0';
-          queue.push([nextRow, nextCol]);
+                        grid[nextRow][nextCol] = '0';
+                        queue.offer(new int[]{nextRow, nextCol});
+                    }
+                }
+            }
         }
-      }
+
+        return islandCount;
     }
-  }
 
-  return islandCount;
+    public static void main(String[] args) {
+        char[][] grid1 = {
+            {'1', '1', '1', '1', '0'},
+            {'1', '1', '0', '1', '0'},
+            {'1', '1', '0', '0', '0'},
+            {'0', '0', '0', '0', '0'}
+        };
+        System.out.println("Number of islands: " + numIslands(grid1));
+        //Number of islands: 1
+
+        char[][] grid2 = {
+            {'1', '0', '1', '0', '1'},
+            {'0', '1', '0', '1', '0'},
+            {'1', '0', '1', '0', '1'}
+        };
+        System.out.println("Number of islands: " + numIslands(grid2));
+        //Number of islands: 8
+    }
 }
-
-const grid1 = [
-  ['1', '1', '1', '1', '0'],
-  ['1', '1', '0', '1', '0'],
-  ['1', '1', '0', '0', '0'],
-  ['0', '0', '0', '0', '0'],
-];
-console.log(`Number of islands: ${numIslands(grid1)}`);
-//Number of islands: 1
-
-const grid2 = [
-  ['1', '0', '1', '0', '1'],
-  ['0', '1', '0', '1', '0'],
-  ['1', '0', '1', '0', '1'],
-];
-console.log(`Number of islands: ${numIslands(grid2)}`);
-//Number of islands: 8
-````
+```
 
 That checkerboard is a nice sanity check — no two land cells are orthogonally adjacent, so all eight are separate islands.
 
@@ -219,60 +242,65 @@ The elegant way is to have `dfs` <b>return the size of the component it just con
 
 This is a good illustration of why <b>DFS suits connected-component questions</b> — the recursive return value composes the answer for free, with no queue and no bookkeeping.
 
-````js
-function maxAreaOfIsland(grid) {
-  if (!grid || grid.length === 0 || grid[0].length === 0) return 0;
+```java
+class Solution {
+    public static int maxAreaOfIsland(int[][] grid) {
+        if (grid == null || grid.length == 0 || grid[0].length == 0) return 0;
 
-  const rows = grid.length;
-  const cols = grid[0].length;
-  let maxArea = 0;
+        int rows = grid.length;
+        int cols = grid[0].length;
+        int maxArea = 0;
 
-  //returns the size of the connected component containing (row, col)
-  function dfs(row, col) {
-    if (row < 0 || row >= rows || col < 0 || col >= cols) return 0;
-    if (grid[row][col] !== 1) return 0;
+        for (int row = 0; row < rows; row++) {
+            for (int col = 0; col < cols; col++) {
+                if (grid[row][col] == 1) {
+                    maxArea = Math.max(maxArea, dfs(grid, row, col));
+                }
+            }
+        }
 
-    //sink the cell so it is counted exactly once
-    grid[row][col] = 0;
-
-    //1 for the current cell, plus whatever the four neighbours contribute
-    return (
-      1 +
-      dfs(row + 1, col) +
-      dfs(row - 1, col) +
-      dfs(row, col + 1) +
-      dfs(row, col - 1)
-    );
-  }
-
-  for (let row = 0; row < rows; row++) {
-    for (let col = 0; col < cols; col++) {
-      if (grid[row][col] === 1) {
-        maxArea = Math.max(maxArea, dfs(row, col));
-      }
+        return maxArea;
     }
-  }
 
-  return maxArea;
+    //returns the size of the connected component containing (row, col)
+    private static int dfs(int[][] grid, int row, int col) {
+        int rows = grid.length;
+        int cols = grid[0].length;
+
+        if (row < 0 || row >= rows || col < 0 || col >= cols) return 0;
+        if (grid[row][col] != 1) return 0;
+
+        //sink the cell so it is counted exactly once
+        grid[row][col] = 0;
+
+        //1 for the current cell, plus whatever the four neighbours contribute
+        return 1 +
+                dfs(grid, row + 1, col) +
+                dfs(grid, row - 1, col) +
+                dfs(grid, row, col + 1) +
+                dfs(grid, row, col - 1);
+    }
+
+    public static void main(String[] args) {
+        int[][] grid1 = {
+            {0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0},
+            {0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0},
+            {0, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0},
+            {0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 0, 0},
+            {0, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 0, 0},
+            {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0},
+            {0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0},
+            {0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0}
+        };
+        System.out.println("Max area of island: " + maxAreaOfIsland(grid1));
+        //Max area of island: 6
+
+        int[][] grid2 = {{0, 0, 0, 0, 0, 0, 0, 0}};
+        System.out.println("Max area of island: " + maxAreaOfIsland(grid2));
+        //Max area of island: 0
+    }
 }
-
-const grid1 = [
-  [0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0],
-  [0, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 0, 0],
-  [0, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0],
-];
-console.log(`Max area of island: ${maxAreaOfIsland(grid1)}`);
-//Max area of island: 6
-
-const grid2 = [[0, 0, 0, 0, 0, 0, 0, 0]];
-console.log(`Max area of island: ${maxAreaOfIsland(grid2)}`);
-//Max area of island: 0
-````
+```
 
 `grid2` has no land at all, and since `maxArea` starts at `0` the "no island" case falls out without a special branch.
 
@@ -295,51 +323,60 @@ Two details are worth pausing on:
 
 Here the repaint <i>is</i> the visited marker — the cleanest possible case of marking in place.
 
-````js
-function floodFill(image, sr, sc, color) {
-  const rows = image.length;
-  const cols = image[0].length;
-  const startColor = image[sr][sc];
+```java
+import java.util.*;
 
-  //if the source already has the target colour there is nothing to do,
-  //and skipping this guard would cause infinite recursion
-  if (startColor === color) return image;
+class Solution {
+    public static int[][] floodFill(int[][] image, int sr, int sc, int color) {
+        int rows = image.length;
+        int cols = image[0].length;
+        int startColor = image[sr][sc];
 
-  function dfs(row, col) {
-    if (row < 0 || row >= rows || col < 0 || col >= cols) return;
+        //if the source already has the target colour there is nothing to do,
+        //and skipping this guard would cause infinite recursion
+        if (startColor == color) return image;
 
-    //only repaint cells that share the original colour
-    if (image[row][col] !== startColor) return;
+        dfs(image, sr, sc, startColor, color);
+        return image;
+    }
 
-    //repainting is itself the "visited" marker
-    image[row][col] = color;
+    private static void dfs(int[][] image, int row, int col, int startColor, int color) {
+        int rows = image.length;
+        int cols = image[0].length;
 
-    dfs(row + 1, col);
-    dfs(row - 1, col);
-    dfs(row, col + 1);
-    dfs(row, col - 1);
-  }
+        if (row < 0 || row >= rows || col < 0 || col >= cols) return;
 
-  dfs(sr, sc);
-  return image;
+        //only repaint cells that share the original colour
+        if (image[row][col] != startColor) return;
+
+        //repainting is itself the "visited" marker
+        image[row][col] = color;
+
+        dfs(image, row + 1, col, startColor, color);
+        dfs(image, row - 1, col, startColor, color);
+        dfs(image, row, col + 1, startColor, color);
+        dfs(image, row, col - 1, startColor, color);
+    }
+
+    public static void main(String[] args) {
+        int[][] image1 = {
+            {1, 1, 1},
+            {1, 1, 0},
+            {1, 0, 1}
+        };
+        System.out.println(Arrays.deepToString(floodFill(image1, 1, 1, 2)));
+        //[[2, 2, 2], [2, 2, 0], [2, 0, 1]]
+
+        //fresh input: floodFill() repaints the array it is handed
+        int[][] image2 = {
+            {0, 0, 0},
+            {0, 1, 1}
+        };
+        System.out.println(Arrays.deepToString(floodFill(image2, 1, 1, 1)));
+        //[[0, 0, 0], [0, 1, 1]]
+    }
 }
-
-const image1 = [
-  [1, 1, 1],
-  [1, 1, 0],
-  [1, 0, 1],
-];
-console.log(JSON.stringify(floodFill(image1, 1, 1, 2)));
-//[[2,2,2],[2,2,0],[2,0,1]]
-
-//fresh input: floodFill() repaints the array it is handed
-const image2 = [
-  [0, 0, 0],
-  [0, 1, 1],
-];
-console.log(JSON.stringify(floodFill(image2, 1, 1, 1)));
-//[[0,0,0],[0,1,1]]
-````
+```
 
 The bottom-right `1` in `image1` survives: it is only diagonally adjacent to the filled region, and diagonals do not count under 4-connectivity. `image2` exercises the `startColor === color` guard and correctly returns its input untouched.
 
@@ -359,60 +396,63 @@ Because there is exactly one island we never have to identify components — onl
 
 So we reuse the `directions` array and the bounds check with <b>no visited marking, no queue and no recursion</b> — a single pass summing exposed sides:
 
-````js
-function islandPerimeter(grid) {
-  const rows = grid.length;
-  const cols = grid[0].length;
+```java
+class Solution {
+    public static int islandPerimeter(int[][] grid) {
+        int rows = grid.length;
+        int cols = grid[0].length;
 
-  const directions = [
-    [-1, 0], [1, 0], [0, -1], [0, 1],
-  ];
+        int[][] directions = {
+            {-1, 0}, {1, 0}, {0, -1}, {0, 1}
+        };
 
-  let perimeter = 0;
+        int perimeter = 0;
 
-  for (let row = 0; row < rows; row++) {
-    for (let col = 0; col < cols; col++) {
-      if (grid[row][col] !== 1) continue;
+        for (int row = 0; row < rows; row++) {
+            for (int col = 0; col < cols; col++) {
+                if (grid[row][col] != 1) continue;
 
-      //each land cell contributes one edge per side that faces
-      //water or the outside of the grid
-      for (const [rowDelta, colDelta] of directions) {
-        const nextRow = row + rowDelta;
-        const nextCol = col + colDelta;
+                //each land cell contributes one edge per side that faces
+                //water or the outside of the grid
+                for (int[] dir : directions) {
+                    int nextRow = row + dir[0];
+                    int nextCol = col + dir[1];
 
-        const outOfBounds =
-          nextRow < 0 || nextRow >= rows || nextCol < 0 || nextCol >= cols;
+                    boolean outOfBounds = nextRow < 0 || nextRow >= rows || nextCol < 0 || nextCol >= cols;
 
-        if (outOfBounds || grid[nextRow][nextCol] === 0) {
-          perimeter++;
+                    if (outOfBounds || grid[nextRow][nextCol] == 0) {
+                        perimeter++;
+                    }
+                }
+            }
         }
-      }
+
+        return perimeter;
     }
-  }
 
-  return perimeter;
+    public static void main(String[] args) {
+        int[][] grid1 = {
+            {0, 1, 0, 0},
+            {1, 1, 1, 0},
+            {0, 1, 0, 0},
+            {1, 1, 0, 0}
+        };
+        System.out.println("Island perimeter: " + islandPerimeter(grid1));
+        //Island perimeter: 16
+
+        int[][] grid2 = {{1}};
+        System.out.println("Island perimeter: " + islandPerimeter(grid2));
+        //Island perimeter: 4
+
+        int[][] grid3 = {
+            {1, 1},
+            {1, 1}
+        };
+        System.out.println("Island perimeter: " + islandPerimeter(grid3));
+        //Island perimeter: 8
+    }
 }
-
-const grid1 = [
-  [0, 1, 0, 0],
-  [1, 1, 1, 0],
-  [0, 1, 0, 0],
-  [1, 1, 0, 0],
-];
-console.log(`Island perimeter: ${islandPerimeter(grid1)}`);
-//Island perimeter: 16
-
-const grid2 = [[1]];
-console.log(`Island perimeter: ${islandPerimeter(grid2)}`);
-//Island perimeter: 4
-
-const grid3 = [
-  [1, 1],
-  [1, 1],
-];
-console.log(`Island perimeter: ${islandPerimeter(grid3)}`);
-//Island perimeter: 8
-````
+```
 
 `grid3` checks the interior-wall logic nicely: a `2 x 2` block has `4 * 4 = 16` sides in total, but four of them are shared internal walls counted from both sides, giving `16 - 8 = 8`. Notice too that this cell-local counting is why the "no lakes" guarantee can be ignored entirely — a lake's shoreline would be counted correctly as well. That guarantee only matters for approaches that trace the outline.
 
@@ -445,69 +485,76 @@ The implementation uses a <b>three-state trick</b> to stay in place with no extr
 
 Using a third character rather than a boolean matrix is what lets step 1 double as the visited marker: `'S'` cells are no longer `'O'`, so the recursion will not revisit them.
 
-````js
-function solve(board) {
-  if (!board || board.length === 0 || board[0].length === 0) return board;
+```java
+class Solution {
+    public static void solve(char[][] board) {
+        if (board == null || board.length == 0 || board[0].length == 0) return;
 
-  const rows = board.length;
-  const cols = board[0].length;
+        int rows = board.length;
+        int cols = board[0].length;
 
-  //walk every 'O' connected to this border cell and tag it as safe
-  function markSafe(row, col) {
-    if (row < 0 || row >= rows || col < 0 || col >= cols) return;
-    if (board[row][col] !== 'O') return;
+        //seed the traversal from the left and right borders
+        for (int row = 0; row < rows; row++) {
+            markSafe(board, row, 0);
+            markSafe(board, row, cols - 1);
+        }
 
-    //'S' means "connected to the border, must survive"
-    board[row][col] = 'S';
+        //seed the traversal from the top and bottom borders
+        for (int col = 0; col < cols; col++) {
+            markSafe(board, 0, col);
+            markSafe(board, rows - 1, col);
+        }
 
-    markSafe(row + 1, col);
-    markSafe(row - 1, col);
-    markSafe(row, col + 1);
-    markSafe(row, col - 1);
-  }
-
-  //seed the traversal from the left and right borders
-  for (let row = 0; row < rows; row++) {
-    markSafe(row, 0);
-    markSafe(row, cols - 1);
-  }
-
-  //seed the traversal from the top and bottom borders
-  for (let col = 0; col < cols; col++) {
-    markSafe(0, col);
-    markSafe(rows - 1, col);
-  }
-
-  //anything still 'O' was never reached from a border, so it is surrounded;
-  //anything marked 'S' goes back to being an 'O'
-  for (let row = 0; row < rows; row++) {
-    for (let col = 0; col < cols; col++) {
-      if (board[row][col] === 'O') board[row][col] = 'X';
-      else if (board[row][col] === 'S') board[row][col] = 'O';
+        //anything still 'O' was never reached from a border, so it is surrounded;
+        //anything marked 'S' goes back to being an 'O'
+        for (int row = 0; row < rows; row++) {
+            for (int col = 0; col < cols; col++) {
+                if (board[row][col] == 'O') board[row][col] = 'X';
+                else if (board[row][col] == 'S') board[row][col] = 'O';
+            }
+        }
     }
-  }
 
-  return board;
+    //walk every 'O' connected to this border cell and tag it as safe
+    private static void markSafe(char[][] board, int row, int col) {
+        int rows = board.length;
+        int cols = board[0].length;
+        
+        if (row < 0 || row >= rows || col < 0 || col >= cols) return;
+        if (board[row][col] != 'O') return;
+
+        //'S' means "connected to the border, must survive"
+        board[row][col] = 'S';
+
+        markSafe(board, row + 1, col);
+        markSafe(board, row - 1, col);
+        markSafe(board, row, col + 1);
+        markSafe(board, row, col - 1);
+    }
+
+    public static void main(String[] args) {
+        char[][] board1 = {
+            {'X', 'X', 'X', 'X'},
+            {'X', 'O', 'O', 'X'},
+            {'X', 'X', 'O', 'X'},
+            {'X', 'O', 'X', 'X'}
+        };
+        solve(board1);
+        System.out.println(Arrays.deepToString(board1));
+        //[[X, X, X, X], [X, X, X, X], [X, X, X, X], [X, O, X, X]]
+
+        //a fresh board, since solve() rewrites the one it is given
+        char[][] board2 = {
+            {'O', 'O', 'O'},
+            {'O', 'O', 'O'},
+            {'O', 'O', 'O'}
+        };
+        solve(board2);
+        System.out.println(Arrays.deepToString(board2));
+        //[[O, O, O], [O, O, O], [O, O, O]]
+    }
 }
-
-const board1 = [
-  ['X', 'X', 'X', 'X'],
-  ['X', 'O', 'O', 'X'],
-  ['X', 'X', 'O', 'X'],
-  ['X', 'O', 'X', 'X'],
-];
-console.log(JSON.stringify(solve(board1)));
-//[["X","X","X","X"],["X","X","X","X"],["X","X","X","X"],["X","O","X","X"]]
-
-//a fresh board, since solve() rewrites the one it is given
-const board2 = [
-  ['O', 'O', 'O'],
-  ['O', 'O', 'O'],
-  ['O', 'O', 'O'],
-];
-console.log(JSON.stringify(solve(board2)));
-//[["O","O","O"],["O","O","O"],["O","O","O"]]
-````
+```
 
 Trace `board1` to see the trick pay off. The three-cell region at `(1,1)`, `(1,2)`, `(2,2)` is fully interior, is never reached from a border, and gets captured. The lone `'O'` at `(3,1)` sits on the bottom row, so it is itself a border seed, gets marked `'S'`, and is restored. `board2` shows the other extreme — every cell connects to a border, so nothing is captured.
 
@@ -540,88 +587,96 @@ Two subtleties handle the edge cases:
 - <b>The impossibility check falls out of a `freshCount`.</b> Count the fresh oranges up front and decrement as each rots. If any remain when the queue drains they were unreachable — walled off by empty cells — so return `-1`.
 - <b>A grid with no fresh oranges must return `0`, not `-1`.</b> Guarding on `freshCount === 0` before the loop also prevents an off-by-one where we would tick the clock for a final, fruitless ring.
 
-````js
-function orangesRotting(grid) {
-  const rows = grid.length;
-  const cols = grid[0].length;
+```java
+import java.util.*;
 
-  const directions = [
-    [-1, 0], [1, 0], [0, -1], [0, 1],
-  ];
+class Solution {
+    public static int orangesRotting(int[][] grid) {
+        int rows = grid.length;
+        int cols = grid[0].length;
 
-  //seed the queue with EVERY rotten orange, and count the fresh ones
-  const queue = [];
-  let freshCount = 0;
+        int[][] directions = {
+            {-1, 0}, {1, 0}, {0, -1}, {0, 1}
+        };
 
-  for (let row = 0; row < rows; row++) {
-    for (let col = 0; col < cols; col++) {
-      if (grid[row][col] === 2) queue.push([row, col]);
-      else if (grid[row][col] === 1) freshCount++;
+        //seed the queue with EVERY rotten orange, and count the fresh ones
+        Queue<int[]> queue = new LinkedList<>();
+        int freshCount = 0;
+
+        for (int row = 0; row < rows; row++) {
+            for (int col = 0; col < cols; col++) {
+                if (grid[row][col] == 2) queue.offer(new int[]{row, col});
+                else if (grid[row][col] == 1) freshCount++;
+            }
+        }
+
+        //nothing fresh to rot, so zero minutes have to pass
+        if (freshCount == 0) return 0;
+
+        int minutes = 0;
+
+        while (!queue.isEmpty() && freshCount > 0) {
+            //one iteration of this loop is exactly one minute
+            int levelSize = queue.size();
+            minutes++;
+
+            for (int i = 0; i < levelSize; i++) {
+                int[] curr = queue.poll();
+                int currRow = curr[0];
+                int currCol = curr[1];
+
+                for (int[] dir : directions) {
+                    int nextRow = currRow + dir[0];
+                    int nextCol = currCol + dir[1];
+
+                    if (nextRow < 0 || nextRow >= rows) continue;
+                    if (nextCol < 0 || nextCol >= cols) continue;
+
+                    //only fresh oranges can rot
+                    if (grid[nextRow][nextCol] != 1) continue;
+
+                    grid[nextRow][nextCol] = 2;
+                    freshCount--;
+                    queue.offer(new int[]{nextRow, nextCol});
+                }
+            }
+        }
+
+        //if any fresh orange was unreachable, the job is impossible
+        return freshCount == 0 ? minutes : -1;
     }
-  }
 
-  //nothing fresh to rot, so zero minutes have to pass
-  if (freshCount === 0) return 0;
+    public static void main(String[] args) {
+        int[][] grid1 = {
+            {2, 1, 1},
+            {1, 1, 0},
+            {0, 1, 1}
+        };
+        System.out.println("Minutes until all rotten: " + orangesRotting(grid1));
+        //Minutes until all rotten: 4
 
-  let minutes = 0;
+        //each call needs its own grid, because rotting is written back into the input
+        int[][] grid2 = {
+            {2, 1, 1},
+            {0, 1, 1},
+            {1, 0, 1}
+        };
+        System.out.println("Minutes until all rotten: " + orangesRotting(grid2));
+        //Minutes until all rotten: -1
 
-  while (queue.length > 0 && freshCount > 0) {
-    //one iteration of this loop is exactly one minute
-    const levelSize = queue.length;
-    minutes++;
+        int[][] grid3 = {{0, 2}};
+        System.out.println("Minutes until all rotten: " + orangesRotting(grid3));
+        //Minutes until all rotten: 0
 
-    for (let i = 0; i < levelSize; i++) {
-      const [currRow, currCol] = queue.shift();
-
-      for (const [rowDelta, colDelta] of directions) {
-        const nextRow = currRow + rowDelta;
-        const nextCol = currCol + colDelta;
-
-        if (nextRow < 0 || nextRow >= rows) continue;
-        if (nextCol < 0 || nextCol >= cols) continue;
-
-        //only fresh oranges can rot
-        if (grid[nextRow][nextCol] !== 1) continue;
-
-        grid[nextRow][nextCol] = 2;
-        freshCount--;
-        queue.push([nextRow, nextCol]);
-      }
+        int[][] grid4 = {
+            {1, 1, 1},
+            {1, 1, 1}
+        };
+        System.out.println("Minutes until all rotten: " + orangesRotting(grid4));
+        //Minutes until all rotten: -1
     }
-  }
-
-  //if any fresh orange was unreachable, the job is impossible
-  return freshCount === 0 ? minutes : -1;
 }
-
-const grid1 = [
-  [2, 1, 1],
-  [1, 1, 0],
-  [0, 1, 1],
-];
-console.log(`Minutes until all rotten: ${orangesRotting(grid1)}`);
-//Minutes until all rotten: 4
-
-//each call needs its own grid, because rotting is written back into the input
-const grid2 = [
-  [2, 1, 1],
-  [0, 1, 1],
-  [1, 0, 1],
-];
-console.log(`Minutes until all rotten: ${orangesRotting(grid2)}`);
-//Minutes until all rotten: -1
-
-const grid3 = [[0, 2]];
-console.log(`Minutes until all rotten: ${orangesRotting(grid3)}`);
-//Minutes until all rotten: 0
-
-const grid4 = [
-  [1, 1, 1],
-  [1, 1, 1],
-];
-console.log(`Minutes until all rotten: ${orangesRotting(grid4)}`);
-//Minutes until all rotten: -1
-````
+```
 
 All four cases earn their place. `grid1` rots in `4` minutes. In `grid2` the orange at `(2,0)` is cut off by the empty cells at `(1,0)` and `(2,1)`, so `-1`. `grid3` has no fresh oranges, so the `freshCount === 0` guard returns `0` at once. And `grid4` has no rotten orange to seed the queue with at all, so nothing can ever rot and we again get `-1` — a different route to the same answer as `grid2`.
 
@@ -646,71 +701,80 @@ Two implementation notes:
 
 Since we build a fresh output matrix, this is a case where we do <b>not</b> mark visited in place, and the input `mat` is left untouched.
 
-````js
-function updateMatrix(mat) {
-  const rows = mat.length;
-  const cols = mat[0].length;
+```java
+import java.util.*;
 
-  const directions = [
-    [-1, 0], [1, 0], [0, -1], [0, 1],
-  ];
+class Solution {
+    public static int[][] updateMatrix(int[][] mat) {
+        int rows = mat.length;
+        int cols = mat[0].length;
 
-  //-1 marks "distance not known yet"
-  const distances = Array.from({ length: rows }, () => new Array(cols).fill(-1));
+        int[][] directions = {
+            {-1, 0}, {1, 0}, {0, -1}, {0, 1}
+        };
 
-  //every zero is a source sitting at distance 0
-  const queue = [];
-  for (let row = 0; row < rows; row++) {
-    for (let col = 0; col < cols; col++) {
-      if (mat[row][col] === 0) {
-        distances[row][col] = 0;
-        queue.push([row, col]);
-      }
+        //-1 marks "distance not known yet"
+        int[][] distances = new int[rows][cols];
+        for (int[] row : distances) {
+            Arrays.fill(row, -1);
+        }
+
+        //every zero is a source sitting at distance 0
+        Queue<int[]> queue = new LinkedList<>();
+        for (int row = 0; row < rows; row++) {
+            for (int col = 0; col < cols; col++) {
+                if (mat[row][col] == 0) {
+                    distances[row][col] = 0;
+                    queue.offer(new int[]{row, col});
+                }
+            }
+        }
+
+        //using the queue implicitly handles the dequeuing order correctly
+        while (!queue.isEmpty()) {
+            int[] curr = queue.poll();
+            int currRow = curr[0];
+            int currCol = curr[1];
+
+            for (int[] dir : directions) {
+                int nextRow = currRow + dir[0];
+                int nextCol = currCol + dir[1];
+
+                if (nextRow < 0 || nextRow >= rows) continue;
+                if (nextCol < 0 || nextCol >= cols) continue;
+
+                //already settled by an equal-or-closer source
+                if (distances[nextRow][nextCol] != -1) continue;
+
+                distances[nextRow][nextCol] = distances[currRow][currCol] + 1;
+                queue.offer(new int[]{nextRow, nextCol});
+            }
+        }
+
+        return distances;
     }
-  }
 
-  let head = 0;
-  //using an index instead of shift() keeps each dequeue O(1)
-  while (head < queue.length) {
-    const [currRow, currCol] = queue[head];
-    head++;
+    public static void main(String[] args) {
+        int[][] mat1 = {
+            {0, 0, 0},
+            {0, 1, 0},
+            {1, 1, 1}
+        };
+        System.out.println(Arrays.deepToString(updateMatrix(mat1)));
+        //[[0, 0, 0], [0, 1, 0], [1, 2, 1]]
 
-    for (const [rowDelta, colDelta] of directions) {
-      const nextRow = currRow + rowDelta;
-      const nextCol = currCol + colDelta;
-
-      if (nextRow < 0 || nextRow >= rows) continue;
-      if (nextCol < 0 || nextCol >= cols) continue;
-
-      //already settled by an equal-or-closer source
-      if (distances[nextRow][nextCol] !== -1) continue;
-
-      distances[nextRow][nextCol] = distances[currRow][currCol] + 1;
-      queue.push([nextRow, nextCol]);
+        int[][] mat2 = {
+            {1, 1, 1, 1, 1},
+            {1, 1, 1, 1, 1},
+            {1, 1, 0, 1, 1},
+            {1, 1, 1, 1, 1},
+            {1, 1, 1, 1, 1}
+        };
+        System.out.println(Arrays.deepToString(updateMatrix(mat2)));
+        //[[4, 3, 2, 3, 4], [3, 2, 1, 2, 3], [2, 1, 0, 1, 2], [3, 2, 1, 2, 3], [4, 3, 2, 3, 4]]
     }
-  }
-
-  return distances;
 }
-
-const mat1 = [
-  [0, 0, 0],
-  [0, 1, 0],
-  [1, 1, 1],
-];
-console.log(JSON.stringify(updateMatrix(mat1)));
-//[[0,0,0],[0,1,0],[1,2,1]]
-
-const mat2 = [
-  [1, 1, 1, 1, 1],
-  [1, 1, 1, 1, 1],
-  [1, 1, 0, 1, 1],
-  [1, 1, 1, 1, 1],
-  [1, 1, 1, 1, 1],
-];
-console.log(JSON.stringify(updateMatrix(mat2)));
-//[[4,3,2,3,4],[3,2,1,2,3],[2,1,0,1,2],[3,2,1,2,3],[4,3,2,3,4]]
-````
+```
 
 `mat2` is the clearest picture of what BFS is doing: with a single zero in the centre, the output is a perfect diamond of <b>Manhattan distances</b> radiating outwards, one ring per level of the traversal.
 
@@ -742,85 +806,94 @@ This is exactly the case flagged in the toolkit where <b>marking visited in plac
 
 Note also that the reachability condition uses `>=`, not `>`. Water flows across flat ground, so a plateau of equal heights is traversable in both directions — which is precisely why the `reachable` check must come <i>before</i> the height check, or a flat region would loop forever.
 
-````js
-function pacificAtlantic(heights) {
-  if (!heights || heights.length === 0 || heights[0].length === 0) return [];
+```java
+import java.util.*;
 
-  const rows = heights.length;
-  const cols = heights[0].length;
+class Solution {
+    public static List<List<Integer>> pacificAtlantic(int[][] heights) {
+        if (heights == null || heights.length == 0 || heights[0].length == 0) return new ArrayList<>();
 
-  const directions = [
-    [-1, 0], [1, 0], [0, -1], [0, 1],
-  ];
+        int rows = heights.length;
+        int cols = heights[0].length;
 
-  //two separate visited sets, one per ocean
-  const pacific = Array.from({ length: rows }, () => new Array(cols).fill(false));
-  const atlantic = Array.from({ length: rows }, () => new Array(cols).fill(false));
+        //two separate visited sets, one per ocean
+        boolean[][] pacific = new boolean[rows][cols];
+        boolean[][] atlantic = new boolean[rows][cols];
 
-  //we walk UPHILL from the ocean, which is the reverse of how water flows
-  function dfs(row, col, reachable) {
-    reachable[row][col] = true;
+        //Pacific touches the top row and the left column,
+        //Atlantic touches the bottom row and the right column
+        for (int row = 0; row < rows; row++) {
+            dfs(heights, row, 0, pacific);
+            dfs(heights, row, cols - 1, atlantic);
+        }
+        for (int col = 0; col < cols; col++) {
+            dfs(heights, 0, col, pacific);
+            dfs(heights, rows - 1, col, atlantic);
+        }
 
-    for (const [rowDelta, colDelta] of directions) {
-      const nextRow = row + rowDelta;
-      const nextCol = col + colDelta;
+        //the answer is the intersection of the two sets
+        List<List<Integer>> result = new ArrayList<>();
+        for (int row = 0; row < rows; row++) {
+            for (int col = 0; col < cols; col++) {
+                if (pacific[row][col] && atlantic[row][col]) {
+                    result.add(Arrays.asList(row, col));
+                }
+            }
+        }
 
-      if (nextRow < 0 || nextRow >= rows) continue;
-      if (nextCol < 0 || nextCol >= cols) continue;
-
-      //already known to reach this ocean
-      if (reachable[nextRow][nextCol]) continue;
-
-      //water only flows downhill, so going backwards we may only step
-      //to a neighbour that is at least as high as the current cell
-      if (heights[nextRow][nextCol] < heights[row][col]) continue;
-
-      dfs(nextRow, nextCol, reachable);
+        return result;
     }
-  }
 
-  //Pacific touches the top row and the left column,
-  //Atlantic touches the bottom row and the right column
-  for (let row = 0; row < rows; row++) {
-    dfs(row, 0, pacific);
-    dfs(row, cols - 1, atlantic);
-  }
-  for (let col = 0; col < cols; col++) {
-    dfs(0, col, pacific);
-    dfs(rows - 1, col, atlantic);
-  }
+    //we walk UPHILL from the ocean, which is the reverse of how water flows
+    private static void dfs(int[][] heights, int row, int col, boolean[][] reachable) {
+        int rows = heights.length;
+        int cols = heights[0].length;
 
-  //the answer is the intersection of the two sets
-  const result = [];
-  for (let row = 0; row < rows; row++) {
-    for (let col = 0; col < cols; col++) {
-      if (pacific[row][col] && atlantic[row][col]) {
-        result.push([row, col]);
-      }
+        reachable[row][col] = true;
+
+        int[][] directions = {
+            {-1, 0}, {1, 0}, {0, -1}, {0, 1}
+        };
+
+        for (int[] dir : directions) {
+            int nextRow = row + dir[0];
+            int nextCol = col + dir[1];
+
+            if (nextRow < 0 || nextRow >= rows) continue;
+            if (nextCol < 0 || nextCol >= cols) continue;
+
+            //already known to reach this ocean
+            if (reachable[nextRow][nextCol]) continue;
+
+            //water only flows downhill, so going backwards we may only step
+            //to a neighbour that is at least as high as the current cell
+            if (heights[nextRow][nextCol] < heights[row][col]) continue;
+
+            dfs(heights, nextRow, nextCol, reachable);
+        }
     }
-  }
 
-  return result;
+    public static void main(String[] args) {
+        int[][] heights1 = {
+            {1, 2, 2, 3, 5},
+            {3, 2, 3, 4, 4},
+            {2, 4, 5, 3, 1},
+            {6, 7, 1, 4, 5},
+            {5, 1, 1, 2, 4}
+        };
+        System.out.println(pacificAtlantic(heights1));
+        //[[0, 4], [1, 3], [1, 4], [2, 2], [3, 0], [3, 1], [4, 0]]
+
+        int[][] heights2 = {
+            {10, 10, 10},
+            {10, 1, 10},
+            {10, 10, 10}
+        };
+        System.out.println(pacificAtlantic(heights2));
+        //[[0, 0], [0, 1], [0, 2], [1, 0], [1, 2], [2, 0], [2, 1], [2, 2]]
+    }
 }
-
-const heights1 = [
-  [1, 2, 2, 3, 5],
-  [3, 2, 3, 4, 4],
-  [2, 4, 5, 3, 1],
-  [6, 7, 1, 4, 5],
-  [5, 1, 1, 2, 4],
-];
-console.log(JSON.stringify(pacificAtlantic(heights1)));
-//[[0,4],[1,3],[1,4],[2,2],[3,0],[3,1],[4,0]]
-
-const heights2 = [
-  [10, 10, 10],
-  [10, 1, 10],
-  [10, 10, 10],
-];
-console.log(JSON.stringify(pacificAtlantic(heights2)));
-//[[0,0],[0,1],[0,2],[1,0],[1,2],[2,0],[2,1],[2,2]]
-````
+```
 
 `heights2` shows the plateau behaviour together with the `<` rejection: the whole ring of `10`s is one flat region touching both oceans, while the pit of height `1` in the middle drains nowhere and is correctly excluded.
 
@@ -829,4 +902,4 @@ Note that <b>DFS is fine here even though we run four traversals</b>, because th
 - The <b>time complexity</b> of the above algorithm is `O(M*N)`, where `M` is the number of rows and `N` is the number of columns. Each traversal visits each cell at most once — the `reachable` check guarantees it — so the four border loops together are `O(M*N)`, and the final intersection sweep is one more pass.
 - The <b>space complexity</b> of the above algorithm is `O(M*N)`. This covers the two boolean `reachable` matrices, unavoidable since the grid must be traversed twice under different rules, plus the <b>recursion</b> stack, which on a completely flat grid can reach every cell before unwinding.
 
-###### #Island #MatrixTraversal #BFS #DFS #JavaScript #GrokkingTheCodingInterviewPatterns #LeetCode #DataStructures #Algorithms
+###### #Island #MatrixTraversal #BFS #DFS #Java #GrokkingTheCodingInterviewPatterns #LeetCode #DataStructures #Algorithms

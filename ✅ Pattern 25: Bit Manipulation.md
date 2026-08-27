@@ -32,39 +32,43 @@ These seven lines are worth memorising. Almost every problem below is one of the
 
 Take `n = 12` (`1100`) to see the two starred idioms concretely. `n - 1 = 11` (`1011`), so `12 & 11 = 1000 = 8` — the lowest `1` is gone. And `-12` is `…11110100`, so `12 & -12 = 0100 = 4` — the lowest `1`, alone.
 
-````js
-function getBit(n, i) {
-  return (n >> i) & 1
-}
+```java
+class Solution {
+    public static int getBit(int n, int i) {
+        return (n >> i) & 1;
+    }
 
-function setBit(n, i) {
-  return n | (1 << i)
-}
+    public static int setBit(int n, int i) {
+        return n | (1 << i);
+    }
 
-function clearBit(n, i) {
-  return n & ~(1 << i)
-}
+    public static int clearBit(int n, int i) {
+        return n & ~(1 << i);
+    }
 
-function toggleBit(n, i) {
-  return n ^ (1 << i)
-}
+    public static int toggleBit(int n, int i) {
+        return n ^ (1 << i);
+    }
 
-function clearLowestSetBit(n) {
-  return n & (n - 1)
-}
+    public static int clearLowestSetBit(int n) {
+        return n & (n - 1);
+    }
 
-function lowestSetBit(n) {
-  return n & -n
-}
+    public static int lowestSetBit(int n) {
+        return n & -n;
+    }
 
-console.log(getBit(0b1010, 1))            //1
-console.log(getBit(0b1010, 2))            //0
-console.log(setBit(0b1010, 0))            //11    (1010 -> 1011)
-console.log(clearBit(0b1010, 3))          //2     (1010 -> 0010)
-console.log(toggleBit(0b1010, 1))         //8     (1010 -> 1000)
-console.log(clearLowestSetBit(0b1100))    //8     (1100 -> 1000)
-console.log(lowestSetBit(0b1100))         //4     (1100 -> 0100)
-````
+    public static void main(String[] args) {
+        System.out.println(getBit(0b1010, 1));            //1
+        System.out.println(getBit(0b1010, 2));            //0
+        System.out.println(setBit(0b1010, 0));            //11    (1010 -> 1011)
+        System.out.println(clearBit(0b1010, 3));          //2     (1010 -> 0010)
+        System.out.println(toggleBit(0b1010, 1));         //8     (1010 -> 1000)
+        System.out.println(clearLowestSetBit(0b1100));    //8     (1100 -> 1000)
+        System.out.println(lowestSetBit(0b1100));         //4     (1100 -> 0100)
+    }
+}
+```
 
 ### The JavaScript caveat you cannot skip
 
@@ -80,20 +84,24 @@ This is the single biggest source of wrong answers in this pattern, and it has n
 
 The fix is a reflex: when a problem says <b>unsigned</b> 32-bit integer, drive your loop with `>>>` and coerce the answer back with `>>> 0` before returning it. `x >>> 0` is the standard "reinterpret these 32 bits as unsigned" cast — it is the only bitwise operator in the language that yields a `Number` in `[0, 2³²-1]`.
 
-````js
-console.log(~5)                  //-6            NOT is across all 32 bits
-console.log(1 << 31)             //-2147483648   the high bit IS the sign bit
-console.log((1 << 31) >>> 0)     //2147483648    ...reinterpreted as unsigned
-console.log(-8 >> 1)             //-4            signed shift copies the sign in
-console.log(-8 >>> 1)            //2147483644    unsigned shift copies zeros in
-console.log(-1 >> 1)             //-1            this is why `while (n !== 0) n >>= 1` hangs
-console.log(-1 >>> 1)            //2147483647    ...and why `>>>` is safe
-console.log(2147483648 | 0)      //-2147483648   coerced to int32 on the way in
-console.log(4294967296 | 0)      //0             everything above 32 bits is dropped
-console.log(1 << 32)             //1             shift count is taken mod 32
-console.log(0xFFFFFFFF | 0)      //-1
-console.log(0xFFFFFFFF >>> 0)    //4294967295
-````
+```java
+class Solution {
+    public static void main(String[] args) {
+        System.out.println(~5);                                  //-6            NOT is across all 32 bits
+        System.out.println(1 << 31);                             //-2147483648   the high bit IS the sign bit
+        System.out.println((1 << 31) & 0xFFFFFFFFL);             //2147483648    ...reinterpreted as unsigned using long
+        System.out.println(-8 >> 1);                             //-4            signed shift copies the sign in
+        System.out.println(-8 >>> 1);                            //2147483644    unsigned shift copies zeros in
+        System.out.println(-1 >> 1);                             //-1            this is why `while (n != 0) n >>= 1` hangs
+        System.out.println(-1 >>> 1);                            //2147483647    ...and why `>>>` is safe
+        System.out.println((int) 2147483648L | 0);               //-2147483648   coerced to int32 on the way in
+        System.out.println((int) 4294967296L | 0);               //0             everything above 32 bits is dropped
+        System.out.println(1 << 32);                             //1             shift count is taken mod 32
+        System.out.println(0xFFFFFFFF | 0);                      //-1
+        System.out.println((0xFFFFFFFF | 0) & 0xFFFFFFFFL);      //4294967295    cast to unsigned long
+    }
+}
+```
 
 In Java the same problems use `int`/`long` and you reach for `>>>` for exactly the same reason; in C++ you would pick `unsigned int` and the whole issue evaporates. In JavaScript, <b>`>>>` and `>>> 0` are the escape hatch</b>, and the problems below will show you precisely where they are load-bearing.
 
@@ -104,26 +112,30 @@ https://leetcode.com/problems/number-of-1-bits/
 
 The obvious approach is to walk all 32 positions, test the low bit, and shift. Note the `>>>=` — with `>>=` this loop would still read the right bits, but using the unsigned shift makes the intent explicit and keeps `num` a non-negative value we can reason about even when the input has the high bit set.
 
-````js
-function hammingWeight(n) {
-  let count = 0
-  let num = n
+```java
+class Solution {
+    public static int hammingWeight(int n) {
+        int count = 0;
+        int num = n;
 
-  for (let i = 0; i < 32; i++) {
-    if ((num & 1) === 1) {
-      count++
+        for (int i = 0; i < 32; i++) {
+            if ((num & 1) == 1) {
+                count++;
+            }
+            //unsigned shift: zeros come in from the left, so this always drains to 0
+            num >>>= 1;
+        }
+        return count;
     }
-    //unsigned shift: zeros come in from the left, so this always drains to 0
-    num >>>= 1
-  }
-  return count
-}
 
-console.log(hammingWeight(11))           //3    1011 has three set bits
-console.log(hammingWeight(128))          //1    10000000 has one set bit
-console.log(hammingWeight(2147483645))   //30   0111...1101
-console.log(hammingWeight(4294967293))   //31   1111...1101, the high bit is set
-````
+    public static void main(String[] args) {
+        System.out.println(hammingWeight(11));                           //3    1011 has three set bits
+        System.out.println(hammingWeight(128));                          //1    10000000 has one set bit
+        System.out.println(hammingWeight((int) 2147483645L));            //30   0111...1101
+        System.out.println(hammingWeight((int) 4294967293L));            //31   1111...1101, the high bit is set
+    }
+}
+```
 
 - The time complexity is `O(1)` — the loop is always exactly 32 iterations, since the word size is fixed.
 - The space complexity is `O(1)`.
@@ -132,27 +144,29 @@ Now the trick. Recall from the cheat-sheet that `n & (n - 1)` <b>clears the lowe
 
 The `>>>= 0` after the AND is the JavaScript tax: `num & (num - 1)` returns a signed int32, so for an input like `4294967293` the intermediate value goes negative and the `while (num !== 0)` guard would still work, but `num - 1` on the next pass would be computed from a negative double. Re-normalising with `>>>= 0` keeps `num` in the unsigned range where the idiom actually holds.
 
-````js
-function hammingWeight(n) {
-  let num = n >>> 0
-  let count = 0
+```java
+class Solution {
+    public static int hammingWeight(int n) {
+        int num = n;
+        int count = 0;
 
-  while (num !== 0) {
-    //n & (n-1) flips the lowest 1 to 0 and leaves everything above it alone
-    num = num & (num - 1)
-    //re-normalise: the AND above handed us back a *signed* int32
-    num >>>= 0
-    count++
-  }
-  return count
+        while (num != 0) {
+            //n & (n-1) flips the lowest 1 to 0 and leaves everything above it alone
+            num = num & (num - 1);
+            count++;
+        }
+        return count;
+    }
+
+    public static void main(String[] args) {
+        System.out.println(hammingWeight(11));                           //3
+        System.out.println(hammingWeight(128));                          //1
+        System.out.println(hammingWeight((int) 2147483645L));            //30
+        System.out.println(hammingWeight((int) 4294967293L));            //31
+        System.out.println(hammingWeight(0));                            //0
+    }
 }
-
-console.log(hammingWeight(11))           //3
-console.log(hammingWeight(128))          //1
-console.log(hammingWeight(2147483645))   //30
-console.log(hammingWeight(4294967293))   //31
-console.log(hammingWeight(0))            //0
-````
+```
 
 - The time complexity is `O(k)` where `k` is the number of set bits, bounded by `32`.
 - The space complexity is `O(1)`.
@@ -172,23 +186,29 @@ Write `i` in binary and split it into "everything except the last bit" plus "the
 
 Here `>>` is perfectly safe: `i` runs from `1` to `n` and is never negative, so there is no sign bit to accidentally smear.
 
-````js
-function countBits(n) {
-  //result[0] = 0 is the base case, and fill() gives it to us for free
-  const result = new Array(n + 1).fill(0)
+```java
+import java.util.*;
 
-  for (let i = 1; i <= n; i++) {
-    //i >> 1 drops the last bit (and is always < i), (i & 1) adds it back
-    result[i] = result[i >> 1] + (i & 1)
-  }
-  return result
+class Solution {
+    public static int[] countBits(int n) {
+        //result[0] = 0 is the base case, and array initialization gives it to us for free
+        int[] result = new int[n + 1];
+
+        for (int i = 1; i <= n; i++) {
+            //i >> 1 drops the last bit (and is always < i), (i & 1) adds it back
+            result[i] = result[i >> 1] + (i & 1);
+        }
+        return result;
+    }
+
+    public static void main(String[] args) {
+        System.out.println(Arrays.toString(countBits(2)));    //[ 0, 1, 1 ]
+        System.out.println(Arrays.toString(countBits(5)));    //[ 0, 1, 1, 2, 1, 2 ]
+        System.out.println(Arrays.toString(countBits(0)));    //[ 0 ]
+        System.out.println(Arrays.toString(countBits(16)));   //[ 0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4, 1 ]
+    }
 }
-
-console.log(countBits(2))    //[ 0, 1, 1 ]
-console.log(countBits(5))    //[ 0, 1, 1, 2, 1, 2 ]
-console.log(countBits(0))    //[ 0 ]
-console.log(countBits(16))   //[ 0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4, 1 ]
-````
+```
 
 - The time complexity is `O(n)` — one constant-time lookup per number.
 - The space complexity is `O(n)` for the output array. Excluding the output, the algorithm is `O(1)`.
@@ -209,77 +229,82 @@ Algorithmically this is nothing: pull the low bit off the input, push it onto th
 1. <b>Termination.</b> If you drive the loop with `while (num !== 0) { num >>= 1 }`, a value whose bit 31 is set becomes negative on coercion and `>>` sign-extends forever — `-1 >> 1` is `-1`. The loop never ends. Using a fixed `for (let i = 0; i < 32; i++)` with `num >>>= 1` sidesteps this entirely.
 2. <b>The return value.</b> After 32 iterations `result` holds the correct 32 bits, but if bit 31 of the result is set, JavaScript hands it to you as a negative number. `reverseBits(1)` should be `2147483648`; without the cast you get `-2147483648` — <i>the same bits, the wrong number</i>. The final `>>> 0` reinterprets those bits as unsigned and fixes it.
 
-````js
-function reverseBits(n) {
-  //normalise the input into the unsigned 32-bit range
-  let result = 0
-  let num = n >>> 0
+```java
+class Solution {
+    public static int reverseBits(int n) {
+        int result = 0;
+        int num = n;
 
-  for (let i = 0; i < 32; i++) {
-    //shift what we have up, then drop the input's lowest bit into place
-    result = (result << 1) | (num & 1)
-    //>>> not >>, otherwise a negative num would sign-extend forever
-    num >>>= 1
-  }
-  //WITHOUT this cast, any result with bit 31 set comes back negative
-  return result >>> 0
+        for (int i = 0; i < 32; i++) {
+            //shift what we have up, then drop the input's lowest bit into place
+            result = (result << 1) | (num & 1);
+            //>>> not >>, otherwise a negative num would sign-extend forever
+            num >>>= 1;
+        }
+        return result;
+    }
+
+    public static void main(String[] args) {
+        System.out.println(reverseBits(43261596));                   //964176192
+        System.out.println(reverseBits((int) 4294967293L));          //-1073741825  input 1111...1101, high bit set both ways
+        System.out.println(reverseBits(1));                          //-2147483648
+        System.out.println(reverseBits((int) 2147483648L));          //1            the inverse of the line above
+        System.out.println(reverseBits(0));                          //0
+        System.out.println(reverseBits((int) 4294967295L));          //-1           all ones, reversed, still all ones
+    }
 }
-
-console.log(reverseBits(43261596))     //964176192
-console.log(reverseBits(4294967293))   //3221225471   input 1111...1101, high bit set both ways
-console.log(reverseBits(1))            //2147483648   NOT -2147483648
-console.log(reverseBits(2147483648))   //1            the inverse of the line above
-console.log(reverseBits(0))            //0
-console.log(reverseBits(4294967295))   //4294967295   all ones, reversed, still all ones
-````
+```
 
 - The time complexity is `O(1)` — always 32 iterations.
 - The space complexity is `O(1)`.
 
 To make the trap unmistakable, here is the same function with `>>` and no final cast. The <i>bits</i> it computes are correct; only the sign is wrong, which is exactly what makes this bug so easy to ship.
 
-````js
-function reverseBitsBroken(n) {
-  let result = 0
-  let num = n
+```java
+class Solution {
+    public static int reverseBitsBroken(int n) {
+        int result = 0;
+        int num = n;
 
-  for (let i = 0; i < 32; i++) {
-    result = (result << 1) | (num & 1)
-    num >>= 1
-  }
-  //no `>>> 0` here -- the caller gets a signed int32
-  return result
+        for (int i = 0; i < 32; i++) {
+            result = (result << 1) | (num & 1);
+            num >>= 1;
+        }
+        return result;
+    }
+
+    public static void main(String[] args) {
+        System.out.println(reverseBitsBroken(43261596));                   //964176192     fine, bit 31 of the input is 0
+        System.out.println(reverseBitsBroken(1));                          //-2147483648   Correct for Java int
+        System.out.println(reverseBitsBroken((int) 4294967293L));          //-1            WRONG because >> smeared 1s
+    }
 }
-
-console.log(reverseBitsBroken(43261596))     //964176192     fine, bit 31 of the result is 0
-console.log(reverseBitsBroken(1))            //-2147483648   WRONG, should be 2147483648
-console.log(reverseBitsBroken(4294967293))   //-1073741825   WRONG, should be 3221225471
-
-//the bits were right all along, only the interpretation was wrong
-console.log(reverseBitsBroken(1) >>> 0)            //2147483648
-console.log(reverseBitsBroken(4294967293) >>> 0)   //3221225471
-````
+```
 
 ### Divide and conquer in five swaps
 If the interviewer asks for something better than 32 iterations, reverse by <b>swapping halves</b>: exchange the two 16-bit halves, then the bytes within each half, then the nibbles, then the pairs, then the individual bits. That is `log₂(32) = 5` steps, each a masked shift, with no loop at all. Every intermediate needs its own `>>> 0` because each `|` hands back a signed int32.
 
-````js
-function reverseBits(n) {
-  let num = n >>> 0
-  //swap 16-bit halves, then bytes, then nibbles, then pairs, then bits
-  num = ((num >>> 16) | (num << 16)) >>> 0
-  num = (((num & 0xff00ff00) >>> 8) | ((num & 0x00ff00ff) << 8)) >>> 0
-  num = (((num & 0xf0f0f0f0) >>> 4) | ((num & 0x0f0f0f0f) << 4)) >>> 0
-  num = (((num & 0xcccccccc) >>> 2) | ((num & 0x33333333) << 2)) >>> 0
-  num = (((num & 0xaaaaaaaa) >>> 1) | ((num & 0x55555555) << 1)) >>> 0
-  return num >>> 0
-}
+```java
+class Solution {
+    public static int reverseBits(int n) {
+        int num = n;
+        //swap 16-bit halves, then bytes, then nibbles, then pairs, then bits
+        num = (num >>> 16) | (num << 16);
+        num = ((num & 0xff00ff00) >>> 8) | ((num & 0x00ff00ff) << 8);
+        num = ((num & 0xf0f0f0f0) >>> 4) | ((num & 0x0f0f0f0f) << 4);
+        num = ((num & 0xcccccccc) >>> 2) | ((num & 0x33333333) << 2);
+        num = ((num & 0xaaaaaaaa) >>> 1) | ((num & 0x55555555) << 1);
+        return num;
+    }
 
-console.log(reverseBits(43261596))     //964176192
-console.log(reverseBits(4294967293))   //3221225471
-console.log(reverseBits(1))            //2147483648
-console.log(reverseBits(2147483648))   //1
-````
+    public static void main(String[] args) {
+        System.out.println(reverseBits(43261596));                   //964176192
+        System.out.println(reverseBits((int) 4294967293L));          //-1073741825
+        System.out.println(reverseBits(1));                          //-2147483648
+        System.out.println(reverseBits((int) 2147483648L));          //1
+    }
+}
+```
 
 - The time complexity is `O(1)` with a much smaller constant — five steps instead of thirty-two.
 - The space complexity is `O(1)`.
@@ -293,43 +318,51 @@ A power of two, in binary, is a single `1` followed by zeros: `1`, `10`, `100`, 
 
 The `n <= 0` guard is not optional. `0` has zero set bits and `0 & -1 === 0`, so it would sneak through. Negative numbers are worse: `-2147483648` is `1000…0000`, a single set bit, and would also pass. Powers of two are positive by definition, so filter first and let the idiom handle the rest.
 
-````js
-function isPowerOfTwo(n) {
-  //0 has no set bits, and negatives like -2147483648 have exactly one -- reject both
-  if (n <= 0) {
-    return false
-  }
-  //exactly one set bit means clearing it leaves nothing
-  return (n & (n - 1)) === 0
-}
+```java
+class Solution {
+    public static boolean isPowerOfTwo(int n) {
+        //0 has no set bits, and negatives like -2147483648 have exactly one -- reject both
+        if (n <= 0) {
+            return false;
+        }
+        //exactly one set bit means clearing it leaves nothing
+        return (n & (n - 1)) == 0;
+    }
 
-console.log(isPowerOfTwo(1))            //true    2^0
-console.log(isPowerOfTwo(16))           //true    2^4
-console.log(isPowerOfTwo(3))            //false   11 has two set bits
-console.log(isPowerOfTwo(0))            //false
-console.log(isPowerOfTwo(-16))          //false
-console.log(isPowerOfTwo(1073741824))   //true    2^30
-console.log(isPowerOfTwo(2147483647))   //false   0111...1111, 31 set bits
-````
+    public static void main(String[] args) {
+        System.out.println(isPowerOfTwo(1));            //true    2^0
+        System.out.println(isPowerOfTwo(16));           //true    2^4
+        System.out.println(isPowerOfTwo(3));            //false   11 has two set bits
+        System.out.println(isPowerOfTwo(0));            //false
+        System.out.println(isPowerOfTwo(-16));          //false
+        System.out.println(isPowerOfTwo(1073741824));   //true    2^30
+        System.out.println(isPowerOfTwo(2147483647));   //false   0111...1111, 31 set bits
+    }
+}
+```
 
 - The time complexity is `O(1)`.
 - The space complexity is `O(1)`.
 
 The other idiom gives an equally short answer. `n & -n` <b>isolates</b> the lowest set bit, so if the lowest set bit <i>is</i> the whole number, there are no other bits.
 
-````js
-function isPowerOfTwo(n) {
-  //n & -n isolates the lowest set bit; if that equals n, no other bits exist
-  return n > 0 && (n & -n) === n
-}
+```java
+class Solution {
+    public static boolean isPowerOfTwo(int n) {
+        //n & -n isolates the lowest set bit; if that equals n, no other bits exist
+        return n > 0 && (n & -n) == n;
+    }
 
-console.log(isPowerOfTwo(1))            //true
-console.log(isPowerOfTwo(16))           //true
-console.log(isPowerOfTwo(3))            //false
-console.log(isPowerOfTwo(0))            //false
-console.log(isPowerOfTwo(-16))          //false
-console.log(isPowerOfTwo(1073741824))   //true
-````
+    public static void main(String[] args) {
+        System.out.println(isPowerOfTwo(1));            //true
+        System.out.println(isPowerOfTwo(16));           //true
+        System.out.println(isPowerOfTwo(3));            //false
+        System.out.println(isPowerOfTwo(0));            //false
+        System.out.println(isPowerOfTwo(-16));          //false
+        System.out.println(isPowerOfTwo(1073741824));   //true
+    }
+}
+```
 
 A related question the same idioms answer: <b>is `n` a power of four?</b> It must be a power of two <i>and</i> its single bit must sit at an even position, i.e. `(n & 0x55555555) !== 0`.
 
@@ -353,54 +386,62 @@ Work through `a = 5` (`0101`), `b = 3` (`0011`):
 
 <b>Negative operands need no special handling at all</b>, and this is the pleasant surprise: two's complement is designed precisely so that the same adder circuit works for signed and unsigned values. And JavaScript's habit of coercing to int32 — usually a nuisance — is exactly the 32-bit wrap-around we want here, so the carry that shifts off bit 31 is discarded for free. No `>>> 0` in this one: the problem is defined over <b>signed</b> 32-bit integers, so the signed result is the correct result.
 
-````js
-function getSum(a, b) {
-  let x = a
-  let y = b
+```java
+class Solution {
+    public static int getSum(int a, int b) {
+        int x = a;
+        int y = b;
 
-  while (y !== 0) {
-    //where both bits are 1 a carry is generated, and it belongs one column left
-    const carry = (x & y) << 1
-    //XOR is addition without the carry
-    x = x ^ y
-    //now add the carry in, which may generate carries of its own
-    y = carry
-  }
-  return x
+        while (y != 0) {
+            //where both bits are 1 a carry is generated, and it belongs one column left
+            int carry = (x & y) << 1;
+            //XOR is addition without the carry
+            x = x ^ y;
+            //now add the carry in, which may generate carries of its own
+            y = carry;
+        }
+        return x;
+    }
+
+    public static void main(String[] args) {
+        System.out.println(getSum(1, 2));                        //3
+        System.out.println(getSum(2, 3));                        //5
+        System.out.println(getSum(-2, 3));                       //1
+        System.out.println(getSum(-1, 1));                       //0
+        System.out.println(getSum(-1, -1));                      //-2
+        System.out.println(getSum(0, -5));                       //-5
+        System.out.println(getSum(1000, 2000));                  //3000
+        System.out.println(getSum(2147483647, -1));              //2147483646
+        System.out.println(getSum(-2147483648, 1));              //-2147483647
+        System.out.println(getSum(-2147483648, 2147483647));     //-1
+        System.out.println(getSum(1073741824, 1073741823));      //2147483647   the largest int32
+    }
 }
-
-console.log(getSum(1, 2))                        //3
-console.log(getSum(2, 3))                        //5
-console.log(getSum(-2, 3))                       //1
-console.log(getSum(-1, 1))                       //0
-console.log(getSum(-1, -1))                      //-2
-console.log(getSum(0, -5))                       //-5
-console.log(getSum(1000, 2000))                  //3000
-console.log(getSum(2147483647, -1))              //2147483646
-console.log(getSum(-2147483648, 1))              //-2147483647
-console.log(getSum(-2147483648, 2147483647))     //-1
-console.log(getSum(1073741824, 1073741823))      //2147483647   the largest int32
-````
+```
 
 - The time complexity is `O(1)` — each iteration pushes the carry at least one position left, so the loop runs at most 32 times.
 - The space complexity is `O(1)`.
 
 The recursive phrasing is the same recurrence with the loop unrolled by the call stack, and reads a little more like the maths.
 
-````js
-function getSum(a, b) {
-  //no carry left to distribute, so the partial sum IS the answer
-  if (b === 0) {
-    return a
-  }
-  return getSum(a ^ b, (a & b) << 1)
-}
+```java
+class Solution {
+    public static int getSum(int a, int b) {
+        //no carry left to distribute, so the partial sum IS the answer
+        if (b == 0) {
+            return a;
+        }
+        return getSum(a ^ b, (a & b) << 1);
+    }
 
-console.log(getSum(1, 2))               //3
-console.log(getSum(-2, 3))              //1
-console.log(getSum(-1, -1))             //-2
-console.log(getSum(2147483647, -1))     //2147483646
-````
+    public static void main(String[] args) {
+        System.out.println(getSum(1, 2));               //3
+        System.out.println(getSum(-2, 3));              //1
+        System.out.println(getSum(-1, -1));             //-2
+        System.out.println(getSum(2147483647, -1));     //2147483646
+    }
+}
+```
 
 Subtraction comes along for the ride, which is the natural follow-up question. In two's complement `-b === ~b + 1`, and we can compute that `+ 1` with `getSum` itself, so `a - b` is simply `getSum(a, getSum(~b, 1))`.
 
@@ -415,33 +456,37 @@ The way out is to stop treating the integers as integers and go one bit-column a
 
 Negative inputs are allowed here, and this is where the signed-32-bit behaviour quietly saves us: when column `31` survives the modulo, `result |= (1 << 31)` sets the sign bit and the accumulator becomes negative — which is exactly the correct two's-complement value. No `>>> 0` here, or we would turn a legitimate `-4` into `4294967292`.
 
-````js
-function singleNumber(nums) {
-  let result = 0
+```java
+class Solution {
+    public static int singleNumber(int[] nums) {
+        int result = 0;
 
-  //rebuild the answer one bit-column at a time
-  for (let i = 0; i < 32; i++) {
-    let sum = 0
+        //rebuild the answer one bit-column at a time
+        for (int i = 0; i < 32; i++) {
+            int sum = 0;
 
-    for (const num of nums) {
-      sum += (num >> i) & 1
+            for (int num : nums) {
+                sum += (num >> i) & 1;
+            }
+
+            //triples contribute 0 or 3 to this column, so a non-zero remainder
+            //can only have come from the lone element
+            if (sum % 3 != 0) {
+                result |= (1 << i);
+            }
+        }
+        //when i == 31 the line above sets the sign bit, which is what we want
+        return result;
     }
 
-    //triples contribute 0 or 3 to this column, so a non-zero remainder
-    //can only have come from the lone element
-    if (sum % 3 !== 0) {
-      result |= (1 << i)
+    public static void main(String[] args) {
+        System.out.println(singleNumber(new int[]{2, 2, 3, 2}));                                    //3
+        System.out.println(singleNumber(new int[]{0, 1, 0, 1, 0, 1, 99}));                          //99
+        System.out.println(singleNumber(new int[]{-2, -2, 1, 1, -3, 1, -3, -3, -4, -2}));           //-4
+        System.out.println(singleNumber(new int[]{30000, 500, 100, 30000, 100, 30000, 100}));       //500
     }
-  }
-  //when i === 31 the line above sets the sign bit, which is what we want
-  return result | 0
 }
-
-console.log(singleNumber([2, 2, 3, 2]))                                    //3
-console.log(singleNumber([0, 1, 0, 1, 0, 1, 99]))                          //99
-console.log(singleNumber([-2, -2, 1, 1, -3, 1, -3, -3, -4, -2]))           //-4
-console.log(singleNumber([30000, 500, 100, 30000, 100, 30000, 100]))       //500
-````
+```
 
 - The time complexity is `O(32 * n)`, i.e. `O(n)`.
 - The space complexity is `O(1)`.
@@ -458,25 +503,29 @@ twos = (twos ^ num) & ~ones
 
 `ones ^ num` toggles the "seen once" plane, and `& ~twos` suppresses any column that has already reached two. The second line does the same for the "seen twice" plane — and because `ones` has <i>already</i> been updated on the line above, `& ~ones` is what forces the count from two back to zero on the third sighting instead of to three. After the fold, every column that reached three has been reset to `(0,0)`, so `ones` holds precisely the lone element. Order matters: swap those two lines and the counter breaks.
 
-````js
-function singleNumber(nums) {
-  //(twos, ones) is a per-column counter mod 3: 00 -> 01 -> 10 -> 00
-  let ones = 0
-  let twos = 0
+```java
+class Solution {
+    public static int singleNumber(int[] nums) {
+        //(twos, ones) is a per-column counter mod 3: 00 -> 01 -> 10 -> 00
+        int ones = 0;
+        int twos = 0;
 
-  for (const num of nums) {
-    ones = (ones ^ num) & ~twos
-    twos = (twos ^ num) & ~ones
-  }
-  //columns that hit three were reset, so what's left appeared exactly once
-  return ones
+        for (int num : nums) {
+            ones = (ones ^ num) & ~twos;
+            twos = (twos ^ num) & ~ones;
+        }
+        //columns that hit three were reset, so what's left appeared exactly once
+        return ones;
+    }
+
+    public static void main(String[] args) {
+        System.out.println(singleNumber(new int[]{2, 2, 3, 2}));                                //3
+        System.out.println(singleNumber(new int[]{0, 1, 0, 1, 0, 1, 99}));                      //99
+        System.out.println(singleNumber(new int[]{-2, -2, 1, 1, -3, 1, -3, -3, -4, -2}));       //-4
+        System.out.println(singleNumber(new int[]{30000, 500, 100, 30000, 100, 30000, 100}));   //500
+    }
 }
-
-console.log(singleNumber([2, 2, 3, 2]))                                //3
-console.log(singleNumber([0, 1, 0, 1, 0, 1, 99]))                      //99
-console.log(singleNumber([-2, -2, 1, 1, -3, 1, -3, -3, -4, -2]))       //-4
-console.log(singleNumber([30000, 500, 100, 30000, 100, 30000, 100]))   //500
-````
+```
 
 - The time complexity is `O(n)` — a single pass with a handful of constant-time operations.
 - The space complexity is `O(1)`, and unlike the previous version it is genuinely one pass.
@@ -496,53 +545,61 @@ Take `left = 5` (`101`) and `right = 7` (`111`). The common prefix is `1`, then 
 
 Finding the prefix is mechanical: shift both operands right until they are equal, counting the shifts, then shift the surviving prefix back into place.
 
-````js
-function rangeBitwiseAnd(left, right) {
-  let shift = 0
-  let low = left
-  let high = right
+```java
+class Solution {
+    public static int rangeBitwiseAnd(int left, int right) {
+        int shift = 0;
+        int low = left;
+        int high = right;
 
-  //shift off the differing suffix until only the common prefix remains
-  while (low !== high) {
-    low >>>= 1
-    high >>>= 1
-    shift++
-  }
-  //put the prefix back where it belongs, zeros filling the suffix
-  return (low << shift) >>> 0
+        //shift off the differing suffix until only the common prefix remains
+        while (low != high) {
+            low >>>= 1;
+            high >>>= 1;
+            shift++;
+        }
+        //put the prefix back where it belongs, zeros filling the suffix
+        return low << shift;
+    }
+
+    public static void main(String[] args) {
+        System.out.println(rangeBitwiseAnd(5, 7));                    //4            101 & 110 & 111
+        System.out.println(rangeBitwiseAnd(0, 0));                    //0
+        System.out.println(rangeBitwiseAnd(1, 2147483647));           //0            no common prefix
+        System.out.println(rangeBitwiseAnd(2147483646, 2147483647));  //2147483646   they differ only in bit 0
+        System.out.println(rangeBitwiseAnd(12, 15));                  //12           1100 is the common prefix
+        System.out.println(rangeBitwiseAnd(600000000, 2147483645));   //0
+    }
 }
-
-console.log(rangeBitwiseAnd(5, 7))                    //4            101 & 110 & 111
-console.log(rangeBitwiseAnd(0, 0))                    //0
-console.log(rangeBitwiseAnd(1, 2147483647))           //0            no common prefix
-console.log(rangeBitwiseAnd(2147483646, 2147483647))  //2147483646   they differ only in bit 0
-console.log(rangeBitwiseAnd(12, 15))                  //12           1100 is the common prefix
-console.log(rangeBitwiseAnd(600000000, 2147483645))   //0
-````
+```
 
 - The time complexity is `O(1)` — at most 32 shifts, independent of how wide the range is.
 - The space complexity is `O(1)`.
 
 The `n & (n-1)` idiom gives a slicker version of the same idea. Repeatedly clearing the lowest set bit of `right` walks it down toward `left`; the moment it is no longer greater than `left`, every bit that could have flipped inside the range has been cleared and what remains is the common prefix.
 
-````js
-function rangeBitwiseAnd(left, right) {
-  let high = right
+```java
+class Solution {
+    public static int rangeBitwiseAnd(int left, int right) {
+        int high = right;
 
-  //keep dropping the lowest set bit until we no longer overshoot `left`
-  while (high > left) {
-    high = high & (high - 1)
-  }
-  return high >>> 0
+        //keep dropping the lowest set bit until we no longer overshoot `left`
+        while (high > left) {
+            high = high & (high - 1);
+        }
+        return high;
+    }
+
+    public static void main(String[] args) {
+        System.out.println(rangeBitwiseAnd(5, 7));                    //4
+        System.out.println(rangeBitwiseAnd(0, 0));                    //0
+        System.out.println(rangeBitwiseAnd(1, 2147483647));           //0
+        System.out.println(rangeBitwiseAnd(2147483646, 2147483647));  //2147483646
+        System.out.println(rangeBitwiseAnd(12, 15));                  //12
+        System.out.println(rangeBitwiseAnd(600000000, 2147483645));   //0
+    }
 }
-
-console.log(rangeBitwiseAnd(5, 7))                    //4
-console.log(rangeBitwiseAnd(0, 0))                    //0
-console.log(rangeBitwiseAnd(1, 2147483647))           //0
-console.log(rangeBitwiseAnd(2147483646, 2147483647))  //2147483646
-console.log(rangeBitwiseAnd(12, 15))                  //12
-console.log(rangeBitwiseAnd(600000000, 2147483645))   //0
-````
+```
 
 - The time complexity is `O(1)` — the loop runs at most once per set bit in `right`, so at most 32 times.
 - The space complexity is `O(1)`.
@@ -571,36 +628,42 @@ For `nums = [1, 5, 3]` the correspondence is total:
 
 `1 << n` is the elegant way to write `2ⁿ`, and `(mask & (1 << i)) !== 0` is the membership test from the cheat-sheet. One caution rooted in the caveat above: because shifts operate on 32-bit integers, `1 << n` only behaves for `n <= 30`. That is not a real restriction — `2³⁰` subsets would never fit in memory anyway — but if you ever needed more you would have to reach for `BigInt`.
 
-````js
-function findSubsets(nums) {
-  const n = nums.length
-  //1 << n is 2^n, the number of subsets
-  const total = 1 << n
-  const subsets = []
+```java
+import java.util.*;
 
-  for (let mask = 0; mask < total; mask++) {
-    const subset = []
+class Solution {
+    public static List<List<Integer>> findSubsets(int[] nums) {
+        int n = nums.length;
+        //1 << n is 2^n, the number of subsets
+        int total = 1 << n;
+        List<List<Integer>> subsets = new ArrayList<>();
 
-    for (let i = 0; i < n; i++) {
-      //bit i of the mask says "include nums[i]"
-      if ((mask & (1 << i)) !== 0) {
-        subset.push(nums[i])
-      }
+        for (int mask = 0; mask < total; mask++) {
+            List<Integer> subset = new ArrayList<>();
+
+            for (int i = 0; i < n; i++) {
+                //bit i of the mask says "include nums[i]"
+                if ((mask & (1 << i)) != 0) {
+                    subset.add(nums[i]);
+                }
+            }
+            subsets.add(subset);
+        }
+        return subsets;
     }
-    subsets.push(subset)
-  }
-  return subsets
-}
 
-console.log(JSON.stringify(findSubsets([1, 3])))
-//[[],[1],[3],[1,3]]
-console.log(JSON.stringify(findSubsets([1, 5, 3])))
-//[[],[1],[5],[1,5],[3],[1,3],[5,3],[1,5,3]]
-console.log(JSON.stringify(findSubsets([])))
-//[[]]
-console.log(findSubsets([1, 2, 3, 4, 5]).length)
-//32
-````
+    public static void main(String[] args) {
+        System.out.println(findSubsets(new int[]{1, 3}));
+        //[[], [1], [3], [1, 3]]
+        System.out.println(findSubsets(new int[]{1, 5, 3}));
+        //[[], [1], [5], [1, 5], [3], [1, 3], [5, 3], [1, 5, 3]]
+        System.out.println(findSubsets(new int[]{}));
+        //[[]]
+        System.out.println(findSubsets(new int[]{1, 2, 3, 4, 5}).size());
+        //32
+    }
+}
+```
 
 - There are `O(2ᴺ)` masks and the inner loop is `O(N)` per mask, so the time complexity is `O(N*2ᴺ)` — the same as the BFS approach in <b>Pattern 10</b>.
 - The space complexity is `O(N*2ᴺ)` for the output. The notable difference from Pattern 10 is that this version needs <b>no auxiliary state at all</b> beyond the loop counter, whereas BFS keeps the growing collection around as it builds.
@@ -608,33 +671,40 @@ console.log(findSubsets([1, 2, 3, 4, 5]).length)
 ### Skipping straight to the set bits
 The inner loop above tests all `n` positions even for a sparse mask like `100000`. Combining the two starred idioms lets us visit <i>only</i> the set bits: `bits & -bits` isolates the lowest one, and `bits & (bits - 1)` clears it so the next iteration finds the following one. This is the standard way to iterate a bitmask-as-a-set, and it shows up constantly in bitmask DP.
 
-````js
-function findSubsets(nums) {
-  const n = nums.length
-  const total = 1 << n
-  const subsets = []
+```java
+import java.util.*;
 
-  for (let mask = 0; mask < total; mask++) {
-    const subset = []
-    let bits = mask
+class Solution {
+    public static List<List<Integer>> findSubsets(int[] nums) {
+        int n = nums.length;
+        int total = 1 << n;
+        List<List<Integer>> subsets = new ArrayList<>();
 
-    while (bits !== 0) {
-      //isolate the lowest set bit, turn it back into an index
-      const lowest = bits & -bits
-      subset.push(nums[Math.log2(lowest)])
-      //clear it and move on to the next set bit
-      bits = bits & (bits - 1)
+        for (int mask = 0; mask < total; mask++) {
+            List<Integer> subset = new ArrayList<>();
+            int bits = mask;
+
+            while (bits != 0) {
+                //isolate the lowest set bit, turn it back into an index
+                int lowest = bits & -bits;
+                // Integer.numberOfTrailingZeros(lowest) gets the index
+                subset.add(nums[Integer.numberOfTrailingZeros(lowest)]);
+                //clear it and move on to the next set bit
+                bits = bits & (bits - 1);
+            }
+            subsets.add(subset);
+        }
+        return subsets;
     }
-    subsets.push(subset)
-  }
-  return subsets
-}
 
-console.log(JSON.stringify(findSubsets([1, 5, 3])))
-//[[],[1],[5],[1,5],[3],[1,3],[5,3],[1,5,3]]
-console.log(JSON.stringify(findSubsets([1, 3])))
-//[[],[1],[3],[1,3]]
-````
+    public static void main(String[] args) {
+        System.out.println(findSubsets(new int[]{1, 5, 3}));
+        //[[], [1], [5], [1, 5], [3], [1, 3], [5, 3], [1, 5, 3]]
+        System.out.println(findSubsets(new int[]{1, 3}));
+        //[[], [1], [3], [1, 3]]
+    }
+}
+```
 
 - The time complexity is still `O(N*2ᴺ)` in the worst case, but the total work is now proportional to the sum of the subset <i>sizes</i> rather than `N` per mask.
 - The space complexity is `O(N*2ᴺ)` for the output.

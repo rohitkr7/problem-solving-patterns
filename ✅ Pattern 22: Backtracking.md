@@ -14,52 +14,71 @@ Every backtracking problem is a tree. The <b>root</b> is the empty partial solut
 
 Every solution in this file is the same three lines wrapped in different constraints: <b>push</b> a choice onto the path, <b>recurse</b> one level deeper, then <b>pop</b> that choice back off. The <i>un-choose</i> step is the "backtrack" the pattern is named after. We mutate one shared `path` array on the way down and un-mutate it on the way up, so at any moment `path` holds exactly the choices along the current root-to-node route. Compare <b>[Pattern 08: Tree Depth First Search](#pattern-8-tree-depth-first-search-dfs)</b>, where `currentPath.push(...)` / `currentPath.pop()` around the recursive calls does the identical job on a real tree instead of an imaginary one. Below is that skeleton as a real, runnable function, with its decisions factored into three hooks — `choicesAt` (what can I do here?), `isComplete` (am I done?), and `isPromising` (is this choice worth exploring?):
 
-````js
-//the generic backtracking skeleton, expressed as three hooks
-function backtrackingTemplate(choicesAt, isComplete, isPromising) {
-  const result = [];
-  const path = [];
+```java
+import java.util.*;
 
-  function backtrack(depth) {
-    //1. BASE CASE: the path is a complete, valid solution
-    if (isComplete(depth, path)) {
-      //snapshot the path - NEVER push the live array itself
-      result.push([...path]);
-      return;
+class Solution {
+    //the generic backtracking skeleton, expressed as three hooks
+    public static List<List<Integer>> backtrackingTemplate() {
+        List<List<Integer>> result = new ArrayList<>();
+        List<Integer> path = new ArrayList<>();
+        backtrack(0, path, result);
+        return result;
     }
 
-    //2. enumerate every choice available at this level of the tree
-    const choices = choicesAt(depth, path);
+    private static void backtrack(int depth, List<Integer> path, List<List<Integer>> result) {
+        //1. BASE CASE: the path is a complete, valid solution
+        if (isComplete(depth, path)) {
+            //snapshot the path - NEVER push the live array itself
+            result.add(new ArrayList<>(path));
+            return;
+        }
 
-    for (let i = 0; i < choices.length; i++) {
-      const choice = choices[i];
+        //2. enumerate every choice available at this level of the tree
+        int[] choices = choicesAt(depth, path);
 
-      //3. PRUNE: abandon a choice that provably cannot lead to a solution
-      if (!isPromising(depth, path, choice)) continue;
+        for (int i = 0; i < choices.length; i++) {
+            int choice = choices[i];
 
-      path.push(choice); //choose
-      backtrack(depth + 1); //explore
-      path.pop(); //un-choose
+            //3. PRUNE: abandon a choice that provably cannot lead to a solution
+            if (!isPromising(depth, path, choice)) continue;
+
+            path.add(choice); //choose
+            backtrack(depth + 1, path, result); //explore
+            path.remove(path.size() - 1); //un-choose
+        }
     }
-  }
 
-  backtrack(0);
+    private static boolean isComplete(int depth, List<Integer> path) {
+        return depth == 4;
+    }
 
-  return result;
+    private static int[] choicesAt(int depth, List<Integer> path) {
+        return new int[]{0, 1};
+    }
+
+    private static boolean isPromising(int depth, List<Integer> path, int choice) {
+        return !(choice == 1 && !path.isEmpty() && path.get(path.size() - 1) == 1);
+    }
+
+    public static void main(String[] args) {
+        //a concrete instantiation: all binary strings of length 4
+        //that never contain two adjacent 1s
+        List<List<Integer>> bitStrings = backtrackingTemplate();
+        
+        System.out.println(bitStrings.size()); //8
+        
+        List<String> formatted = new ArrayList<>();
+        for (List<Integer> bits : bitStrings) {
+            StringBuilder sb = new StringBuilder();
+            for (int bit : bits) sb.append(bit);
+            formatted.add(sb.toString());
+        }
+        System.out.println(formatted);
+        //[0000, 0001, 0010, 0100, 0101, 1000, 1001, 1010]
+    }
 }
-
-//a concrete instantiation: all binary strings of length 4
-//that never contain two adjacent 1s
-const bitStrings = backtrackingTemplate(
-  () => [0, 1],
-  (depth) => depth === 4,
-  (depth, path, choice) => !(choice === 1 && path[path.length - 1] === 1)
-);
-
-console.log(bitStrings.length);//8
-console.log(JSON.stringify(bitStrings.map((bits) => bits.join(''))));
-//["0000","0001","0010","0100","0101","1000","1001","1010"]
-````
+```
 
 ### Why pruning is the whole game
 
@@ -75,38 +94,52 @@ Two flavours of pruning show up over and over:
 
 Because we reuse a single mutable `path` array, `result.push(path)` stores a <i>reference</i> to that live array. Every later `push` and `pop` mutates the object already sitting in `result`, and by the time the recursion unwinds `path` is empty again — so every entry in `result` is the same empty array. You must snapshot with `result.push([...path])`. This is worth seeing rather than being told; the two runs below differ by exactly one expression:
 
-````js
-//a tiny permutation generator, written twice
-function generate(nums, copyOnPush) {
-  const result = [];
-  const path = [];
-  const used = new Array(nums.length).fill(false);
+```java
+import java.util.*;
 
-  function backtrack() {
-    if (path.length === nums.length) {
-      //the ONLY difference between the two runs
-      result.push(copyOnPush ? [...path] : path);
-      return;
+class Solution {
+    //a tiny permutation generator, written twice
+    public static List<List<Integer>> generate(int[] nums, boolean copyOnPush) {
+        List<List<Integer>> result = new ArrayList<>();
+        List<Integer> path = new ArrayList<>();
+        boolean[] used = new boolean[nums.length];
+        
+        backtrack(nums, used, path, result, copyOnPush);
+        
+        return result;
     }
-    for (let i = 0; i < nums.length; i++) {
-      if (used[i]) continue;
-      used[i] = true;
-      path.push(nums[i]);
-      backtrack();
-      path.pop();
-      used[i] = false;
-    }
-  }
 
-  backtrack();
-  return result;
+    private static void backtrack(int[] nums, boolean[] used, List<Integer> path, List<List<Integer>> result, boolean copyOnPush) {
+        if (path.size() == nums.length) {
+            //the ONLY difference between the two runs
+            result.add(copyOnPush ? new ArrayList<>(path) : path);
+            return;
+        }
+        
+        for (int i = 0; i < nums.length; i++) {
+            if (used[i]) continue;
+            
+            used[i] = true;
+            path.add(nums[i]);
+            
+            backtrack(nums, used, path, result, copyOnPush);
+            
+            path.remove(path.size() - 1);
+            used[i] = false;
+        }
+    }
+
+    public static void main(String[] args) {
+        int[] nums = {1, 2, 3};
+        
+        System.out.println(generate(nums, false));
+        //[[], [], [], [], [], []]
+        
+        System.out.println(generate(nums, true));
+        //[[1, 2, 3], [1, 3, 2], [2, 1, 3], [2, 3, 1], [3, 1, 2], [3, 2, 1]]
+    }
 }
-
-console.log(JSON.stringify(generate([1, 2, 3], false)));
-//[[],[],[],[],[],[]]
-console.log(JSON.stringify(generate([1, 2, 3], true)));
-//[[1,2,3],[1,3,2],[2,1,3],[2,3,1],[3,1,2],[3,2,1]]
-````
+```
 
 The buggy run has the right <i>count</i> — six — which is exactly why this bug survives a careless test. Always check the contents, not just the length. One exception is worth naming: when the solution is a <i>string</i>, `path.join('')` already produces a fresh immutable value, so no explicit copy is needed — which is why <b>Letter Combinations</b> and <b>Generate Parentheses</b> below get away with pushing a `join`ed result directly.
 
@@ -119,47 +152,58 @@ The decision at each level is "which candidate do I add next?" Because a number 
 
 The pruning is the interesting part. We first `sort` the candidates, then inside the loop we `break` — not `continue` — when `candidates[i] > remaining`. That distinction matters: because the array is sorted, every candidate after position `i` is at least as large, so <i>none</i> of them can fit either. A `continue` would pointlessly test each one; the `break` amputates all the remaining siblings at once. This is <b>bound pruning</b> — we are not rejecting an illegal state, we are rejecting a state from which the goal is unreachable. Tracking `remaining = target - (sum so far)` instead of re-summing `currentCombination` keeps the check `O(1)` per node.
 
-````js
-function combinationSum(candidates, target) {
-  const result = [];
-  const currentCombination = [];
+```java
+import java.util.*;
 
-  //sorting is not strictly required here, but it lets us
-  //break out of the loop as soon as a candidate is too big
-  candidates.sort((a, b) => a - b);
+class Solution {
+    public static List<List<Integer>> combinationSum(int[] candidates, int target) {
+        List<List<Integer>> result = new ArrayList<>();
+        List<Integer> currentCombination = new ArrayList<>();
 
-  function backtrack(startIndex, remaining) {
-    //base case: we hit the target exactly, record a COPY of the path
-    if (remaining === 0) {
-      result.push([...currentCombination]);
-      return;
+        //sorting is not strictly required here, but it lets us
+        //break out of the loop as soon as a candidate is too big
+        Arrays.sort(candidates);
+
+        backtrack(candidates, target, 0, currentCombination, result);
+
+        return result;
     }
 
-    for (let i = startIndex; i < candidates.length; i++) {
-      //PRUNE: since the array is sorted, every candidate from
-      //here on is too large, so this whole branch is dead
-      if (candidates[i] > remaining) break;
+    private static void backtrack(int[] candidates, int remaining, int startIndex, List<Integer> currentCombination, List<List<Integer>> result) {
+        //base case: we hit the target exactly, record a COPY of the path
+        if (remaining == 0) {
+            result.add(new ArrayList<>(currentCombination));
+            return;
+        }
 
-      //choose
-      currentCombination.push(candidates[i]);
+        for (int i = startIndex; i < candidates.length; i++) {
+            //PRUNE: since the array is sorted, every candidate from
+            //here on is too large, so this whole branch is dead
+            if (candidates[i] > remaining) break;
 
-      //explore: pass 'i' (not 'i + 1') because we may reuse the same number
-      backtrack(i, remaining - candidates[i]);
+            //choose
+            currentCombination.add(candidates[i]);
 
-      //un-choose
-      currentCombination.pop();
+            //explore: pass 'i' (not 'i + 1') because we may reuse the same number
+            backtrack(candidates, remaining - candidates[i], i, currentCombination, result);
+
+            //un-choose
+            currentCombination.remove(currentCombination.size() - 1);
+        }
     }
-  }
 
-  backtrack(0, target);
-
-  return result;
+    public static void main(String[] args) {
+        System.out.println(combinationSum(new int[]{2, 3, 6, 7}, 7));
+        //[[2, 2, 3], [7]]
+        
+        System.out.println(combinationSum(new int[]{2, 3, 5}, 8));
+        //[[2, 2, 2, 2], [2, 3, 3], [3, 5]]
+        
+        System.out.println(combinationSum(new int[]{2}, 1));
+        //[]
+    }
 }
-
-console.log(JSON.stringify(combinationSum([2, 3, 6, 7], 7)));//[[2,2,3],[7]]
-console.log(JSON.stringify(combinationSum([2, 3, 5], 8)));//[[2,2,2,2],[2,3,3],[3,5]]
-console.log(JSON.stringify(combinationSum([2], 1)));//[]
-````
+```
 - The <b>time complexity</b> of the above algorithm is `O(N^(T/M + 1))`, where `N` is the number of candidates, `T` is the target and `M` is the smallest candidate. The recursion tree has a depth of at most `T/M` (we cannot add more than `T/M` copies of the smallest number before overshooting), and each node branches at most `N` ways, giving `N^(T/M)` nodes; copying a combination of length up to `T/M` at each leaf contributes the extra factor. The `sort` costs `O(NlogN)`, which is dominated.
 - The <b>space complexity</b> of the above algorithm is `O(T/M)` if we ignore the output, since that is the maximum depth of the <b>recursion</b> stack and the maximum length of `currentCombination`. Including the `result` list, the space is bounded by the total size of the output.
 
@@ -174,47 +218,54 @@ The fix is the classic <b>duplicate-skipping</b> guard. After sorting, equal val
 
 Note the framing difference from <b>[Pattern 10: Subsets](#pattern-10-subsets)</b>'s <b>Subsets With Duplicates</b>: that solution deduplicates by carefully choosing a <i>range</i> of existing subsets to extend (`start = end + 1`). Here we deduplicate by pruning sibling edges in the decision tree — same idea, expressed against the tree instead of against a growing list.
 
-````js
-function combinationSum2(candidates, target) {
-  const result = [];
-  const currentCombination = [];
+```java
+import java.util.*;
 
-  //sorting brings duplicates next to each other AND enables the prune
-  candidates.sort((a, b) => a - b);
+class Solution {
+    public static List<List<Integer>> combinationSum2(int[] candidates, int target) {
+        List<List<Integer>> result = new ArrayList<>();
+        List<Integer> currentCombination = new ArrayList<>();
 
-  function backtrack(startIndex, remaining) {
-    if (remaining === 0) {
-      result.push([...currentCombination]);
-      return;
+        //sorting brings duplicates next to each other AND enables the prune
+        Arrays.sort(candidates);
+
+        backtrack(candidates, target, 0, currentCombination, result);
+
+        return result;
     }
 
-    for (let i = startIndex; i < candidates.length; i++) {
-      //PRUNE 1: sorted array, so nothing after this fits either
-      if (candidates[i] > remaining) break;
+    private static void backtrack(int[] candidates, int remaining, int startIndex, List<Integer> currentCombination, List<List<Integer>> result) {
+        if (remaining == 0) {
+            result.add(new ArrayList<>(currentCombination));
+            return;
+        }
 
-      //PRUNE 2: skip duplicates at the SAME depth. 'i > startIndex'
-      //means some sibling already used this value at this position
-      if (i > startIndex && candidates[i] === candidates[i - 1]) continue;
+        for (int i = startIndex; i < candidates.length; i++) {
+            //PRUNE 1: sorted array, so nothing after this fits either
+            if (candidates[i] > remaining) break;
 
-      currentCombination.push(candidates[i]);
+            //PRUNE 2: skip duplicates at the SAME depth. 'i > startIndex'
+            //means some sibling already used this value at this position
+            if (i > startIndex && candidates[i] == candidates[i - 1]) continue;
 
-      //'i + 1' because each number may be used at most once
-      backtrack(i + 1, remaining - candidates[i]);
+            currentCombination.add(candidates[i]);
 
-      currentCombination.pop();
+            //'i + 1' because each number may be used at most once
+            backtrack(candidates, remaining - candidates[i], i + 1, currentCombination, result);
+
+            currentCombination.remove(currentCombination.size() - 1);
+        }
     }
-  }
 
-  backtrack(0, target);
-
-  return result;
+    public static void main(String[] args) {
+        System.out.println(combinationSum2(new int[]{10, 1, 2, 7, 6, 1, 5}, 8));
+        //[[1, 1, 6], [1, 2, 5], [1, 7], [2, 6]]
+        
+        System.out.println(combinationSum2(new int[]{2, 5, 2, 1, 2}, 5));
+        //[[1, 2, 2], [5]]
+    }
 }
-
-console.log(JSON.stringify(combinationSum2([10, 1, 2, 7, 6, 1, 5], 8)));
-//[[1,1,6],[1,2,5],[1,7],[2,6]]
-console.log(JSON.stringify(combinationSum2([2, 5, 2, 1, 2], 5)));
-//[[1,2,2],[5]]
-````
+```
 - The <b>time complexity</b> of the above algorithm is `O(N * 2^N)`, where `N` is the number of candidates. In the worst case every subset of the candidates is explored, giving `2^N` nodes, and copying a combination of up to `N` elements at each accepted leaf adds the factor of `N`. The duplicate-skipping and sum-bound prunes cut this down dramatically in practice but do not improve the worst-case bound.
 - The <b>space complexity</b> of the above algorithm is `O(N)` excluding the output, for the <b>recursion</b> stack and `currentCombination`. The `result` list can itself hold up to `O(N * 2^N)`.
 
@@ -229,46 +280,56 @@ The only constraint is "don't reuse a number already in the path", so the only p
 
 Because the constraint is so weak — nothing gets rejected except repeats — this tree has almost no dead ends, which makes <b>Permutations</b> a good calibration point: it shows the skeleton in its purest form, and shows that with nothing to prune, backtracking degenerates into plain exhaustive generation. The problems after this one are where pruning starts earning its keep. Note also the symmetry of the un-choose block: it undoes the two mutations in the reverse order they were made. Forgetting to reset `used[i] = false` is the second most common bug in this pattern, and it silently produces too few results.
 
-````js
-function permute(nums) {
-  const result = [];
-  const currentPermutation = [];
-  const used = new Array(nums.length).fill(false);
+```java
+import java.util.*;
 
-  function backtrack() {
-    //base case: the path uses every number, so it is a full permutation
-    if (currentPermutation.length === nums.length) {
-      result.push([...currentPermutation]);
-      return;
+class Solution {
+    public static List<List<Integer>> permute(int[] nums) {
+        List<List<Integer>> result = new ArrayList<>();
+        List<Integer> currentPermutation = new ArrayList<>();
+        boolean[] used = new boolean[nums.length];
+
+        backtrack(nums, used, currentPermutation, result);
+
+        return result;
     }
 
-    for (let i = 0; i < nums.length; i++) {
-      //PRUNE: this number is already somewhere in the current path
-      if (used[i]) continue;
+    private static void backtrack(int[] nums, boolean[] used, List<Integer> currentPermutation, List<List<Integer>> result) {
+        //base case: the path uses every number, so it is a full permutation
+        if (currentPermutation.size() == nums.length) {
+            result.add(new ArrayList<>(currentPermutation));
+            return;
+        }
 
-      //choose
-      used[i] = true;
-      currentPermutation.push(nums[i]);
+        for (int i = 0; i < nums.length; i++) {
+            //PRUNE: this number is already somewhere in the current path
+            if (used[i]) continue;
 
-      //explore
-      backtrack();
+            //choose
+            used[i] = true;
+            currentPermutation.add(nums[i]);
 
-      //un-choose
-      currentPermutation.pop();
-      used[i] = false;
+            //explore
+            backtrack(nums, used, currentPermutation, result);
+
+            //un-choose
+            currentPermutation.remove(currentPermutation.size() - 1);
+            used[i] = false;
+        }
     }
-  }
 
-  backtrack();
-
-  return result;
+    public static void main(String[] args) {
+        System.out.println(permute(new int[]{1, 2, 3}));
+        //[[1, 2, 3], [1, 3, 2], [2, 1, 3], [2, 3, 1], [3, 1, 2], [3, 2, 1]]
+        
+        System.out.println(permute(new int[]{0, 1}));
+        //[[0, 1], [1, 0]]
+        
+        System.out.println(permute(new int[]{1}));
+        //[[1]]
+    }
 }
-
-console.log(JSON.stringify(permute([1, 2, 3])));
-//[[1,2,3],[1,3,2],[2,1,3],[2,3,1],[3,1,2],[3,2,1]]
-console.log(JSON.stringify(permute([0, 1])));//[[0,1],[1,0]]
-console.log(JSON.stringify(permute([1])));//[[1]]
-````
+```
 - The <b>time complexity</b> of the above algorithm is `O(N * N!)`, where `N` is the number of elements. There are `N!` permutations, and each one costs `O(N)` to copy into the result. The internal nodes of the tree add up to fewer nodes than the leaves, so they do not change the bound.
 - The <b>space complexity</b> of the above algorithm is `O(N)` excluding the output — `O(N)` for the <b>recursion</b> stack, `O(N)` for `currentPermutation` and `O(N)` for the `used` array. The `result` list holds `O(N * N!)`.
 
@@ -281,53 +342,65 @@ This is the cleanest possible illustration of the decision tree, because the tre
 
 Two details worth copying into other solutions. First, the empty-input guard: the problem requires `[]`, not `[""]`, for an empty string, and without the early return the base case fires immediately at depth `0` and emits a single empty string. Second, `currentCombination` is a character <i>array</i> that we `join` at the leaf rather than a string we concatenate — building a `k`-character string by repeated concatenation copies the prefix at every level, whereas pushing and popping characters is `O(1)` and we pay the `O(k)` join only at leaves we actually keep. Because `join` returns a brand new string, no explicit copy is needed here.
 
-````js
-function letterCombinations(digits) {
-  const result = [];
+```java
+import java.util.*;
 
-  if (digits.length === 0) {
-    return result;
-  }
+class Solution {
+    public static List<String> letterCombinations(String digits) {
+        List<String> result = new ArrayList<>();
 
-  const keypad = {
-    2: 'abc', 3: 'def', 4: 'ghi', 5: 'jkl',
-    6: 'mno', 7: 'pqrs', 8: 'tuv', 9: 'wxyz',
-  };
+        if (digits == null || digits.isEmpty()) {
+            return result;
+        }
 
-  const currentCombination = [];
+        Map<Character, String> keypad = new HashMap<>();
+        keypad.put('2', "abc"); keypad.put('3', "def"); keypad.put('4', "ghi");
+        keypad.put('5', "jkl"); keypad.put('6', "mno"); keypad.put('7', "pqrs");
+        keypad.put('8', "tuv"); keypad.put('9', "wxyz");
 
-  function backtrack(index) {
-    //base case: we have picked one letter for every digit
-    if (index === digits.length) {
-      result.push(currentCombination.join(''));
-      return;
+        StringBuilder currentCombination = new StringBuilder();
+
+        backtrack(digits, 0, keypad, currentCombination, result);
+
+        return result;
     }
 
-    const letters = keypad[digits[index]];
+    private static void backtrack(String digits, int index, Map<Character, String> keypad, StringBuilder currentCombination, List<String> result) {
+        //base case: we have picked one letter for every digit
+        if (index == digits.length()) {
+            result.add(currentCombination.toString());
+            return;
+        }
 
-    for (let i = 0; i < letters.length; i++) {
-      //choose
-      currentCombination.push(letters[i]);
+        String letters = keypad.get(digits.charAt(index));
 
-      //explore the next digit
-      backtrack(index + 1);
+        for (int i = 0; i < letters.length(); i++) {
+            //choose
+            currentCombination.append(letters.charAt(i));
 
-      //un-choose
-      currentCombination.pop();
+            //explore the next digit
+            backtrack(digits, index + 1, keypad, currentCombination, result);
+
+            //un-choose
+            currentCombination.deleteCharAt(currentCombination.length() - 1);
+        }
     }
-  }
 
-  backtrack(0);
-
-  return result;
+    public static void main(String[] args) {
+        System.out.println(letterCombinations("23"));
+        //[ad, ae, af, bd, be, bf, cd, ce, cf]
+        
+        System.out.println(letterCombinations(""));
+        //[]
+        
+        System.out.println(letterCombinations("2"));
+        //[a, b, c]
+        
+        System.out.println(letterCombinations("7896").size());
+        //144
+    }
 }
-
-console.log(JSON.stringify(letterCombinations('23')));
-//["ad","ae","af","bd","be","bf","cd","ce","cf"]
-console.log(JSON.stringify(letterCombinations('')));//[]
-console.log(JSON.stringify(letterCombinations('2')));//["a","b","c"]
-console.log(letterCombinations('7896').length);//144
-````
+```
 - The <b>time complexity</b> of the above algorithm is `O(N * 4^N)`, where `N` is the length of `digits`. Each digit maps to at most four letters, so there are at most `4^N` leaves, and joining a combination of length `N` at each leaf costs `O(N)`.
 - The <b>space complexity</b> of the above algorithm is `O(N)` excluding the output, for the <b>recursion</b> stack and the `currentCombination` array. The `result` list holds `O(N * 4^N)`.
 
@@ -345,45 +418,57 @@ At every position we have two candidate characters, so the unconstrained tree ha
 
 That second condition is the important one. It is a statement about the <i>prefix</i>, not the finished string, and that is what makes it a prune rather than a filter. Because both conditions guarantee the prefix stays well-formed, every leaf we reach is a valid answer: there is no dead end anywhere in the tree and no validity check at the base case. We generate exactly the `Catalan(n)` answers — `5` for `n = 3`, `14` for `n = 4` — instead of generating `2^(2n)` strings and throwing most away. No third "is the string long enough" condition is needed, since reaching `currentString.length === 2 * num` is only possible via legal moves.
 
-````js
-function generateParenthesis(num) {
-  const result = [];
-  const currentString = [];
+```java
+import java.util.*;
 
-  function backtrack(openCount, closeCount) {
-    //base case: we have placed all 2*num characters
-    if (currentString.length === 2 * num) {
-      result.push(currentString.join(''));
-      return;
+class Solution {
+    public static List<String> generateParenthesis(int num) {
+        List<String> result = new ArrayList<>();
+        StringBuilder currentString = new StringBuilder();
+
+        backtrack(num, 0, 0, currentString, result);
+
+        return result;
     }
 
-    //PRUNE: only add '(' while we still have open brackets left to spend
-    if (openCount < num) {
-      currentString.push('(');
-      backtrack(openCount + 1, closeCount);
-      currentString.pop();
+    private static void backtrack(int num, int openCount, int closeCount, StringBuilder currentString, List<String> result) {
+        //base case: we have placed all 2*num characters
+        if (currentString.length() == 2 * num) {
+            result.add(currentString.toString());
+            return;
+        }
+
+        //PRUNE: only add '(' while we still have open brackets left to spend
+        if (openCount < num) {
+            currentString.append('(');
+            backtrack(num, openCount + 1, closeCount, currentString, result);
+            currentString.deleteCharAt(currentString.length() - 1);
+        }
+
+        //PRUNE: only add ')' when there is an unmatched '(' to close.
+        //This is what keeps us from ever building an invalid prefix.
+        if (closeCount < openCount) {
+            currentString.append(')');
+            backtrack(num, openCount, closeCount + 1, currentString, result);
+            currentString.deleteCharAt(currentString.length() - 1);
+        }
     }
 
-    //PRUNE: only add ')' when there is an unmatched '(' to close.
-    //This is what keeps us from ever building an invalid prefix.
-    if (closeCount < openCount) {
-      currentString.push(')');
-      backtrack(openCount, closeCount + 1);
-      currentString.pop();
+    public static void main(String[] args) {
+        System.out.println(generateParenthesis(3));
+        //[((())), (()()), (())(), ()(()), ()()()]
+        
+        System.out.println(generateParenthesis(1));
+        //[()]
+        
+        System.out.println(generateParenthesis(2));
+        //[(()), ()()]
+        
+        System.out.println(generateParenthesis(4).size());
+        //14
     }
-  }
-
-  backtrack(0, 0);
-
-  return result;
 }
-
-console.log(JSON.stringify(generateParenthesis(3)));
-//["((()))","(()())","(())()","()(())","()()()"]
-console.log(JSON.stringify(generateParenthesis(1)));//["()"]
-console.log(JSON.stringify(generateParenthesis(2)));//["(())","()()"]
-console.log(generateParenthesis(4).length);//14
-````
+```
 - The <b>time complexity</b> of the above algorithm is `O(N * 4^N / sqrt(N))`, which is the `N`th <b>Catalan number</b> multiplied by the `O(N)` cost of joining each result. <i>In an interview it is entirely reasonable to state this as "bounded by `O(N * 2^(2N))` because there are two choices per position, and the pruning brings it down to the Catalan number" — the exact Catalan asymptotics are rarely the point.</i>
 - The <b>space complexity</b> of the above algorithm is `O(N)` excluding the output, for the <b>recursion</b> stack (depth `2N`) and the `currentString` array.
 
@@ -400,63 +485,72 @@ The pruning is aggressive and is what makes this tractable. Three conditions kil
 
 Two ordering subtleties in the code. The base case `index === word.length` is tested <i>before</i> the bounds check, so a word that finishes exactly as we step off the board still succeeds. And the `||` chain short-circuits: as soon as one direction reports success we stop exploring the others — but we still fall through to the restore line before returning, which is why the board is left clean even on the successful path.
 
-````js
-function exist(board, word) {
-  const rows = board.length;
-  const cols = board[0].length;
+```java
+import java.util.*;
 
-  function backtrack(row, col, index) {
-    //base case: every character has been matched
-    if (index === word.length) {
-      return true;
+class Solution {
+    public static boolean exist(char[][] board, String word) {
+        int rows = board.length;
+        int cols = board[0].length;
+
+        for (int row = 0; row < rows; row++) {
+            for (int col = 0; col < cols; col++) {
+                if (backtrack(board, word, row, col, 0)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
-    //PRUNE: off the grid, or the letter here is not the one we need
-    if (row < 0 || row >= rows || col < 0 || col >= cols) return false;
-    if (board[row][col] !== word[index]) return false;
+    private static boolean backtrack(char[][] board, String word, int row, int col, int index) {
+        int rows = board.length;
+        int cols = board[0].length;
 
-    //choose: mark this cell as visited IN PLACE so the same cell
-    //cannot be reused inside this path
-    const originalChar = board[row][col];
-    board[row][col] = '#';
+        //base case: every character has been matched
+        if (index == word.length()) {
+            return true;
+        }
 
-    //explore the four neighbours
-    const found =
-      backtrack(row + 1, col, index + 1) ||
-      backtrack(row - 1, col, index + 1) ||
-      backtrack(row, col + 1, index + 1) ||
-      backtrack(row, col - 1, index + 1);
+        //PRUNE: off the grid, or the letter here is not the one we need
+        if (row < 0 || row >= rows || col < 0 || col >= cols) return false;
+        if (board[row][col] != word.charAt(index)) return false;
 
-    //un-choose: restore the cell for other paths
-    board[row][col] = originalChar;
+        //choose: mark this cell as visited IN PLACE so the same cell
+        //cannot be reused inside this path
+        char originalChar = board[row][col];
+        board[row][col] = '#';
 
-    return found;
-  }
+        //explore the four neighbours
+        boolean found =
+            backtrack(board, word, row + 1, col, index + 1) ||
+            backtrack(board, word, row - 1, col, index + 1) ||
+            backtrack(board, word, row, col + 1, index + 1) ||
+            backtrack(board, word, row, col - 1, index + 1);
 
-  for (let row = 0; row < rows; row++) {
-    for (let col = 0; col < cols; col++) {
-      if (backtrack(row, col, 0)) {
-        return true;
-      }
+        //un-choose: restore the cell for other paths
+        board[row][col] = originalChar;
+
+        return found;
     }
-  }
 
-  return false;
+    public static void main(String[] args) {
+        char[][] board = {
+            {'A', 'B', 'C', 'E'},
+            {'S', 'F', 'C', 'S'},
+            {'A', 'D', 'E', 'E'}
+        };
+
+        System.out.println(exist(board, "ABCCED")); //true
+        System.out.println(exist(board, "SEE")); //true
+        System.out.println(exist(board, "ABCB")); //false
+        //the board is restored exactly as it was given to us
+        System.out.println(Arrays.deepToString(board));
+        //[[A, B, C, E], [S, F, C, S], [A, D, E, E]]
+    }
 }
-
-const board = [
-  ['A', 'B', 'C', 'E'],
-  ['S', 'F', 'C', 'S'],
-  ['A', 'D', 'E', 'E'],
-];
-
-console.log(exist(board, 'ABCCED'));//true
-console.log(exist(board, 'SEE'));//true
-console.log(exist(board, 'ABCB'));//false
-//the board is restored exactly as it was given to us
-console.log(JSON.stringify(board));
-//[["A","B","C","E"],["S","F","C","S"],["A","D","E","E"]]
-````
+```
 - The <b>time complexity</b> of the above algorithm is `O(M * N * 3^L)`, where `M x N` are the grid dimensions and `L` is the length of `word`. We start a search from each of the `M * N` cells, and each search explores at most `3^L` paths — the branching factor is `3` rather than `4` because the cell we just came from is marked and immediately rejected.
 - The <b>space complexity</b> of the above algorithm is `O(L)` for the <b>recursion</b> stack. The in-place marking means we use no extra `visited` structure, so this is the only additional space.
 
@@ -471,54 +565,66 @@ The prune is the palindrome test itself, and its placement is what matters. We c
 
 The `isPalindrome` helper takes <i>indices</i> rather than a substring, so it costs no allocation; we only call `substring` on a piece we have already decided to keep. For the worst-case input `"aaaa...a"` every substring is a palindrome, so nothing gets pruned and we really do produce all `2^(N-1)` partitions — the `partition('aaa')` example below shows all `4`. That is the honest worst case, and it is why the bound stays exponential. If a follow-up asks you to speed this up, the standard answer is to precompute an `N x N` table where `table[i][j]` says whether `s[i..j]` is a palindrome (itself a small <b>Dynamic Programming</b> problem), making each prune `O(1)` instead of `O(N)`.
 
-````js
-function partition(str) {
-  const result = [];
-  const currentPartition = [];
+```java
+import java.util.*;
 
-  function isPalindrome(start, end) {
-    while (start < end) {
-      if (str[start] !== str[end]) return false;
-      start++;
-      end--;
-    }
-    return true;
-  }
+class Solution {
+    public static List<List<String>> partition(String str) {
+        List<List<String>> result = new ArrayList<>();
+        List<String> currentPartition = new ArrayList<>();
 
-  function backtrack(start) {
-    //base case: we have consumed the whole string
-    if (start === str.length) {
-      result.push([...currentPartition]);
-      return;
+        backtrack(str, 0, currentPartition, result);
+
+        return result;
     }
 
-    for (let end = start; end < str.length; end++) {
-      //PRUNE: if str[start..end] is not a palindrome there is no point
-      //recursing on the rest of the string with this prefix
-      if (!isPalindrome(start, end)) continue;
-
-      //choose
-      currentPartition.push(str.substring(start, end + 1));
-
-      //explore the remainder
-      backtrack(end + 1);
-
-      //un-choose
-      currentPartition.pop();
+    private static boolean isPalindrome(String str, int start, int end) {
+        while (start < end) {
+            if (str.charAt(start) != str.charAt(end)) return false;
+            start++;
+            end--;
+        }
+        return true;
     }
-  }
 
-  backtrack(0);
+    private static void backtrack(String str, int start, List<String> currentPartition, List<List<String>> result) {
+        //base case: we have consumed the whole string
+        if (start == str.length()) {
+            result.add(new ArrayList<>(currentPartition));
+            return;
+        }
 
-  return result;
+        for (int end = start; end < str.length(); end++) {
+            //PRUNE: if str[start..end] is not a palindrome there is no point
+            //recursing on the rest of the string with this prefix
+            if (!isPalindrome(str, start, end)) continue;
+
+            //choose
+            currentPartition.add(str.substring(start, end + 1));
+
+            //explore the remainder
+            backtrack(str, end + 1, currentPartition, result);
+
+            //un-choose
+            currentPartition.remove(currentPartition.size() - 1);
+        }
+    }
+
+    public static void main(String[] args) {
+        System.out.println(partition("aab"));
+        //[[a, a, b], [aa, b]]
+        
+        System.out.println(partition("a"));
+        //[[a]]
+        
+        System.out.println(partition("aba"));
+        //[[a, b, a], [aba]]
+        
+        System.out.println(partition("aaa"));
+        //[[a, a, a], [a, aa], [aa, a], [aaa]]
+    }
 }
-
-console.log(JSON.stringify(partition('aab')));//[["a","a","b"],["aa","b"]]
-console.log(JSON.stringify(partition('a')));//[["a"]]
-console.log(JSON.stringify(partition('aba')));//[["a","b","a"],["aba"]]
-console.log(JSON.stringify(partition('aaa')));
-//[["a","a","a"],["a","aa"],["aa","a"],["aaa"]]
-````
+```
 - The <b>time complexity</b> of the above algorithm is `O(N * 2^N)`, where `N` is the length of the string. There are `2^(N-1)` ways to cut the string, and for each partition we spend `O(N)` on the palindrome checks and on copying the result. The palindrome prune removes most branches for realistic inputs but not for a string of identical characters.
 - The <b>space complexity</b> of the above algorithm is `O(N)` excluding the output, for the <b>recursion</b> stack and `currentPartition`. The `result` list can hold `O(N * 2^N)`.
 
@@ -538,72 +644,92 @@ Keeping three `Set`s of the occupied columns, diagonals and anti-diagonals means
 
 With both prunes in place the recursion for `n = 8` enters `2,057` nodes instead of sixteen million, and finds all `92` solutions immediately. Notice that a choice now touches four pieces of state (`queenAtRow` plus the three sets) and the un-choose block undoes all four. That is the pattern's discipline: however much state a choice touches, the un-choose must restore every bit of it. We also store only the column per row while searching, materialising the `'.'`/`'Q'` strings at a leaf in `buildBoard`; building strings at every node would dominate the running time. `buildBoard` doubles as our snapshot, since it returns a fresh array every call, so the shared-array trap does not apply.
 
-````js
-function solveNQueens(n) {
-  const result = [];
+```java
+import java.util.*;
 
-  //queenAtRow[row] = the column where we placed the queen on that row
-  const queenAtRow = new Array(n).fill(-1);
+class Solution {
+    public static List<List<String>> solveNQueens(int n) {
+        List<List<String>> result = new ArrayList<>();
 
-  //O(1) conflict checks
-  const usedColumns = new Set();
-  const usedDiagonals = new Set(); //row - col, constant along a "\" diagonal
-  const usedAntiDiagonals = new Set(); //row + col, constant along a "/" diagonal
+        //queenAtRow[row] = the column where we placed the queen on that row
+        int[] queenAtRow = new int[n];
+        Arrays.fill(queenAtRow, -1);
 
-  function buildBoard() {
-    return queenAtRow.map((col) => {
-      const rowChars = new Array(n).fill('.');
-      rowChars[col] = 'Q';
-      return rowChars.join('');
-    });
-  }
+        //O(1) conflict checks
+        Set<Integer> usedColumns = new HashSet<>();
+        Set<Integer> usedDiagonals = new HashSet<>(); //row - col, constant along a "\" diagonal
+        Set<Integer> usedAntiDiagonals = new HashSet<>(); //row + col, constant along a "/" diagonal
 
-  function backtrack(row) {
-    //base case: a queen is safely placed on every row
-    if (row === n) {
-      result.push(buildBoard());
-      return;
+        backtrack(n, 0, queenAtRow, usedColumns, usedDiagonals, usedAntiDiagonals, result);
+
+        return result;
     }
 
-    for (let col = 0; col < n; col++) {
-      const diagonal = row - col;
-      const antiDiagonal = row + col;
-
-      //PRUNE: this square is attacked, so abandon the branch immediately
-      if (usedColumns.has(col) || usedDiagonals.has(diagonal) || usedAntiDiagonals.has(antiDiagonal)) continue;
-
-      //choose
-      queenAtRow[row] = col;
-      usedColumns.add(col);
-      usedDiagonals.add(diagonal);
-      usedAntiDiagonals.add(antiDiagonal);
-
-      //explore the next row
-      backtrack(row + 1);
-
-      //un-choose
-      usedColumns.delete(col);
-      usedDiagonals.delete(diagonal);
-      usedAntiDiagonals.delete(antiDiagonal);
-      queenAtRow[row] = -1;
+    private static List<String> buildBoard(int[] queenAtRow, int n) {
+        List<String> board = new ArrayList<>();
+        for (int col : queenAtRow) {
+            char[] rowChars = new char[n];
+            Arrays.fill(rowChars, '.');
+            rowChars[col] = 'Q';
+            board.add(new String(rowChars));
+        }
+        return board;
     }
-  }
 
-  backtrack(0);
+    private static void backtrack(int n, int row, int[] queenAtRow, Set<Integer> usedColumns, Set<Integer> usedDiagonals, Set<Integer> usedAntiDiagonals, List<List<String>> result) {
+        //base case: a queen is safely placed on every row
+        if (row == n) {
+            result.add(buildBoard(queenAtRow, n));
+            return;
+        }
 
-  return result;
+        for (int col = 0; col < n; col++) {
+            int diagonal = row - col;
+            int antiDiagonal = row + col;
+
+            //PRUNE: this square is attacked, so abandon the branch immediately
+            if (usedColumns.contains(col) || usedDiagonals.contains(diagonal) || usedAntiDiagonals.contains(antiDiagonal)) continue;
+
+            //choose
+            queenAtRow[row] = col;
+            usedColumns.add(col);
+            usedDiagonals.add(diagonal);
+            usedAntiDiagonals.add(antiDiagonal);
+
+            //explore the next row
+            backtrack(n, row + 1, queenAtRow, usedColumns, usedDiagonals, usedAntiDiagonals, result);
+
+            //un-choose
+            usedColumns.remove(col);
+            usedDiagonals.remove(diagonal);
+            usedAntiDiagonals.remove(antiDiagonal);
+            queenAtRow[row] = -1;
+        }
+    }
+
+    public static void main(String[] args) {
+        List<List<String>> res4 = solveNQueens(4);
+        System.out.println(res4);
+        //[[.Q.., ...Q, Q..., ..Q.], [..Q., Q..., ...Q, .Q..]]
+        
+        System.out.println(solveNQueens(1));
+        //[[Q]]
+        
+        //2 and 3 are the classic unsolvable sizes
+        System.out.println(solveNQueens(2).size() + " " + solveNQueens(3).size());
+        //0 0
+        
+        System.out.println(solveNQueens(6).size());
+        //4
+        
+        System.out.println(solveNQueens(8).size());
+        //92
+        
+        System.out.println(solveNQueens(5).get(0));
+        //[Q...., ..Q.., ....Q, .Q..., ...Q.]
+    }
 }
-
-console.log(JSON.stringify(solveNQueens(4)));
-//[[".Q..","...Q","Q...","..Q."],["..Q.","Q...","...Q",".Q.."]]
-console.log(JSON.stringify(solveNQueens(1)));//[["Q"]]
-//2 and 3 are the classic unsolvable sizes
-console.log(solveNQueens(2).length, solveNQueens(3).length);//0 0
-console.log(solveNQueens(6).length);//4
-console.log(solveNQueens(8).length);//92
-console.log(JSON.stringify(solveNQueens(5)[0]));
-//["Q....","..Q..","....Q",".Q...","...Q."]
-````
+```
 - The <b>time complexity</b> of the above algorithm is `O(N!)`, where `N` is the board size. On the first row there are `N` legal columns, on the second at most `N-1`, and so on, so the number of nodes explored is bounded by `N!`; each `Set` check is `O(1)`. Building a board costs `O(N²)`, paid only at the leaves.
 - The <b>space complexity</b> of the above algorithm is `O(N)` excluding the output — `O(N)` for the <b>recursion</b> stack and `O(N)` for `queenAtRow` and the three `Set`s combined. The `result` list holds `O(N²)` characters per solution.
 
@@ -620,94 +746,114 @@ This is the payoff. The example board below has exactly `51` blanks, so its unco
 
 <b>Return a boolean, and stop at the first success.</b> Unlike the earlier problems we want <i>one</i> solution, not all of them. So `backtrack` returns `true` up the stack, and `if (backtrack(position + 1)) return true;` short-circuits: once the rest of the grid is solved there is no reason to try other digits in this cell, and crucially we do <i>not</i> run the un-choose block on the way out, so the completed board survives. The un-choose block executes only when a digit failed, and the `return false` at the end of the loop is the signal "no digit fits here, so some earlier choice was wrong" — that is what propagates the backtrack. The grid is mutated in place, exactly as LeetCode requires; we also return it for convenience.
 
-````js
-function solveSudoku(board) {
-  //Set based constraint tracking so every "is this legal?"
-  //check is O(1) instead of scanning 27 cells
-  const rowUsed = Array.from({ length: 9 }, () => new Set());
-  const colUsed = Array.from({ length: 9 }, () => new Set());
-  const boxUsed = Array.from({ length: 9 }, () => new Set());
+```java
+import java.util.*;
 
-  const boxIndex = (row, col) => Math.floor(row / 3) * 3 + Math.floor(col / 3);
+class Solution {
+    public static void solveSudoku(char[][] board) {
+        //Set based constraint tracking so every "is this legal?"
+        //check is O(1) instead of scanning 27 cells
+        Set<Character>[] rowUsed = new HashSet[9];
+        Set<Character>[] colUsed = new HashSet[9];
+        Set<Character>[] boxUsed = new HashSet[9];
+        
+        for (int i = 0; i < 9; i++) {
+            rowUsed[i] = new HashSet<>();
+            colUsed[i] = new HashSet<>();
+            boxUsed[i] = new HashSet<>();
+        }
 
-  //collect the empty cells and seed the constraint sets from the givens
-  const emptyCells = [];
+        //collect the empty cells and seed the constraint sets from the givens
+        List<int[]> emptyCells = new ArrayList<>();
 
-  for (let row = 0; row < 9; row++) {
-    for (let col = 0; col < 9; col++) {
-      const char = board[row][col];
-      if (char === '.') {
-        emptyCells.push([row, col]);
-      } else {
-        rowUsed[row].add(char);
-        colUsed[col].add(char);
-        boxUsed[boxIndex(row, col)].add(char);
-      }
-    }
-  }
+        for (int row = 0; row < 9; row++) {
+            for (int col = 0; col < 9; col++) {
+                char ch = board[row][col];
+                if (ch == '.') {
+                    emptyCells.add(new int[]{row, col});
+                } else {
+                    int box = (row / 3) * 3 + (col / 3);
+                    rowUsed[row].add(ch);
+                    colUsed[col].add(ch);
+                    boxUsed[box].add(ch);
+                }
+            }
+        }
 
-  const digits = ['1', '2', '3', '4', '5', '6', '7', '8', '9'];
-
-  function backtrack(position) {
-    //base case: every empty cell has been filled legally
-    if (position === emptyCells.length) {
-      return true;
-    }
-
-    const [row, col] = emptyCells[position];
-    const box = boxIndex(row, col);
-
-    for (let d = 0; d < digits.length; d++) {
-      const digit = digits[d];
-
-      //PRUNE: this digit already appears in the row, column or 3x3 box
-      if (rowUsed[row].has(digit) || colUsed[col].has(digit) || boxUsed[box].has(digit)) continue;
-
-      //choose
-      board[row][col] = digit;
-      rowUsed[row].add(digit);
-      colUsed[col].add(digit);
-      boxUsed[box].add(digit);
-
-      //explore: if the rest of the board can be solved we are done,
-      //there is no need to try any other digit here
-      if (backtrack(position + 1)) {
-        return true;
-      }
-
-      //un-choose
-      rowUsed[row].delete(digit);
-      colUsed[col].delete(digit);
-      boxUsed[box].delete(digit);
-      board[row][col] = '.';
+        backtrack(board, emptyCells, 0, rowUsed, colUsed, boxUsed);
     }
 
-    //no digit works here, so an earlier choice was wrong
-    return false;
-  }
+    private static boolean backtrack(char[][] board, List<int[]> emptyCells, int position, Set<Character>[] rowUsed, Set<Character>[] colUsed, Set<Character>[] boxUsed) {
+        //base case: every empty cell has been filled legally
+        if (position == emptyCells.size()) {
+            return true;
+        }
 
-  backtrack(0);
+        int[] cell = emptyCells.get(position);
+        int row = cell[0];
+        int col = cell[1];
+        int box = (row / 3) * 3 + (col / 3);
+        char[] digits = {'1', '2', '3', '4', '5', '6', '7', '8', '9'};
 
-  return board;
+        for (char digit : digits) {
+            //PRUNE: this digit already appears in the row, column or 3x3 box
+            if (rowUsed[row].contains(digit) || colUsed[col].contains(digit) || boxUsed[box].contains(digit)) continue;
+
+            //choose
+            board[row][col] = digit;
+            rowUsed[row].add(digit);
+            colUsed[col].add(digit);
+            boxUsed[box].add(digit);
+
+            //explore: if the rest of the board can be solved we are done,
+            //there is no need to try any other digit here
+            if (backtrack(board, emptyCells, position + 1, rowUsed, colUsed, boxUsed)) {
+                return true;
+            }
+
+            //un-choose
+            rowUsed[row].remove(digit);
+            colUsed[col].remove(digit);
+            boxUsed[box].remove(digit);
+            board[row][col] = '.';
+        }
+
+        //no digit works here, so an earlier choice was wrong
+        return false;
+    }
+
+    public static void main(String[] args) {
+        char[][] board = {
+            {'5', '3', '.', '.', '7', '.', '.', '.', '.'},
+            {'6', '.', '.', '1', '9', '5', '.', '.', '.'},
+            {'.', '9', '8', '.', '.', '.', '.', '6', '.'},
+            {'8', '.', '.', '.', '6', '.', '.', '.', '3'},
+            {'4', '.', '.', '8', '.', '3', '.', '.', '1'},
+            {'7', '.', '.', '.', '2', '.', '.', '.', '6'},
+            {'.', '6', '.', '.', '.', '.', '2', '8', '.'},
+            {'.', '.', '.', '4', '1', '9', '.', '.', '5'},
+            {'.', '.', '.', '.', '8', '.', '.', '7', '9'}
+        };
+
+        solveSudoku(board);
+
+        for (char[] row : board) {
+            System.out.println(new String(row));
+        }
+        /*
+        534678912
+        672195348
+        198342567
+        859761423
+        426853791
+        713924856
+        961537284
+        287419635
+        345286179
+        */
+    }
 }
-
-const board = [
-  ['5', '3', '.', '.', '7', '.', '.', '.', '.'],
-  ['6', '.', '.', '1', '9', '5', '.', '.', '.'],
-  ['.', '9', '8', '.', '.', '.', '.', '6', '.'],
-  ['8', '.', '.', '.', '6', '.', '.', '.', '3'],
-  ['4', '.', '.', '8', '.', '3', '.', '.', '1'],
-  ['7', '.', '.', '.', '2', '.', '.', '.', '6'],
-  ['.', '6', '.', '.', '.', '.', '2', '8', '.'],
-  ['.', '.', '.', '4', '1', '9', '.', '.', '5'],
-  ['.', '.', '.', '.', '8', '.', '.', '7', '9'],
-];
-
-solveSudoku(board);
-
-console.log(board.map((row) => row.join('')).join(' '));
-//534678912 672195348 198342567 859761423 426853791 713924856 961537284 287419635 345286179
-````
+```
 - The <b>time complexity</b> of the above algorithm is `O(9^M)`, where `M` is the number of empty cells — we try up to nine digits in each blank. Since the grid is fixed at `9 x 9`, `M <= 81` and this is technically a constant, so the honest way to describe it in an interview is "exponential in the number of blanks, but the constraint pruning makes the practical running time negligible."
 - The <b>space complexity</b> of the above algorithm is `O(M)` for the <b>recursion</b> stack and the `emptyCells` list, plus `O(1)` for the twenty-seven constraint `Set`s (each holds at most nine digits). Since `M` is bounded by `81`, this is `O(1)` overall for a standard board.
 

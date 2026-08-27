@@ -42,45 +42,38 @@ Given array: `[3, 1, 5, 12, 2, 11]`, and `K=3`
 
 As discussed above, it will take us `O(logK)` to extract the minimum number from the min-heap. So the overall time complexity of our algorithm will be `O(K*logK+(N-K)*logK)` since, first, we insert `K` numbers in the heap and then iterate through the remaining numbers and at every step, in the worst case, we need to extract the minimum number and insert a new number in the heap. This algorithm is better than `O(N*logN)`.</s> -->
 
-```js
-function findKLargestNumbers(nums, k) {
-  return quickSort(nums).slice(-k);
-}
+```java
+import java.util.*;
 
-function quickSort(array) {
-  //recursive base case
-  if (array.length === 1) return array;
+class Solution {
+    public static List<Integer> findKLargestNumbers(int[] nums, int k) {
+        PriorityQueue<Integer> minHeap = new PriorityQueue<>((n1, n2) -> n1 - n2);
+        // put first 'K' numbers in the min heap
+        for (int i = 0; i < k; i++) {
+            minHeap.add(nums[i]);
+        }
 
-  //set pivot to end value
-  const pivotPoint = array[array.length - 1];
-  const firstHalf = [];
-  const secondHalf = [];
+        // go through the remaining numbers of the array, if the number from the array is bigger than the
+        // top (smallest) number of the min-heap, remove the top number from heap and add the number from array
+        for (int i = k; i < nums.length; i++) {
+            if (nums[i] > minHeap.peek()) {
+                minHeap.poll();
+                minHeap.add(nums[i]);
+            }
+        }
 
-  for (let i = 0; i < array.length - 1; i++) {
-    if (array[i] < pivotPoint) {
-      firstHalf.push(array[i]);
-    } else {
-      secondHalf.push(array[i]);
+        // the heap has the top 'K' numbers, return them in a list
+        return new ArrayList<>(minHeap);
     }
-  }
 
-  //recursively sort
-  if (firstHalf.length > 0 && secondHalf.length > 0) {
-    return [...quickSort(firstHalf), pivotPoint, ...quickSort(secondHalf)];
-  } else if (firstHalf.length > 0) {
-    return [...quickSort(firstHalf), pivotPoint];
-  } else {
-    //secondHalf.length> 0
-    return [pivotPoint, ...quickSort(secondHalf)];
-  }
+    public static void main(String[] args) {
+        List<Integer> result = findKLargestNumbers(new int[]{3, 1, 5, 12, 2, 11}, 3);
+        System.out.println("Here are the top K numbers: " + result);
+
+        result = findKLargestNumbers(new int[]{5, 12, 11, -1, 12}, 3);
+        System.out.println("Here are the top K numbers: " + result);
+    }
 }
-
-console.log(
-  `Here are the top K numbers: ${findKLargestNumbers([3, 1, 5, 12, 2, 11], 3)}`
-);
-console.log(
-  `Here are the top K numbers: ${findKLargestNumbers([5, 12, 11, -1, 12], 3)}`
-);
 ```
 
 - As discussed above, the time complexity of this algorithm is `O(K * log K +(N - K) * logK)`, which is asymptotically equal to `O(N*logK)`.
@@ -94,61 +87,41 @@ https://leetcode.com/problems/kth-largest-element-in-an-array/
 >
 > Please note that it is the `Kth` smallest number in the sorted order, not the `Kth` distinct element.
 
-```js
-function findKLargestNumbers(nums, k) {
-  const finalIndex = nums.length - k;
-  let start = 0;
-  let end = nums.length - 1;
+```java
+import java.util.*;
 
-  while (start <= end) {
-    //random number between start and end for pivot
-    const pivot = Math.floor(Math.random() * (end - start + 1) + start);
-    //final postion of the pivot in a sorted array
-    const pivotIndex = sort(nums, pivot, start, end);
-    if (pivotIndex === finalIndex) return nums[finalIndex];
+class Solution {
+    public static int findKthLargestNumber(int[] nums, int k) {
+        PriorityQueue<Integer> minHeap = new PriorityQueue<>((n1, n2) -> n1 - n2);
+        // put first 'K' numbers in the min heap
+        for (int i = 0; i < k; i++) {
+            minHeap.add(nums[i]);
+        }
 
-    //if pivotIndex is smaller we undershot, so look only on the first half
-    if (pivotIndex < finalIndex) start = pivotIndex + 1;
-    //if pivotIndex is larger we overshot, so look only on the first half
-    else end = pivotIndex - 1;
-  }
-}
+        // go through the remaining numbers of the array, if the number from the array is bigger than the
+        // top (smallest) number of the min-heap, remove the top number from heap and add the number from array
+        for (int i = k; i < nums.length; i++) {
+            if (nums[i] > minHeap.peek()) {
+                minHeap.poll();
+                minHeap.add(nums[i]);
+            }
+        }
 
-function sort(array, pivot, start, end) {
-  //swap the pivot to the end
-  [array[pivot], array[end]] = [array[end], array[pivot]];
-
-  let i = start;
-  let j = start;
-
-  while (j < end) {
-    if (array[j] <= array[end]) {
-      [array[i], array[j]] = [array[j], array[i]];
-      i++;
+        // the root of the heap has the Kth largest number
+        return minHeap.peek();
     }
-    j++;
-  }
 
-  //swap pivot to its final position
-  [array[i], array[end]] = [array[end], array[i]];
-  return i;
+    public static void main(String[] args) {
+        int result = findKthLargestNumber(new int[]{3, 2, 3, 1, 2, 4, 5, 5, 6}, 4);
+        System.out.println("Here is the top K number: " + result); // 4
+
+        result = findKthLargestNumber(new int[]{3, 1, 5, 12, 2, 11}, 3);
+        System.out.println("Here is the top K number: " + result); // 5
+
+        result = findKthLargestNumber(new int[]{5, 12, 11, -1, 12}, 3);
+        System.out.println("Here is the top K number: " + result); // 11
+    }
 }
-
-console.log(
-  `Here is the top K number: ${findKLargestNumbers(
-    [3, 2, 3, 1, 2, 4, 5, 5, 6],
-    4
-  )}`
-);
-//4
-console.log(
-  `Here is the top K number: ${findKLargestNumbers([3, 1, 5, 12, 2, 11], 3)}`
-);
-//5
-console.log(
-  `Here is the top K number: ${findKLargestNumbers([5, 12, 11, -1, 12], 3)}`
-);
-//11
 ```
 
 - As discussed above, the time complexity of this algorithm is `O(K * log K +(N - K) * logK)`, which is asymptotically equal to `O(N*logK)`.
@@ -162,41 +135,62 @@ https://leetcode.com/problems/k-closest-points-to-origin/
 
 <b>Note:</b> For a detailed discussion about different approaches to solve this problem, take a look at [Kth Smallest Number](#kth-smallest-number-easy).
 
-```js
-function findClosestPoints(points, k) {
-  let result = [];
-  points = points.sort(
-    ([x1, y1], [x2, y2]) =>
-      Math.pow(x1, 2) + Math.pow(y1, 2) - (Math.pow(x2, 2) + Math.pow(y2, 2))
-  );
-  result = [...points.slice(0, k)];
+```java
+import java.util.*;
 
-  return result;
+class Point {
+    int x;
+    int y;
+
+    public Point(int x, int y) {
+        this.x = x;
+        this.y = y;
+    }
+
+    public int distFromOrigin() {
+        // ignoring sqrt
+        return (x * x) + (y * y);
+    }
 }
-console.log(
-  `"Here are the k points closest the origin: " ${findClosestPoints(
-    [
-      [1, 2],
-      [1, 3],
-    ],
-    1
-  )}`
-);
-//The Euclidean distance between (1, 2) and the origin is sqrt(5).
-//The Euclidean distance between (1, 3) and the origin is sqrt(10).
-//Since sqrt(5) < sqrt(10), therefore (1, 2) is closer to the origin.
 
-console.log(
-  `"Here are the k points closest the origin: " ${findClosestPoints(
-    [
-      [1, 3],
-      [3, 4],
-      [2, -1],
-    ],
-    2
-  )}`
-);
-//[[1, 3], [2, -1]]
+class Solution {
+    public static List<Point> findClosestPoints(Point[] points, int k) {
+        PriorityQueue<Point> maxHeap = new PriorityQueue<>(
+                (p1, p2) -> p2.distFromOrigin() - p1.distFromOrigin());
+        // put first 'k' points in the max heap
+        for (int i = 0; i < k; i++) {
+            maxHeap.add(points[i]);
+        }
+
+        // go through the remaining points of the input array, if a point is closer to the origin than the top point
+        // of the max-heap, remove the top point from heap and add the point from the input array
+        for (int i = k; i < points.length; i++) {
+            if (points[i].distFromOrigin() < maxHeap.peek().distFromOrigin()) {
+                maxHeap.poll();
+                maxHeap.add(points[i]);
+            }
+        }
+
+        // the heap has 'k' points closest to the origin, return them in a list
+        return new ArrayList<>(maxHeap);
+    }
+
+    public static void main(String[] args) {
+        Point[] points = new Point[]{new Point(1, 2), new Point(1, 3)};
+        List<Point> result = findClosestPoints(points, 1);
+        System.out.print("Here are the k points closest the origin: ");
+        for (Point p : result)
+            System.out.print("[" + p.x + " , " + p.y + "] ");
+        System.out.println();
+
+        points = new Point[]{new Point(1, 3), new Point(3, 4), new Point(2, -1)};
+        result = findClosestPoints(points, 2);
+        System.out.print("Here are the k points closest the origin: ");
+        for (Point p : result)
+            System.out.print("[" + p.x + " , " + p.y + "] ");
+        System.out.println();
+    }
+}
 ```
 
 ## Connect Ropes (easy)
@@ -205,55 +199,42 @@ https://leetcode.com/problems/minimum-cost-to-connect-sticks/
 
 > Given `N` ropes with different lengths, we need to connect these ropes into one big rope with minimum cost. The cost of connecting two ropes is equal to the sum of their lengths.
 
-```js
-function minimumCostToConnectRopes(ropeLengths) {
-  if (ropeLengths.length === 1) return 0;
+```java
+import java.util.*;
 
-  ropeLengths.sort((a, b) => a - b);
+class Solution {
+    public static int minimumCostToConnectRopes(int[] ropeLengths) {
+        PriorityQueue<Integer> minHeap = new PriorityQueue<Integer>((n1, n2) -> n1 - n2);
+        // add all ropes to the min heap
+        for (int i = 0; i < ropeLengths.length; i++) {
+            minHeap.add(ropeLengths[i]);
+        }
 
-  let totalCost = 0;
+        // go through the values of the heap, in each step take top (lowest) rope lengths from the min heap
+        // connect them and add the result back to the min heap.
+        // keep doing this until the heap is left with only one rope
+        int result = 0;
+        int temp = 0;
+        while (minHeap.size() > 1) {
+            temp = minHeap.poll() + minHeap.poll();
+            result += temp;
+            minHeap.add(temp);
+        }
 
-  while (ropeLengths.length) {
-    let firstRope = ropeLengths.shift();
-    let secondRope = ropeLengths.shift();
-    let currentCost = firstRope + secondRope;
-    totalCost += currentCost;
-
-    if (ropeLengths.length === 0) return totalCost;
-
-    //Binary Search
-    let start = 0;
-    let end = ropeLengths.length;
-
-    while (start < end) {
-      let mid = start + Math.floor((end - start) / 2);
-
-      if (currentCost < ropeLengths[mid]) end = mid;
-      else start = mid + 1;
+        return result;
     }
-    ropeLengths.splice(start, 0, currentCost);
-  }
+
+    public static void main(String[] args) {
+        int result = minimumCostToConnectRopes(new int[]{1, 3, 11, 5});
+        System.out.println("Minimum cost to connect ropes: " + result); // 33
+        
+        result = minimumCostToConnectRopes(new int[]{3, 4, 5, 6});
+        System.out.println("Minimum cost to connect ropes: " + result); // 36
+        
+        result = minimumCostToConnectRopes(new int[]{1, 3, 11, 5, 2});
+        System.out.println("Minimum cost to connect ropes: " + result); // 42
+    }
 }
-
-console.log(
-  `Minimum cost to connect ropes: ${minimumCostToConnectRopes([1, 3, 11, 5])}`
-);
-//33
-//First connect 1+3(=4), then 4+5(=9), and then 9+11(=20). So the total cost is 33 (4+9+20)
-
-console.log(
-  `Minimum cost to connect ropes: ${minimumCostToConnectRopes([3, 4, 5, 6])}`
-);
-//36
-//First connect 3+4(=7), then 5+6(=11), 7+11(=18). Total cost is 36 (7+11+18)
-
-console.log(
-  `Minimum cost to connect ropes: ${minimumCostToConnectRopes([
-    1, 3, 11, 5, 2,
-  ])}`
-);
-//42
-//First connect 1+2(=3), then 3+3(=6), 6+5(=11), 11+11(=22). Total cost is 42 (3+6+11+22)
 ```
 
 - Given `N` ropes, we need `O(N^2)` for the <b>Binary Search</b>.
@@ -265,62 +246,45 @@ https://leetcode.com/problems/top-k-frequent-elements/
 
 > Given an unsorted array of numbers, find the top `K` frequently occurring numbers in it.
 
-```js
-function findKFrequentNumbers(nums, k) {
-  const numMap = new Map();
-  for (number of nums) {
-    numMap.set(number, (numMap.get(number) || 0) + 1);
-  }
+```java
+import java.util.*;
 
-  const mapKeys = [...numMap.keys()];
-  const finalIndex = mapKeys.length - k;
-
-  let start = 0;
-  let end = mapKeys.length - 1;
-
-  //Quicksort
-  while (start <= end) {
-    const pivotPoint = Math.floor(Math.random() * (end - start + 1) + start);
-    const pivotIndex = pivotHelper(pivotPoint, start, end);
-
-    if (pivotIndex === finalIndex) {
-      return mapKeys.slice(finalIndex);
-    }
-    if (pivotIndex < finalIndex) {
-      start = pivotIndex + 1;
-    } else {
-      end = pivotIndex - 1;
-    }
-    function pivotHelper(pivotPoint, start, end) {
-      //move the pivotPoint to the end
-      [mapKeys[pivotPoint], mapKeys[end]] = [mapKeys[end], mapKeys[pivotPoint]];
-      let swapIndex = start;
-
-      for (let i = start; i < end; i++) {
-        if (numMap.get(mapKeys[i]) < numMap.get(mapKeys[end])) {
-          [mapKeys[i], mapKeys[swapIndex]] = [mapKeys[swapIndex], mapKeys[i]];
-          swapIndex++;
+class Solution {
+    public static List<Integer> findKFrequentNumbers(int[] nums, int k) {
+        // find the frequency of each number
+        Map<Integer, Integer> numFrequencyMap = new HashMap<>();
+        for (int n : nums) {
+            numFrequencyMap.put(n, numFrequencyMap.getOrDefault(n, 0) + 1);
         }
-      }
-      [mapKeys[end], mapKeys[swapIndex]] = [mapKeys[swapIndex], mapKeys[end]];
-      return swapIndex;
+
+        PriorityQueue<Map.Entry<Integer, Integer>> minHeap = new PriorityQueue<>(
+                (e1, e2) -> e1.getValue() - e2.getValue());
+
+        // go through all numbers of the map and push them in the minHeap, which will have 
+        // top k frequent numbers. If the heap size is more than k, we remove the smallest (top) number
+        for (Map.Entry<Integer, Integer> entry : numFrequencyMap.entrySet()) {
+            minHeap.add(entry);
+            if (minHeap.size() > k) {
+                minHeap.poll();
+            }
+        }
+
+        // create a list of top k numbers
+        List<Integer> topNumbers = new ArrayList<>(k);
+        while (!minHeap.isEmpty()) {
+            topNumbers.add(minHeap.poll().getKey());
+        }
+        return topNumbers;
     }
-  }
+
+    public static void main(String[] args) {
+        List<Integer> result = findKFrequentNumbers(new int[]{1, 3, 5, 12, 11, 12, 11}, 2);
+        System.out.println("Here are the K frequent numbers: " + result);
+
+        result = findKFrequentNumbers(new int[]{5, 12, 11, 3, 11}, 2);
+        System.out.println("Here are the K frequent numbers: " + result);
+    }
 }
-
-console.log(
-  `Here are the K frequent numbers: ${findKFrequentNumbers(
-    [1, 3, 5, 12, 11, 12, 11],
-    2
-  )}`
-);
-
-console.log(
-  `Here are the K frequent numbers: ${findKFrequentNumbers(
-    [5, 12, 11, 3, 11],
-    2
-  )}`
-);
 ```
 
 ## Frequency Sort (medium)
@@ -329,32 +293,43 @@ https://leetcode.com/problems/sort-characters-by-frequency/
 
 > Given a string, sort it based on the decreasing frequency of its characters.
 
-```js
-function sortCharacterByFrequency(str) {
-  let counts = {}
-  for(let char of str){
-    counts[char] ? counts[char]++ : counts[char] = 1
-  }
+```java
+import java.util.*;
 
-  let sortedCharactersArray = Object.keys(counts).sort((a,b) => counts[b] -counts[a])
+class Solution {
+    public static String sortCharacterByFrequency(String str) {
+        // find the frequency of each character
+        Map<Character, Integer> characterFrequencyMap = new HashMap<>();
+        for (int i = 0; i < str.length(); i++) {
+            char chr = str.charAt(i);
+            characterFrequencyMap.put(chr, characterFrequencyMap.getOrDefault(chr, 0) + 1);
+        }
 
-  let sortedString = ""
+        PriorityQueue<Map.Entry<Character, Integer>> maxHeap = new PriorityQueue<>(
+                (e1, e2) -> e2.getValue() - e1.getValue());
 
-  for(let char of sortedCharactersArray){
-    sortedString += char.repeat(counts[char])
-  }
+        // add all characters to the max heap
+        maxHeap.addAll(characterFrequencyMap.entrySet());
 
-  return sortedString
-};
+        // build a string, appending the most occurring characters first
+        StringBuilder sortedString = new StringBuilder(str.length());
+        while (!maxHeap.isEmpty()) {
+            Map.Entry<Character, Integer> entry = maxHeap.poll();
+            for (int i = 0; i < entry.getValue(); i++) {
+                sortedString.append(entry.getKey());
+            }
+        }
+        return sortedString.toString();
+    }
 
+    public static void main(String[] args) {
+        String result = sortCharacterByFrequency("Programming");
+        System.out.println("string after sorting characters by frequency: " + result); // "rrggmmPoain"
 
-console.log(`string after sorting characters by frequency: ${sortCharacterByFrequency("Programming")}`)
-//"rrggmmPoain"
-//'r', 'g', and 'm' appeared twice, so they need to appear before any other character.
-
-console.log(`string after sorting characters by frequency: ${sortCharacterByFrequency("abcbab")}`)
-//"bbbaac"
-//'b' appeared three times, 'a' appeared twice, and 'c' appeared only once.
+        result = sortCharacterByFrequency("abcbab");
+        System.out.println("string after sorting characters by frequency: " + result); // "bbbaac"
+    }
+}
 ```
 
 ## Kth Largest Number in a Stream (medium)
@@ -368,50 +343,42 @@ https://leetcode.com/problems/kth-largest-element-in-a-stream/
 > 1. The constructor of the class should accept an integer array containing initial numbers from the stream and an integer `K`.
 > 2. The class should expose a function `add(num)` which will store the given number and return the <b>Kth largest</b> number.
 
-```js
+```java
+import java.util.*;
+
 class KthLargest {
-  constructor(k, nums) {
-    this.k = k;
-    this.nums = nums;
-  }
+    PriorityQueue<Integer> minHeap = new PriorityQueue<>((n1, n2) -> n1 - n2);
+    final int k;
 
-  add(val) {
-    this.nums = this.nums.sort((a, b) => a - b).splice(-this.k);
-    if (val > this.nums[0] || this.nums.length < this.k) {
-      //sort and return kth largest with Binary Search
-      const insertNewNum = () => {
-        let start = 0;
-        let end = this.k;
-
-        while (start < end) {
-          const mid = Math.floor((start + end) / 2);
-          if (this.nums[mid] === val) return mid;
-          if (this.nums[mid] < val) {
-            start = mid + 1;
-          } else {
-            end = mid;
-          }
+    public KthLargest(int k, int[] nums) {
+        this.k = k;
+        // add the numbers in the min heap
+        for (int i = 0; i < nums.length; i++) {
+            add(nums[i]);
         }
-        return start;
-      };
-      while (this.nums.length > this.k) this.nums.shift();
-      this.nums.splice(insertNewNum(), 0, val);
     }
 
-    if (this.nums.length >= this.k) return this.nums[this.nums.length - this.k];
-    else return null;
-  }
+    public int add(int val) {
+        // add the new number in the min heap
+        minHeap.add(val);
+
+        // if heap has more than 'k' numbers, remove one number
+        if (minHeap.size() > this.k) {
+            minHeap.poll();
+        }
+
+        // return the 'Kth largest number
+        return minHeap.peek();
+    }
+
+    public static void main(String[] args) {
+        int[] input = new int[]{3, 1, 5, 12, 2, 11};
+        KthLargest kthLargest = new KthLargest(4, input);
+        System.out.println(kthLargest.add(6)); // return 5
+        System.out.println(kthLargest.add(13)); // return 6
+        System.out.println(kthLargest.add(4)); // return 6
+    }
 }
-
-// Input: [3, 1, 5, 12, 2, 11], K = 4
-// 1. Calling add(6) should return '5'.
-// 2. Calling add(13) should return '6'.
-// 2. Calling add(4) should still return '6'.
-
-let kthLargest = new KthLargest(4, [3, 1, 5, 12, 2, 11]);
-kthLargest.add(6); // return 5
-kthLargest.add(13); // return 6
-kthLargest.add(4); // return 6
 ```
 
 - The time complexity of the above algorithm is `O(NlogN)`.
@@ -438,104 +405,82 @@ To keep the resultant list sorted we can use a <b>Queue</b>. So whenever we take
 
 Here is what our algorithm will look like:
 
-```js
-function findClosestElements(arr, K, X) {
-  let windowOfKClosest = [];
-  let idx = binarySearch(arr, X);
-  let windowStart = idx;
-  let windowEnd = idx + 1;
-  const n = arr.length;
+```java
+import java.util.*;
 
-  for (let i = 0; i < K; i++) {
-    if (windowStart >= 0 && windowEnd < n) {
-      let diffFromStart = Math.abs(X - arr[windowStart]);
-      let diffFromEnd = Math.abs(X - arr[windowEnd]);
+class Entry {
+    int key;
+    int value;
 
-      if (diffFromStart <= diffFromEnd) {
-        windowOfKClosest.unshift(arr[windowStart]);
-        windowStart--;
-      } else {
-        windowOfKClosest.push(arr[windowEnd]);
-        windowEnd++;
-      }
-    } else if (windowStart >= 0) {
-      windowOfKClosest.unshift(arr[windowStart]);
-      windowStart--;
-    } else if (windowEnd < n) {
-      windowOfKClosest.push(arr[windowEnd]);
-      windowEnd++;
+    public Entry(int key, int value) {
+        this.key = key;
+        this.value = value;
     }
-  }
-
-  return windowOfKClosest;
-
-  function binarySearch(arr, X) {
-    let lo = 0;
-    let hi = arr.length - 1;
-
-    while (lo <= hi) {
-      const mid = Math.floor(lo + (hi - lo) / 2);
-
-      if (arr[mid] === X) {
-        return mid;
-      }
-      if (arr[mid] < X) {
-        lo = mid + 1;
-      } else {
-        hi = mid - 1;
-      }
-    }
-    if (lo > 0) {
-      return lo - 1;
-    }
-    return lo;
-  }
 }
 
-console.log(
-  `'K' closest numbers to 'X' are: ${findClosestElements(
-    [5, 6, 7, 8, 9],
-    3,
-    7
-  )}`
-);
-//Output: [6, 7, 8]
+class Solution {
+    public static List<Integer> findClosestElements(int[] arr, int K, int X) {
+        int index = binarySearch(arr, X);
+        int low = index - K, high = index + K;
+        low = Math.max(low, 0);
+        high = Math.min(high, arr.length - 1);
 
-console.log(
-  `'K' closest numbers to 'X' are: ${findClosestElements(
-    [2, 4, 5, 6, 9],
-    3,
-    6
-  )}`
-);
-//Output: [4, 5, 6]
+        PriorityQueue<Entry> minHeap = new PriorityQueue<>((n1, n2) -> {
+            if (n1.key != n2.key) {
+                return n1.key - n2.key;
+            }
+            return n1.value - n2.value;
+        });
 
-console.log(
-  `'K' closest numbers to 'X' are: ${findClosestElements(
-    [2, 4, 5, 6, 9],
-    3,
-    10
-  )}`
-);
-//Output: [5, 6, 9]
+        for (int i = low; i <= high; i++) {
+            minHeap.add(new Entry(Math.abs(arr[i] - X), arr[i]));
+        }
 
-console.log(
-  `'K' closest numbers to 'X' are: ${findClosestElements(
-    [1, 2, 3, 4, 5],
-    4,
-    3
-  )}`
-);
-//Output: [1,2,3,4]
+        List<Integer> result = new ArrayList<>();
+        for (int i = 0; i < K; i++) {
+            result.add(minHeap.poll().value);
+        }
 
-console.log(
-  `'K' closest numbers to 'X' are: ${findClosestElements(
-    [1, 2, 3, 4, 5],
-    4,
-    -1
-  )}`
-);
-//Output: [1,2,3,4]
+        Collections.sort(result);
+        return result;
+    }
+
+    private static int binarySearch(int[] arr, int target) {
+        int low = 0;
+        int high = arr.length - 1;
+        while (low <= high) {
+            int mid = low + (high - low) / 2;
+            if (arr[mid] == target)
+                return mid;
+            if (arr[mid] < target) {
+                low = mid + 1;
+            } else {
+                high = mid - 1;
+            }
+        }
+        if (low > 0) {
+            return low - 1;
+        }
+        return low;
+    }
+
+    public static void main(String[] args) {
+        List<Integer> result = findClosestElements(new int[]{5, 6, 7, 8, 9}, 3, 7);
+        System.out.println("'K' closest numbers to 'X' are: " + result); // [6, 7, 8]
+
+        result = findClosestElements(new int[]{2, 4, 5, 6, 9}, 3, 6);
+        System.out.println("'K' closest numbers to 'X' are: " + result); // [4, 5, 6]
+
+        result = findClosestElements(new int[]{2, 4, 5, 6, 9}, 3, 10);
+        System.out.println("'K' closest numbers to 'X' are: " + result); // [5, 6, 9]
+
+        result = findClosestElements(new int[]{1, 2, 3, 4, 5}, 4, 3);
+        System.out.println("'K' closest numbers to 'X' are: " + result); // [1, 2, 3, 4]
+
+        result = findClosestElements(new int[]{1, 2, 3, 4, 5}, 4, -1);
+        System.out.println("'K' closest numbers to 'X' are: " + result); // [1, 2, 3, 4]
+    }
+}
 ```
 
 - The time complexity of the above algorithm is `O(logN + K)`. We need `O(logN)` for <b>Binary Search</b> and `O(K)`for finding the `K` closest numbers using the two pointers.
@@ -602,39 +547,39 @@ https://www.geeksforgeeks.org/sum-elements-k1th-k2th-smallest-elements/
 
 > Given an array, find the sum of all numbers between the `K1th` and `K2th` smallest elements of that array.
 
-```js
-function findSumOfElements(nums, k1, k2) {
-  nums.sort((a, b) => a - b);
+```java
+import java.util.*;
 
-  let kSlice = nums.slice(k1, k2 - 1);
-  let kSumBetween = 0;
+class Solution {
+    public static int findSumOfElements(int[] nums, int k1, int k2) {
+        PriorityQueue<Integer> minHeap = new PriorityQueue<Integer>((n1, n2) -> n1 - n2);
+        // insert all numbers to the min heap
+        for (int i = 0; i < nums.length; i++) {
+            minHeap.add(nums[i]);
+        }
 
-  kSlice.forEach((n) => (kSumBetween += n));
+        // remove k1 small numbers from the min heap
+        for (int i = 0; i < k1; i++) {
+            minHeap.poll();
+        }
 
-  return kSumBetween;
+        int elementSum = 0;
+        // sum next k2 - k1 - 1 numbers
+        for (int i = 0; i < k2 - k1 - 1; i++) {
+            elementSum += minHeap.poll();
+        }
+
+        return elementSum;
+    }
+
+    public static void main(String[] args) {
+        int result = findSumOfElements(new int[]{1, 3, 12, 5, 15, 11}, 3, 6);
+        System.out.println("Sum of all numbers between k1 and k2 smallest numbers: " + result); // 23
+
+        result = findSumOfElements(new int[]{3, 5, 8, 7}, 1, 4);
+        System.out.println("Sum of all numbers between k1 and k2 smallest numbers: " + result); // 12
+    }
 }
-
-console.log(
-  `Sum of all numbers between k1 and k2 smallest numbers: ${findSumOfElements(
-    [1, 3, 12, 5, 15, 11],
-    3,
-    6
-  )}`
-);
-//23
-//The 3rd smallest number is 5 and 6th smallest number 15.
-// The sum of numbers coming between 5 and 15 is 23 (11+12).
-
-console.log(
-  `Sum of all numbers between k1 and k2 smallest numbers: ${findSumOfElements(
-    [3, 5, 8, 7],
-    1,
-    4
-  )}`
-);
-//12
-//The sum of the numbers between the 1st smallest number (3)
-//and the 4th smallest number (8) is 12 (5+7).
 ```
 
 ## Rearrange String (hard)
@@ -643,42 +588,46 @@ https://leetcode.com/problems/reorganize-string/
 
 > Given a string, find if its letters can be rearranged in such a way that no two same characters come next to each other.
 
-```js
-function rearrangeString(str) {
-  //Build a hashMap based on char count
-  const strMap = new Map();
+```java
+import java.util.*;
 
-  for (const char of str) {
-    strMap.set(char, strMap.get(char) + 1 || 1);
-  }
+class Solution {
+    public static String rearrangeString(String str) {
+        Map<Character, Integer> charFrequencyMap = new HashMap<>();
+        for (char chr : str.toCharArray()) {
+            charFrequencyMap.put(chr, charFrequencyMap.getOrDefault(chr, 0) + 1);
+        }
 
-  //sort based on char frequency in descending order
-  const sortedMap = new Map([...strMap.entries()].sort((a, b) => b[1] - a[1]));
+        PriorityQueue<Map.Entry<Character, Integer>> maxHeap = new PriorityQueue<>(
+                (e1, e2) -> e2.getValue() - e1.getValue());
 
-  //is first value of sortedMap > half of str.length,
-  //because a character count that is larger than half of the string length is considered invalid
-  if (sortedMap.values().next().value > (str.length + 1) / 2) return "";
+        // add all characters to the max heap
+        maxHeap.addAll(charFrequencyMap.entrySet());
 
-  let result = [];
-  let index = 0;
+        Map.Entry<Character, Integer> previousEntry = null;
+        StringBuilder resultString = new StringBuilder(str.length());
+        while (!maxHeap.isEmpty()) {
+            Map.Entry<Character, Integer> currentEntry = maxHeap.poll();
+            // add the previous entry back in the heap if its frequency is greater than zero
+            if (previousEntry != null && previousEntry.getValue() > 0) {
+                maxHeap.add(previousEntry);
+            }
+            // append the current character to the result string and decrement its count
+            resultString.append(currentEntry.getKey());
+            currentEntry.setValue(currentEntry.getValue() - 1);
+            previousEntry = currentEntry;
+        }
 
-  for (let [key, value] of sortedMap) {
-    while (value--) {
-      //Start filling characters to all the even indexs, i.e. 0, 2, 4,...,
-      result[index] = key;
-      index += 2;
-      // when we got to the end, start filling odd indexes i.e. 1,3,5,...
-      //By filling the characters this way, we can make sure that no same characters will be adjacent to each other
-      if (index >= str.length) index = 1;
+        // if we were successful in appending all the characters to the result string, return it
+        return resultString.length() == str.length() ? resultString.toString() : "";
     }
-  }
 
-  return result.join("");
+    public static void main(String[] args) {
+        System.out.println("Rearranged string: " + rearrangeString("aappp"));
+        System.out.println("Rearranged string: " + rearrangeString("Programming"));
+        System.out.println("Rearranged string: " + rearrangeString("aapa"));
+    }
 }
-
-console.log(`Rearranged string: ${rearrangeString("aappp")}`);
-console.log(`Rearranged string: ${rearrangeString("Programming")}`);
-console.log(`Rearranged string: ${rearrangeString("aapa")}`);
 ```
 
 ## 🌟 Rearrange String K Distance Apart (hard)
@@ -687,65 +636,54 @@ https://leetcode.com/problems/rearrange-string-k-distance-apart/
 
 > Given a string and a number `K`, find if the string can be rearranged such that the same characters are at least `K` distance apart from each other.
 
-```js
-function rearrangeString(str, k) {
-  if (str.length < 2 || !k) return str;
-  const buckets = [];
-  //index the buckets by the raw char code so that any character
-  //(not just lowercase 'a'-'z') maps to a valid bucket index
-  for (let i = 0; i < str.length; i++) {
-    let key = str.charCodeAt(i);
-    buckets[key] = (buckets[key] || 0) + 1;
-  }
-  let res = '';
-  let added = { length: 0 };
-  while (res.length < str.length) {
-    let maxIndex = -1;
-    for (let i = 0; i < buckets.length; i++) {
-      if (
-        buckets[i] &&
-        !added[i] &&
-        (maxIndex === -1 || buckets[i] > buckets[maxIndex])
-      ) {
-        maxIndex = i;
-      }
+```java
+import java.util.*;
+
+class Solution {
+    public static String rearrangeString(String str, int k) {
+        if (k <= 1) return str;
+
+        Map<Character, Integer> charFrequencyMap = new HashMap<>();
+        for (char chr : str.toCharArray())
+            charFrequencyMap.put(chr, charFrequencyMap.getOrDefault(chr, 0) + 1);
+
+        PriorityQueue<Map.Entry<Character, Integer>> maxHeap = new PriorityQueue<>(
+                (e1, e2) -> e2.getValue() - e1.getValue());
+
+        // add all characters to the max heap
+        maxHeap.addAll(charFrequencyMap.entrySet());
+
+        Queue<Map.Entry<Character, Integer>> queue = new LinkedList<>();
+        StringBuilder resultString = new StringBuilder(str.length());
+        
+        while (!maxHeap.isEmpty()) {
+            Map.Entry<Character, Integer> currentEntry = maxHeap.poll();
+            // append the current character to the result string and decrement its count
+            resultString.append(currentEntry.getKey());
+            currentEntry.setValue(currentEntry.getValue() - 1);
+            queue.offer(currentEntry);
+            
+            if (queue.size() == k) {
+                Map.Entry<Character, Integer> entry = queue.poll();
+                if (entry.getValue() > 0)
+                    maxHeap.add(entry);
+            }
+        }
+
+        // if we were successful in appending all the characters to the result string, return it
+        return resultString.length() == str.length() ? resultString.toString() : "";
     }
-    if (maxIndex === -1) return '';
-    res += String.fromCharCode(maxIndex);
-    buckets[maxIndex]--;
-    added[maxIndex] = 1;
-    if (++added.length === k) added = { length: 0 };
-  }
-  return res;
+
+    public static void main(String[] args) {
+        System.out.println("Reorganized string: " + rearrangeString("aabbcc", 3)); // abcabc
+        System.out.println("Reorganized string: " + rearrangeString("aaabc", 3)); // ""
+        System.out.println("Reorganized string: " + rearrangeString("aaadbbcc", 2)); // abacabcd
+        System.out.println("Reorganized string: " + rearrangeString("Programming", 3)); // rgmPrgmiano
+        System.out.println("Reorganized string: " + rearrangeString("mmpp", 2)); // mpmp
+        System.out.println("Reorganized string: " + rearrangeString("aab", 2)); // aba
+        System.out.println("Reorganized string: " + rearrangeString("aapa", 3)); // ""
+    }
 }
-
-console.log(`Reorganized string: ${rearrangeString('aabbcc', 3)}`);
-//"abcabc"
-//The same letters are at least a distance of 3 from each other.
-
-console.log(`Reorganized string: ${rearrangeString('aaabc', 3)}`);
-//""
-//It is not possible to rearrange the string.
-
-console.log(`Reorganized string: ${rearrangeString('aaadbbcc', 2)}`);
-//"abacabcd"
-//The same letters are at least a distance of 2 from each other.
-
-console.log(`Reorganized string: ${rearrangeString('Programming', 3)}`);
-//"rgmPrgmiano" or "gmringmrPoa" or "gmrPagimnor" and a few more
-//All same characters are 3 distance apart.
-
-console.log(`Reorganized string: ${rearrangeString('mmpp', 2)}`);
-//"mpmp" or "pmpm"
-//All same characters are 2 distance apart.
-
-console.log(`Reorganized string: ${rearrangeString('aab', 2)}`);
-//"aba"
-//All same characters are 2 distance apart.
-
-console.log(`Reorganized string: ${rearrangeString('aapa', 3)}`);
-//""
-//We cannot find an arrangement of the string where any two 'a' are 3 distance apart.
 ```
 
 ## 🌟 🔎 Scheduling Tasks (hard)
@@ -816,159 +754,48 @@ The answer to the problem is the number of `tasks` + the number of cooldown peri
 
 Following a similar approach, we will use a <b>Max Heap</b> to execute the highest frequency task first. After executing a task we decrease its frequency and put it in a waiting list. In each iteration, we will try to execute as many as `k+1` tasks. For the next iteration, we will put all the waiting tasks back in the <b>Max Heap</b> . If, for any iteration, we are not able to execute `k+1` tasks, the CPU has to remain idle for the remaining time in the next iteration.
 
-```js
-class Heap {
-  constructor(data = []) {
-    this.data = data;
-    this.comparator = (a, b) => a - b;
-    this.heapify();
-  }
+```java
+import java.util.*;
 
-  heapify() {
-    //O(nlog(n))
-    if (this.size() < 2) return;
-    for (let i = 1; i < this.size(); i++) {
-      this.bubbleUp(i);
+class Solution {
+    public static int scheduleTasks(char[] tasks, int k) {
+        int intervalCount = 0;
+        Map<Character, Integer> taskFrequencyMap = new HashMap<>();
+        for (char chr : tasks)
+            taskFrequencyMap.put(chr, taskFrequencyMap.getOrDefault(chr, 0) + 1);
+
+        PriorityQueue<Map.Entry<Character, Integer>> maxHeap = new PriorityQueue<>(
+                (e1, e2) -> e2.getValue() - e1.getValue());
+
+        maxHeap.addAll(taskFrequencyMap.entrySet());
+
+        while (!maxHeap.isEmpty()) {
+            List<Map.Entry<Character, Integer>> waitList = new ArrayList<>();
+            int n = k + 1; // try to execute as many as 'k+1' tasks from the max-heap
+            for (; n > 0 && !maxHeap.isEmpty(); n--) {
+                intervalCount++;
+                Map.Entry<Character, Integer> currentEntry = maxHeap.poll();
+                if (currentEntry.getValue() > 1) {
+                    currentEntry.setValue(currentEntry.getValue() - 1);
+                    waitList.add(currentEntry);
+                }
+            }
+            maxHeap.addAll(waitList); // put all the waiting list back on the heap
+            if (!maxHeap.isEmpty())
+                intervalCount += n; // we'll be having 'n' idle intervals for the next iteration
+        }
+
+        return intervalCount;
     }
-  }
 
-  peek() {
-    // O(1)
-    if (this.size() === 0) return null;
-    return this.data[0];
-  }
+    public static void main(String[] args) {
+        char[] tasks = new char[]{'a', 'a', 'a', 'b', 'c', 'c'};
+        System.out.println("Minimum intervals needed to execute all tasks: " + scheduleTasks(tasks, 2));
 
-  offer(value) {
-    // O(log(n))
-    this.data.push(value);
-    this.bubbleUp(this.size() - 1);
-  }
-
-  poll() {
-    // O(log(n))
-    if (this.size() === 0) return null;
-    const result = this.data[0];
-    const last = this.data.pop();
-    if (this.size() !== 0) {
-      this.data[0] = last;
-      this.bubbleDown(0);
+        tasks = new char[]{'a', 'b', 'a'};
+        System.out.println("Minimum intervals needed to execute all tasks: " + scheduleTasks(tasks, 3));
     }
-    return result;
-  }
-
-  bubbleUp(index) {
-    // O(log(n))
-    while (index > 0) {
-      const parentIndex = (index - 1) >> 1;
-      if (this.comparator(this.data[index], this.data[parentIndex]) < 0) {
-        this.swap(index, parentIndex);
-        index = parentIndex;
-      } else {
-        break;
-      }
-    }
-  }
-
-  bubbleDown(index) {
-    // O(log(n))
-    const lastIndex = this.size() - 1;
-
-    while (true) {
-      const startIndex = index * 2 + 1;
-      const endIndex = index * 2 + 2;
-      let findIndex = index;
-      if (
-        startIndex <= lastIndex &&
-        this.comparator(this.data[startIndex], this.data[findIndex]) < 0
-      ) {
-        findIndex = startIndex;
-      }
-      if (
-        endIndex <= lastIndex &&
-        this.comparator(this.data[endIndex], this.data[findIndex]) < 0
-      ) {
-        findIndex = endIndex;
-      }
-      if (index !== findIndex) {
-        this.swap(index, findIndex);
-        index = findIndex;
-      } else {
-        break;
-      }
-    }
-  }
-
-  swap(index1, index2) {
-    // O(1)
-    [this.data[index1], this.data[index2]] = [
-      this.data[index2],
-      this.data[index1],
-    ];
-  }
-
-  size() {
-    // O(1)
-    return this.data.length;
-  }
 }
-
-function scheduleTasks(tasks, k) {
-  let intervalCount = 0;
-
-  let taskFreqMap = new Map();
-
-  tasks.forEach((char) => {
-    taskFreqMap.set(char, taskFreqMap.get(char) + 1 || 1);
-  });
-
-  const maxHeap = new Heap();
-
-  //add all taks to the heap
-  Object.keys(taskFreqMap).forEach((char) => {
-    // 😕
-    maxHeap.offer([taskFrequencyMap[char], char]);
-  });
-
-  while (maxHeap.length > 0) {
-    const waitList = [];
-    let n = k + 1; // try to execute as many as 'k+1' tasks from the max-heap
-    while (n > 0 && maxHeap.length > 0) {
-      intervalCount++;
-      const [frequency, char] = maxHeap.pop();
-      if (frequency > 1) {
-        // decrement the frequency and add to the waitList
-        waitList.push([frequency - 1, char]);
-      }
-      n -= 1;
-    }
-
-    // put all the waiting list back on the heap
-    waitList.forEach((task) => maxHeap.offer(task));
-
-    if (maxHeap.length > 0) {
-      intervalCount += n; // we'll be having 'n' idle intervals for the next iteration
-    }
-  }
-
-  return intervalCount;
-}
-
-console.log(
-  `Minimum intervals needed to execute all tasks: ${scheduleTasks(
-    ["a", "a", "a", "b", "c", "c"],
-    2
-  )}`
-);
-//7
-//a -> c -> b -> a -> c -> idle -> a
-console.log(
-  `Minimum intervals needed to execute all tasks: ${scheduleTasks(
-    ["a", "b", "a"],
-    3
-  )}`
-);
-//5
-//a -> b -> idle -> idle -> a
 ```
 
 - The time complexity of the above algorithm is `O(N∗logN)`
@@ -977,62 +804,45 @@ console.log(
 
 ### Greedy HashMap Solution
 
-```js
-function scheduleTasks(tasks, k) {
-  let taskFreqMap = new Map();
+```java
+import java.util.*;
 
-  let intervalMax = 0;
+class Solution {
+    public static int scheduleTasks(char[] tasks, int k) {
+        Map<Character, Integer> taskFreqMap = new HashMap<>();
+        int intervalMax = 0;
+        int taskCountMax = 0;
 
-  let taskCountMax = 0;
+        for (char chr : tasks) {
+            taskFreqMap.put(chr, taskFreqMap.getOrDefault(chr, 0) + 1);
 
-  tasks.forEach((char) => {
-    taskFreqMap.set(char, taskFreqMap.get(char) + 1 || 1);
+            // set intervalMax and taskCountMax only if we have a new max
+            if (taskFreqMap.get(chr) > intervalMax) {
+                intervalMax = taskFreqMap.get(chr);
+                taskCountMax = 1;
+            } else if (taskFreqMap.get(chr) == intervalMax) {
+                // otherwise, increment taskCountMax
+                taskCountMax++;
+            }
+        }
 
-    //set intervalMax and taskCountMax only if we have a new max
-    if (taskFreqMap.get(char) > intervalMax) {
-      intervalMax = taskFreqMap.get(char);
-      taskCountMax = 1;
-    } else if (taskFreqMap.get(char) === intervalMax) {
-      //otherwise, increment taskCountMax
-      taskCountMax++;
+        return Math.max(tasks.length, (intervalMax - 1) * (k + 1) + taskCountMax);
     }
-  });
 
-  return Math.max(tasks.length, (intervalMax - 1) * (k + 1) + taskCountMax);
+    public static void main(String[] args) {
+        System.out.println("Minimum intervals needed to execute all tasks: " + 
+            scheduleTasks(new char[]{'A', 'A', 'A', 'B', 'B', 'B'}, 2));
+        // 8
+
+        System.out.println("Minimum intervals needed to execute all tasks: " + 
+            scheduleTasks(new char[]{'A', 'A', 'A', 'B', 'B', 'B'}, 0));
+        // 6
+
+        System.out.println("Minimum intervals needed to execute all tasks: " + 
+            scheduleTasks(new char[]{'A', 'A', 'A', 'A', 'A', 'A', 'B', 'C', 'D', 'E', 'F', 'G'}, 2));
+        // 16
+    }
 }
-
-console.log(
-  `Minimum intervals needed to execute all tasks: ${scheduleTasks(
-    ["A", "A", "A", "B", "B", "B"],
-    2
-  )}`
-);
-// 8
-// A -> B -> idle -> A -> B -> idle -> A -> B
-// There is at least 2 units of time between any two same tasks.
-
-console.log(
-  `Minimum intervals needed to execute all tasks: ${scheduleTasks(
-    ["A", "A", "A", "B", "B", "B"],
-    0
-  )}`
-);
-// 6
-// On this case any permutation of size 6 would work since n = 0.
-// ["A","A","A","B","B","B"]
-// ["A","B","A","B","A","B"]
-// ["B","B","B","A","A","A"]
-
-console.log(
-  `Minimum intervals needed to execute all tasks: ${scheduleTasks(
-    ["A", "A", "A", "A", "A", "A", "B", "C", "D", "E", "F", "G"],
-    2
-  )}`
-);
-// 16
-// One possible solution is
-// A -> B -> C -> A -> D -> E -> A -> F -> G -> A
-// -> idle -> idle -> A -> idle -> idle -> A
 ```
 
 ## 🌟Frequency Stack (hard)
@@ -1063,73 +873,86 @@ Our frequency map `freqMap()` will be used to keep track of the current frequenc
 
 Since our frequencies are <b>1-indexed</b> and the <b>stack</b> is <b>0-indexed</b>, we have to insert a dummy <b>0-index</b> for all languages except <i>Javascript</i>, which lets you directly access even undefined array elements by index.
 
-```js
-class FreqStack {
-  constructor() {
-    this.freqMap = new Map();
-    this.freqStack = [];
-  }
+```java
+import java.util.*;
 
-  push(value) {
-    let freq = this.freqMap.get(value) + 1 || 0;
-    this.freqMap.set(value, freq);
+class Element {
+    int number;
+    int frequency;
+    int sequenceNumber;
 
-    if (!this.freqStack[freq]) {
-      this.freqStack[freq] = [value];
-    } else {
-      this.freqStack[freq].push(value);
+    public Element(int number, int frequency, int sequenceNumber) {
+        this.number = number;
+        this.frequency = frequency;
+        this.sequenceNumber = sequenceNumber;
     }
-    console.log(this.freqStack);
-  }
-
-  pop() {
-    let top = this.freqStack[this.freqStack.length - 1];
-    let value = top.pop();
-    if (!top.length) this.freqStack.pop();
-    this.freqMap.set(value, this.freqMap.get(value) - 1);
-    return value;
-  }
 }
 
-// Input
-// ["FreqStack", "push", "push", "push", "push", "push", "push", "pop", "pop", "pop", "pop"]
-// [[], [5], [7], [5], [7], [4], [5], [], [], [], []]
-// Output
-// [null, null, null, null, null, null, null, 5, 7, 5, 4]
+class FreqStack {
+    int sequenceNumber = 0;
+    PriorityQueue<Element> maxHeap;
+    Map<Integer, Integer> frequencyMap;
 
-// Explanation
-let freqStack = new FreqStack();
-freqStack.push(5); // The stack is [5]
-freqStack.push(7); // The stack is [5,7]
-freqStack.push(5); // The stack is [5,7,5]
-freqStack.push(7); // The stack is [5,7,5,7]
-freqStack.push(4); // The stack is [5,7,5,7,4]
-freqStack.push(5); // The stack is [5,7,5,7,4,5]
+    public FreqStack() {
+        maxHeap = new PriorityQueue<>(new ElementComparator());
+        frequencyMap = new HashMap<>();
+    }
 
-freqStack.pop();
-// return 5, as 5 is the most frequent. The stack becomes [5,7,5,7,4].
-freqStack.pop();
-// return 7, as 5 and 7 is the most frequent, but 7 is closest to the top.
-//The stack becomes [5,7,5,4].
-freqStack.pop();
-// return 5, as 5 is the most frequent. The stack becomes [5,7,4].
-freqStack.pop();
-// return 4, as 4, 5 and 7 is the most frequent, but 4 is closest to the top. The stack becomes [5,7].
+    public void push(int num) {
+        frequencyMap.put(num, frequencyMap.getOrDefault(num, 0) + 1);
+        maxHeap.add(new Element(num, frequencyMap.get(num), sequenceNumber++));
+    }
 
-let frequencyStack = new FreqStack();
-frequencyStack.push(1);
-frequencyStack.push(2);
-frequencyStack.push(3);
-frequencyStack.push(2);
-frequencyStack.push(1);
-frequencyStack.push(2);
-frequencyStack.push(5);
-frequencyStack.pop();
-// return 2, as it is the most frequent number
-frequencyStack.pop();
-// should return 1
-frequencyStack.pop();
-// should return 2
+    public int pop() {
+        int num = maxHeap.poll().number;
+        
+        // decrement the frequency or remove if this is the last number
+        if (frequencyMap.get(num) > 1) {
+            frequencyMap.put(num, frequencyMap.get(num) - 1);
+        } else {
+            frequencyMap.remove(num);
+        }
+
+        return num;
+    }
+
+    static class ElementComparator implements Comparator<Element> {
+        public int compare(Element e1, Element e2) {
+            if (e1.frequency != e2.frequency) {
+                return e2.frequency - e1.frequency;
+            }
+            // if both elements have same frequency, return the one that was pushed later
+            return e2.sequenceNumber - e1.sequenceNumber;
+        }
+    }
+
+    public static void main(String[] args) {
+        FreqStack freqStack = new FreqStack();
+        freqStack.push(5);
+        freqStack.push(7);
+        freqStack.push(5);
+        freqStack.push(7);
+        freqStack.push(4);
+        freqStack.push(5);
+
+        System.out.println(freqStack.pop()); // 5
+        System.out.println(freqStack.pop()); // 7
+        System.out.println(freqStack.pop()); // 5
+        System.out.println(freqStack.pop()); // 4
+        
+        FreqStack frequencyStack = new FreqStack();
+        frequencyStack.push(1);
+        frequencyStack.push(2);
+        frequencyStack.push(3);
+        frequencyStack.push(2);
+        frequencyStack.push(1);
+        frequencyStack.push(2);
+        frequencyStack.push(5);
+        System.out.println(frequencyStack.pop()); // 2
+        System.out.println(frequencyStack.pop()); // 1
+        System.out.println(frequencyStack.pop()); // 2
+    }
+}
 ```
 
 - <b>Time Complexity</b> of `O(1)` for both `push()` and `pop()` operations.

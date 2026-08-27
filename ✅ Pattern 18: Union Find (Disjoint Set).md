@@ -26,52 +26,63 @@ The whole structure lives in a single `parent` array where `parent[i]` is the pa
 ### The naive approach
 
 The straightforward version does exactly that and nothing more.
-````js
+```java
 class NaiveUnionFind {
-  constructor(size) {
-    //every element starts as its own parent, i.e. its own set
-    this.parent = Array(size)
-      .fill(0)
-      .map((value, index) => index);
-  }
+    int[] parent;
 
-  //walk up the parent chain until we hit the representative
-  find(x) {
-    let current = x;
-    while (this.parent[current] !== current) {
-      current = this.parent[current];
+    public NaiveUnionFind(int size) {
+        //every element starts as its own parent, i.e. its own set
+        parent = new int[size];
+        for (int i = 0; i < size; i++) {
+            parent[i] = i;
+        }
     }
-    return current;
-  }
 
-  //blindly hang one root under the other
-  union(x, y) {
-    const rootX = this.find(x);
-    const rootY = this.find(y);
-    if (rootX === rootY) return false;
-    this.parent[rootX] = rootY;
-    return true;
-  }
+    //walk up the parent chain until we hit the representative
+    public int find(int x) {
+        int current = x;
+        while (parent[current] != current) {
+            current = parent[current];
+        }
+        return current;
+    }
 
-  connected(x, y) {
-    return this.find(x) === this.find(y);
-  }
+    //blindly hang one root under the other
+    public boolean union(int x, int y) {
+        int rootX = find(x);
+        int rootY = find(y);
+        if (rootX == rootY) return false;
+        parent[rootX] = rootY;
+        return true;
+    }
+
+    public boolean connected(int x, int y) {
+        return find(x) == find(y);
+    }
 }
 
-const naive = new NaiveUnionFind(6);
-naive.union(0, 1);
-naive.union(1, 2);
-naive.union(2, 3);
-naive.union(3, 4);
-naive.union(4, 5);
+class Solution {
+    public static void main(String[] args) {
+        NaiveUnionFind naive = new NaiveUnionFind(6);
+        naive.union(0, 1);
+        naive.union(1, 2);
+        naive.union(2, 3);
+        naive.union(3, 4);
+        naive.union(4, 5);
 
-console.log(`Parents: ${naive.parent}`);
-//Parents: 1,2,3,4,5,5
-console.log(`Root of 0: ${naive.find(0)}`);
-//Root of 0: 5
-console.log(`Are 0 and 5 connected: ${naive.connected(0, 5)}`);
-//Are 0 and 5 connected: true
-````
+        System.out.print("Parents: ");
+        for (int i = 0; i < naive.parent.length; i++) {
+            System.out.print(naive.parent[i] + (i == naive.parent.length - 1 ? "" : ","));
+        }
+        System.out.println();
+        //Parents: 1,2,3,4,5,5
+        System.out.println("Root of 0: " + naive.find(0));
+        //Root of 0: 5
+        System.out.println("Are 0 and 5 connected: " + naive.connected(0, 5));
+        //Are 0 and 5 connected: true
+    }
+}
+```
 Look closely at that `parent` array: `1,2,3,4,5,5`. Every element points at the next one, so the "tree" has degenerated into a <i>linked list</i> of length `6`. Calling `find(0)` has to walk all five hops to reach the root, and an adversarial order of unions produces this every time.
 
 - The <b>time complexity</b> of the above algorithm is `O(N)` per `find` or `union` in the worst case, where `N` is the number of elements, because the unions can build a single chain of `N` elements that `find` must walk end to end.
@@ -86,86 +97,110 @@ Two small changes fix this, and they compose beautifully.
 <b>2. Union by rank (in `union`).</b> Instead of arbitrarily hanging `rootX` under `rootY`, we track a `rank` (an upper bound on each tree's height) and always attach the <b>shorter</b> tree under the <b>taller</b> one. The taller tree's height is then unchanged, so the height only ever grows when we merge two trees of <i>equal</i> rank - and that can happen at most `logN` times.
 
 Union by rank alone caps the height at `O(logN)`, and path compression alone gives `O(logN)` amortized. Used <i>together</i> they are far better than either: the amortized cost per operation becomes `O(α(N))`, where `α` is the <b>inverse Ackermann function</b>. `α(N)` is under `5` for any `N` that could be written down in the physical universe, so for interview purposes this is <b>effectively O(1)</b> - though it is worth being precise that it is <i>near</i> constant, not constant. We also keep a `count` field holding the number of disjoint sets: it starts at `size` and decrements on every <i>successful</i> merge, which turns "how many components are there?" into a field read.
-````js
+```java
 class UnionFind {
-  constructor(size) {
-    //every element starts as its own parent, i.e. its own set
-    this.parent = Array(size)
-      .fill(0)
-      .map((value, index) => index);
-    //rank is an upper bound on the height of the tree rooted at i
-    this.rank = Array(size).fill(1);
-    //number of disjoint sets currently in the forest
-    this.count = size;
-  }
+    int[] parent;
+    int[] rank;
+    int count;
 
-  find(x) {
-    let current = x;
-    //path compression: re-point each node on the way up to its grandparent,
-    //which halves the length of the path on every single traversal
-    while (this.parent[current] !== current) {
-      this.parent[current] = this.parent[this.parent[current]];
-      current = this.parent[current];
-    }
-    return current;
-  }
-
-  union(x, y) {
-    const rootX = this.find(x);
-    const rootY = this.find(y);
-
-    //already in the same set, this edge is redundant
-    if (rootX === rootY) return false;
-
-    //union by rank: always attach the shorter tree under the taller tree
-    //so the height never grows unnecessarily
-    if (this.rank[rootX] < this.rank[rootY]) {
-      this.parent[rootX] = rootY;
-    } else if (this.rank[rootX] > this.rank[rootY]) {
-      this.parent[rootY] = rootX;
-    } else {
-      this.parent[rootY] = rootX;
-      this.rank[rootX]++;
+    public UnionFind(int size) {
+        //every element starts as its own parent, i.e. its own set
+        parent = new int[size];
+        for (int i = 0; i < size; i++) {
+            parent[i] = i;
+        }
+        //rank is an upper bound on the height of the tree rooted at i
+        rank = new int[size];
+        for (int i = 0; i < size; i++) {
+            rank[i] = 1;
+        }
+        //number of disjoint sets currently in the forest
+        count = size;
     }
 
-    this.count--;
-    return true;
-  }
+    public int find(int x) {
+        int current = x;
+        //path compression: re-point each node on the way up to its grandparent,
+        //which halves the length of the path on every single traversal
+        while (parent[current] != current) {
+            parent[current] = parent[parent[current]];
+            current = parent[current];
+        }
+        return current;
+    }
 
-  connected(x, y) {
-    return this.find(x) === this.find(y);
-  }
+    public boolean union(int x, int y) {
+        int rootX = find(x);
+        int rootY = find(y);
+
+        //already in the same set, this edge is redundant
+        if (rootX == rootY) return false;
+
+        //union by rank: always attach the shorter tree under the taller tree
+        //so the height never grows unnecessarily
+        if (rank[rootX] < rank[rootY]) {
+            parent[rootX] = rootY;
+        } else if (rank[rootX] > rank[rootY]) {
+            parent[rootY] = rootX;
+        } else {
+            parent[rootY] = rootX;
+            rank[rootX]++;
+        }
+
+        count--;
+        return true;
+    }
+
+    public boolean connected(int x, int y) {
+        return find(x) == find(y);
+    }
 }
 
-const uf = new UnionFind(10);
-uf.union(0, 1);
-uf.union(2, 3);
-uf.union(1, 3);
-uf.union(5, 6);
+class Solution {
+    public static void main(String[] args) {
+        UnionFind uf = new UnionFind(10);
+        uf.union(0, 1);
+        uf.union(2, 3);
+        uf.union(1, 3);
+        uf.union(5, 6);
 
-console.log(`Are 0 and 3 connected: ${uf.connected(0, 3)}`);
-//Are 0 and 3 connected: true
-console.log(`Are 0 and 4 connected: ${uf.connected(0, 4)}`);
-//Are 0 and 4 connected: false
-console.log(`Number of disjoint sets: ${uf.count}`);
-//Number of disjoint sets: 6
-console.log(`Parents: ${uf.parent}`);
-//Parents: 0,0,0,0,4,5,5,7,8,9
-console.log(`Ranks: ${uf.rank}`);
-//Ranks: 3,1,2,1,1,2,1,1,1,1
+        System.out.println("Are 0 and 3 connected: " + uf.connected(0, 3));
+        //Are 0 and 3 connected: true
+        System.out.println("Are 0 and 4 connected: " + uf.connected(0, 4));
+        //Are 0 and 4 connected: false
+        System.out.println("Number of disjoint sets: " + uf.count);
+        //Number of disjoint sets: 6
+        System.out.print("Parents: ");
+        for (int i = 0; i < uf.parent.length; i++) {
+            System.out.print(uf.parent[i] + (i == uf.parent.length - 1 ? "" : ","));
+        }
+        System.out.println();
+        //Parents: 0,0,0,0,4,5,5,7,8,9
+        System.out.print("Ranks: ");
+        for (int i = 0; i < uf.rank.length; i++) {
+            System.out.print(uf.rank[i] + (i == uf.rank.length - 1 ? "" : ","));
+        }
+        System.out.println();
+        //Ranks: 3,1,2,1,1,2,1,1,1,1
 
-//the same degenerate chain that crippled the naive version
-const chain = new UnionFind(6);
-chain.union(0, 1);
-chain.union(1, 2);
-chain.union(2, 3);
-chain.union(3, 4);
-chain.union(4, 5);
-console.log(`Parents of the chain: ${chain.parent}`);
-//Parents of the chain: 0,0,0,0,0,0
-console.log(`Root of 5: ${chain.find(5)}`);
-//Root of 5: 0
-````
+        //the same degenerate chain that crippled the naive version
+        UnionFind chain = new UnionFind(6);
+        chain.union(0, 1);
+        chain.union(1, 2);
+        chain.union(2, 3);
+        chain.union(3, 4);
+        chain.union(4, 5);
+        System.out.print("Parents of the chain: ");
+        for (int i = 0; i < chain.parent.length; i++) {
+            System.out.print(chain.parent[i] + (i == chain.parent.length - 1 ? "" : ","));
+        }
+        System.out.println();
+        //Parents of the chain: 0,0,0,0,0,0
+        System.out.println("Root of 5: " + chain.find(5));
+        //Root of 5: 0
+    }
+}
+```
 Compare the two `parent` arrays for the identical chain of unions. The naive version produced `1,2,3,4,5,5` - a five hop walk. The optimized version produced `0,0,0,0,0,0` - a completely flat tree where every `find` is a single lookup. The `Parents: 0,0,0,0,4,5,5,7,8,9` line is worth a second look too: element `3` was originally attached under `2`, but the `connected(0, 3)` <i>query</i> compressed it to point straight at `0`. In <b>Union Find</b>, reads make the structure faster - which is exactly why the cost is <i>amortized</i>.
 
 - The <b>time complexity</b> of the above algorithm is `O(N)` to construct, where `N` is the number of elements, plus `O(α(N))` amortized per `find` or `union`, where `α` is the <i>inverse Ackermann function</i>. Since `α(N) < 5` for all practical `N`, a sequence of `M` operations runs in effectively `O(M)` time.
@@ -183,70 +218,82 @@ https://leetcode.com/problems/number-of-provinces/
 This is the purest form of the pattern: a <i>province</i> is precisely a <b>connected component</b>, and a connected component is precisely a disjoint set. So we `union` every pair of directly connected cities and then read off `count`.
 
 The input is an <i>adjacency matrix</i> rather than an edge list, so we scan it to find the edges. Two observations shrink the work: the matrix is <b>symmetric</b> (`isConnected[i][j] === isConnected[j][i]`), and the diagonal is always `1` since every city is connected to itself, which tells us nothing. Both are handled by starting the inner loop at `j = i + 1` so we only visit the strict upper triangle. Note also that we never need to check whether a `union` succeeded here - if cities `i` and `j` are already in the same province, `union` returns `false` and leaves `count` alone, which is exactly the behaviour we want.
-````js
+```java
 class UnionFind {
-  constructor(size) {
-    this.parent = Array(size)
-      .fill(0)
-      .map((value, index) => index);
-    this.rank = Array(size).fill(1);
-    this.count = size;
-  }
+    int[] parent;
+    int[] rank;
+    int count;
 
-  find(x) {
-    let current = x;
-    while (this.parent[current] !== current) {
-      this.parent[current] = this.parent[this.parent[current]];
-      current = this.parent[current];
-    }
-    return current;
-  }
-
-  union(x, y) {
-    const rootX = this.find(x);
-    const rootY = this.find(y);
-    if (rootX === rootY) return false;
-
-    if (this.rank[rootX] < this.rank[rootY]) {
-      this.parent[rootX] = rootY;
-    } else if (this.rank[rootX] > this.rank[rootY]) {
-      this.parent[rootY] = rootX;
-    } else {
-      this.parent[rootY] = rootX;
-      this.rank[rootX]++;
+    public UnionFind(int size) {
+        parent = new int[size];
+        for (int i = 0; i < size; i++) {
+            parent[i] = i;
+        }
+        rank = new int[size];
+        for (int i = 0; i < size; i++) {
+            rank[i] = 1;
+        }
+        count = size;
     }
 
-    this.count--;
-    return true;
-  }
+    public int find(int x) {
+        int current = x;
+        while (parent[current] != current) {
+            parent[current] = parent[parent[current]];
+            current = parent[current];
+        }
+        return current;
+    }
+
+    public boolean union(int x, int y) {
+        int rootX = find(x);
+        int rootY = find(y);
+        if (rootX == rootY) return false;
+
+        if (rank[rootX] < rank[rootY]) {
+            parent[rootX] = rootY;
+        } else if (rank[rootX] > rank[rootY]) {
+            parent[rootY] = rootX;
+        } else {
+            parent[rootY] = rootX;
+            rank[rootX]++;
+        }
+
+        count--;
+        return true;
+    }
 }
 
-function findCircleNum(isConnected) {
-  const n = isConnected.length;
-  const unionFind = new UnionFind(n);
+class Solution {
+    public static int findCircleNum(int[][] isConnected) {
+        int n = isConnected.length;
+        UnionFind unionFind = new UnionFind(n);
 
-  //the matrix is symmetric, so only the upper triangle matters
-  for (let i = 0; i < n; i++) {
-    for (let j = i + 1; j < n; j++) {
-      if (isConnected[i][j] === 1) {
-        unionFind.union(i, j);
-      }
+        //the matrix is symmetric, so only the upper triangle matters
+        for (int i = 0; i < n; i++) {
+            for (int j = i + 1; j < n; j++) {
+                if (isConnected[i][j] == 1) {
+                    unionFind.union(i, j);
+                }
+            }
+        }
+
+        //every remaining disjoint set is one province
+        return unionFind.count;
     }
-  }
 
-  //every remaining disjoint set is one province
-  return unionFind.count;
+    public static void main(String[] args) {
+        System.out.println("Number of provinces: " + findCircleNum(new int[][]{{1, 1, 0}, {1, 1, 0}, {0, 0, 1}}));
+        //Number of provinces: 2
+        System.out.println("Number of provinces: " + findCircleNum(new int[][]{{1, 0, 0}, {0, 1, 0}, {0, 0, 1}}));
+        //Number of provinces: 3
+        System.out.println("Number of provinces: " + findCircleNum(new int[][]{{1, 1, 0, 0}, {1, 1, 0, 0}, {0, 0, 1, 1}, {0, 0, 1, 1}}));
+        //Number of provinces: 2
+        System.out.println("Number of provinces: " + findCircleNum(new int[][]{{1}}));
+        //Number of provinces: 1
+    }
 }
-
-console.log(`Number of provinces: ${findCircleNum([[1, 1, 0], [1, 1, 0], [0, 0, 1]])}`);
-//Number of provinces: 2
-console.log(`Number of provinces: ${findCircleNum([[1, 0, 0], [0, 1, 0], [0, 0, 1]])}`);
-//Number of provinces: 3
-console.log(`Number of provinces: ${findCircleNum([[1, 1, 0, 0], [1, 1, 0, 0], [0, 0, 1, 1], [0, 0, 1, 1]])}`);
-//Number of provinces: 2
-console.log(`Number of provinces: ${findCircleNum([[1]])}`);
-//Number of provinces: 1
-````
+```
 - The <b>time complexity</b> of the above algorithm is `O(N²)`, where `N` is the number of cities. We are forced to read `O(N²)` matrix cells no matter what, and each cell costs at most one `union` at `O(α(N))` amortized, which is effectively constant.
 - The <b>space complexity</b> of the above algorithm is `O(N)`, for the `parent` and `rank` arrays. This is a real win over a <b>DFS</b>/<b>BFS</b> solution, which needs a `visited` array plus an `O(N)` recursion stack or queue.
 
@@ -268,73 +315,85 @@ A graph is a <b>valid tree</b> if and only if it satisfies two conditions at onc
 There is also a well known shortcut worth stating first: a tree on `n` nodes has <b>exactly</b> `n - 1` edges. With fewer the graph cannot possibly be connected; with more it must contain a cycle. So we can reject on the edge count alone before touching the graph. Given that check passes, we process the edges - and if any `union` returns `false`, both endpoints already shared a root, meaning there was already a path between them, so this edge creates a cycle and we bail out. If all `n - 1` unions succeed, each reduced `count` by exactly one, so `count` lands on `1` and the graph is connected.
 
 <i>This is precisely the case that <b>Topological Sort</b> cannot handle.</i> The edges here have no direction, so there are no <i>sources</i> and no <i>in-degrees</i> to peel away. Note also that a two node cycle - the edge `[0, 1]` listed twice - is a genuine cycle in an undirected graph and `union` catches it, whereas in a directed graph `0 -> 1` twice is just a duplicate edge.
-````js
+```java
 class UnionFind {
-  constructor(size) {
-    this.parent = Array(size)
-      .fill(0)
-      .map((value, index) => index);
-    this.rank = Array(size).fill(1);
-    this.count = size;
-  }
+    int[] parent;
+    int[] rank;
+    int count;
 
-  find(x) {
-    let current = x;
-    while (this.parent[current] !== current) {
-      this.parent[current] = this.parent[this.parent[current]];
-      current = this.parent[current];
-    }
-    return current;
-  }
-
-  union(x, y) {
-    const rootX = this.find(x);
-    const rootY = this.find(y);
-    //returning false is the cycle signal: both ends already share a root
-    if (rootX === rootY) return false;
-
-    if (this.rank[rootX] < this.rank[rootY]) {
-      this.parent[rootX] = rootY;
-    } else if (this.rank[rootX] > this.rank[rootY]) {
-      this.parent[rootY] = rootX;
-    } else {
-      this.parent[rootY] = rootX;
-      this.rank[rootX]++;
+    public UnionFind(int size) {
+        parent = new int[size];
+        for (int i = 0; i < size; i++) {
+            parent[i] = i;
+        }
+        rank = new int[size];
+        for (int i = 0; i < size; i++) {
+            rank[i] = 1;
+        }
+        count = size;
     }
 
-    this.count--;
-    return true;
-  }
+    public int find(int x) {
+        int current = x;
+        while (parent[current] != current) {
+            parent[current] = parent[parent[current]];
+            current = parent[current];
+        }
+        return current;
+    }
+
+    public boolean union(int x, int y) {
+        int rootX = find(x);
+        int rootY = find(y);
+        //returning false is the cycle signal: both ends already share a root
+        if (rootX == rootY) return false;
+
+        if (rank[rootX] < rank[rootY]) {
+            parent[rootX] = rootY;
+        } else if (rank[rootX] > rank[rootY]) {
+            parent[rootY] = rootX;
+        } else {
+            parent[rootY] = rootX;
+            rank[rootX]++;
+        }
+
+        count--;
+        return true;
+    }
 }
 
-function validTree(n, edges) {
-  //a tree on n nodes has exactly n-1 edges, no more and no less
-  if (edges.length !== n - 1) return false;
+class Solution {
+    public static boolean validTree(int n, int[][] edges) {
+        //a tree on n nodes has exactly n-1 edges, no more and no less
+        if (edges.length != n - 1) return false;
 
-  const unionFind = new UnionFind(n);
+        UnionFind unionFind = new UnionFind(n);
 
-  for (let i = 0; i < edges.length; i++) {
-    const u = edges[i][0];
-    const v = edges[i][1];
-    //if the union fails, this edge closes a cycle
-    if (!unionFind.union(u, v)) return false;
-  }
+        for (int i = 0; i < edges.length; i++) {
+            int u = edges[i][0];
+            int v = edges[i][1];
+            //if the union fails, this edge closes a cycle
+            if (!unionFind.union(u, v)) return false;
+        }
 
-  //n-1 successful unions always collapse the forest into a single set
-  return unionFind.count === 1;
+        //n-1 successful unions always collapse the forest into a single set
+        return unionFind.count == 1;
+    }
+
+    public static void main(String[] args) {
+        System.out.println("Is a valid tree: " + validTree(5, new int[][]{{0, 1}, {0, 2}, {0, 3}, {1, 4}}));
+        //Is a valid tree: true
+        System.out.println("Is a valid tree: " + validTree(5, new int[][]{{0, 1}, {1, 2}, {2, 3}, {1, 3}, {1, 4}}));
+        //Is a valid tree: false
+        System.out.println("Is a valid tree: " + validTree(4, new int[][]{{0, 1}, {2, 3}}));
+        //Is a valid tree: false
+        System.out.println("Is a valid tree: " + validTree(1, new int[][]{}));
+        //Is a valid tree: true
+        System.out.println("Is a valid tree: " + validTree(4, new int[][]{{0, 1}, {1, 2}, {2, 0}}));
+        //Is a valid tree: false
+    }
 }
-
-console.log(`Is a valid tree: ${validTree(5, [[0, 1], [0, 2], [0, 3], [1, 4]])}`);
-//Is a valid tree: true
-console.log(`Is a valid tree: ${validTree(5, [[0, 1], [1, 2], [2, 3], [1, 3], [1, 4]])}`);
-//Is a valid tree: false
-console.log(`Is a valid tree: ${validTree(4, [[0, 1], [2, 3]])}`);
-//Is a valid tree: false
-console.log(`Is a valid tree: ${validTree(1, [])}`);
-//Is a valid tree: true
-console.log(`Is a valid tree: ${validTree(4, [[0, 1], [1, 2], [2, 0]])}`);
-//Is a valid tree: false
-````
+```
 Trace the second case, `n = 5` with edges `[[0, 1], [1, 2], [2, 3], [1, 3], [1, 4]]`. It has `4` edges for `5` nodes, so the edge count guard passes. The first three unions succeed, putting `0`, `1`, `2` and `3` in one set. Then `union(1, 3)` finds that both already have the same root and returns `false` - the edge `1-3` closes the cycle `1-2-3-1`. The third case shows why connectivity must be checked separately from acyclicity: `4` nodes with edges `[[0, 1], [2, 3]]` is perfectly acyclic, but it is two disjoint trees - a <i>forest</i>, not a tree - and here the edge count guard rejects it, since `2 !== 3`.
 
 - The <b>time complexity</b> of the above algorithm is `O(V+E)`, where `V` is the number of nodes and `E` is the number of edges. Building the `parent` and `rank` arrays costs `O(V)` and each of the `E` edges costs `O(α(V))` amortized, which is effectively constant.
@@ -354,65 +413,79 @@ This problem follows the <b>[Graph Valid Tree](#graph-valid-tree-medium)</b> pat
 The insight is that "the answer that occurs last in the input" comes for free from processing the edges in order. As we sweep left to right, every edge that joins two <i>different</i> sets is a legitimate tree edge. The <b>first</b> edge whose `union` fails is the point at which the graph first became cyclic - and since the input is a tree plus exactly one extra edge, that edge is by definition the last one needed to close the cycle, so we return it immediately.
 
 The only real implementation trap is that nodes are labeled from `1` to `n` rather than `0` to `n - 1`. We size the `UnionFind` at `edges.length + 1` and never touch index `0`. Since a tree plus one edge has exactly `n` edges, that is `n + 1` slots, giving us valid indices for `1..n`.
-````js
+```java
+import java.util.Arrays;
+
 class UnionFind {
-  constructor(size) {
-    this.parent = Array(size)
-      .fill(0)
-      .map((value, index) => index);
-    this.rank = Array(size).fill(1);
-    this.count = size;
-  }
+    int[] parent;
+    int[] rank;
+    int count;
 
-  find(x) {
-    let current = x;
-    while (this.parent[current] !== current) {
-      this.parent[current] = this.parent[this.parent[current]];
-      current = this.parent[current];
-    }
-    return current;
-  }
-
-  union(x, y) {
-    const rootX = this.find(x);
-    const rootY = this.find(y);
-    if (rootX === rootY) return false;
-
-    if (this.rank[rootX] < this.rank[rootY]) {
-      this.parent[rootX] = rootY;
-    } else if (this.rank[rootX] > this.rank[rootY]) {
-      this.parent[rootY] = rootX;
-    } else {
-      this.parent[rootY] = rootX;
-      this.rank[rootX]++;
+    public UnionFind(int size) {
+        parent = new int[size];
+        for (int i = 0; i < size; i++) {
+            parent[i] = i;
+        }
+        rank = new int[size];
+        for (int i = 0; i < size; i++) {
+            rank[i] = 1;
+        }
+        count = size;
     }
 
-    this.count--;
-    return true;
-  }
+    public int find(int x) {
+        int current = x;
+        while (parent[current] != current) {
+            parent[current] = parent[parent[current]];
+            current = parent[current];
+        }
+        return current;
+    }
+
+    public boolean union(int x, int y) {
+        int rootX = find(x);
+        int rootY = find(y);
+        if (rootX == rootY) return false;
+
+        if (rank[rootX] < rank[rootY]) {
+            parent[rootX] = rootY;
+        } else if (rank[rootX] > rank[rootY]) {
+            parent[rootY] = rootX;
+        } else {
+            parent[rootY] = rootX;
+            rank[rootX]++;
+        }
+
+        count--;
+        return true;
+    }
 }
 
-function findRedundantConnection(edges) {
-  //nodes are labelled 1..n, so allocate one extra slot and ignore index 0
-  const unionFind = new UnionFind(edges.length + 1);
+class Solution {
+    public static int[] findRedundantConnection(int[][] edges) {
+        //nodes are labelled 1..n, so allocate one extra slot and ignore index 0
+        UnionFind unionFind = new UnionFind(edges.length + 1);
 
-  for (let i = 0; i < edges.length; i++) {
-    const u = edges[i][0];
-    const v = edges[i][1];
-    //the first edge whose union fails is the last edge that created the cycle
-    if (!unionFind.union(u, v)) return [u, v];
-  }
+        for (int i = 0; i < edges.length; i++) {
+            int u = edges[i][0];
+            int v = edges[i][1];
+            //the first edge whose union fails is the last edge that created the cycle
+            if (!unionFind.union(u, v)) return new int[]{u, v};
+        }
 
-  return [];
+        return new int[]{};
+    }
+
+    public static void main(String[] args) {
+        System.out.println("Redundant connection: " + Arrays.toString(findRedundantConnection(new int[][]{{1, 2}, {1, 3}, {2, 3}})));
+        //Redundant connection: [2, 3]
+        System.out.println("Redundant connection: " + Arrays.toString(findRedundantConnection(new int[][]{{1, 2}, {2, 3}, {3, 4}, {1, 4}, {1, 5}})));
+        //Redundant connection: [1, 4]
+        System.out.println("Redundant connection: " + Arrays.toString(findRedundantConnection(new int[][]{{1, 4}, {3, 4}, {1, 3}, {1, 2}})));
+        //Redundant connection: [1, 3]
+    }
 }
-
-console.log(`Redundant connection: ${findRedundantConnection([[1, 2], [1, 3], [2, 3]])}`);
-//Redundant connection: 2,3
-console.log(`Redundant connection: ${findRedundantConnection([[1, 2], [2, 3], [3, 4], [1, 4], [1, 5]])}`);
-//Redundant connection: 1,4
-console.log(`Redundant connection: ${findRedundantConnection([[1, 4], [3, 4], [1, 3], [1, 2]])}`);
-//Redundant connection: 1,3
-````
+```
 The third case is a good check on the "occurs last" requirement. The cycle is `1-4-3-1`, so removing <i>any</i> of `[1, 4]`, `[3, 4]` or `[1, 3]` would leave a valid tree. Because we sweep in input order, `[1, 4]` and `[3, 4]` both merge new sets successfully, and `[1, 3]` is the first failure - which is also the last of the three in the input. The greedy sweep gets the tie-break right without any extra bookkeeping.
 
 - The <b>time complexity</b> of the above algorithm is `O(N)`, where `N` is the number of edges. We touch each edge at most once and each `union` costs `O(α(N))` amortized, which is effectively constant.
@@ -434,83 +507,95 @@ It is still worth solving with <b>Union Find</b> for two reasons. First, it teac
 The grid trick is to <b>flatten</b> each `(row, col)` cell into a single integer id with `row * cols + col`, giving us `rows * cols` elements to feed the `UnionFind`. Then, for each land cell, we union it with its land neighbours. Two details make this work cleanly:
 - We only look <b>right and down</b>, never left or up. When we visited the cell to the left, it already unioned itself with us, so checking both directions would just do redundant work.
 - <b>Water cells are still their own disjoint sets.</b> The `UnionFind` was initialized with every one of the `rows * cols` cells alone, and we never union the `'0'`s with anything. So `count` overcounts by exactly the number of water cells - we tally them as we sweep and subtract at the end.
-````js
+```java
 class UnionFind {
-  constructor(size) {
-    this.parent = Array(size)
-      .fill(0)
-      .map((value, index) => index);
-    this.rank = Array(size).fill(1);
-    this.count = size;
-  }
+    int[] parent;
+    int[] rank;
+    int count;
 
-  find(x) {
-    let current = x;
-    while (this.parent[current] !== current) {
-      this.parent[current] = this.parent[this.parent[current]];
-      current = this.parent[current];
-    }
-    return current;
-  }
-
-  union(x, y) {
-    const rootX = this.find(x);
-    const rootY = this.find(y);
-    if (rootX === rootY) return false;
-
-    if (this.rank[rootX] < this.rank[rootY]) {
-      this.parent[rootX] = rootY;
-    } else if (this.rank[rootX] > this.rank[rootY]) {
-      this.parent[rootY] = rootX;
-    } else {
-      this.parent[rootY] = rootX;
-      this.rank[rootX]++;
+    public UnionFind(int size) {
+        parent = new int[size];
+        for (int i = 0; i < size; i++) {
+            parent[i] = i;
+        }
+        rank = new int[size];
+        for (int i = 0; i < size; i++) {
+            rank[i] = 1;
+        }
+        count = size;
     }
 
-    this.count--;
-    return true;
-  }
+    public int find(int x) {
+        int current = x;
+        while (parent[current] != current) {
+            parent[current] = parent[parent[current]];
+            current = parent[current];
+        }
+        return current;
+    }
+
+    public boolean union(int x, int y) {
+        int rootX = find(x);
+        int rootY = find(y);
+        if (rootX == rootY) return false;
+
+        if (rank[rootX] < rank[rootY]) {
+            parent[rootX] = rootY;
+        } else if (rank[rootX] > rank[rootY]) {
+            parent[rootY] = rootX;
+        } else {
+            parent[rootY] = rootX;
+            rank[rootX]++;
+        }
+
+        count--;
+        return true;
+    }
 }
 
-function numIslands(grid) {
-  if (grid.length === 0 || grid[0].length === 0) return 0;
+class Solution {
+    public static int numIslands(char[][] grid) {
+        if (grid == null || grid.length == 0 || grid[0].length == 0) return 0;
 
-  const rows = grid.length;
-  const cols = grid[0].length;
+        int rows = grid.length;
+        int cols = grid[0].length;
 
-  //flatten (row, col) into a single id: row * cols + col
-  const unionFind = new UnionFind(rows * cols);
-  let waterCells = 0;
+        //flatten (row, col) into a single id: row * cols + col
+        UnionFind unionFind = new UnionFind(rows * cols);
+        int waterCells = 0;
 
-  for (let row = 0; row < rows; row++) {
-    for (let col = 0; col < cols; col++) {
-      if (grid[row][col] === '0') {
-        //water cells are still their own set, so subtract them at the end
-        waterCells++;
-        continue;
-      }
+        for (int row = 0; row < rows; row++) {
+            for (int col = 0; col < cols; col++) {
+                if (grid[row][col] == '0') {
+                    //water cells are still their own set, so subtract them at the end
+                    waterCells++;
+                    continue;
+                }
 
-      //only look right and down, the left and up edges
-      //were already merged when we visited those cells
-      if (row + 1 < rows && grid[row + 1][col] === '1') {
-        unionFind.union(row * cols + col, (row + 1) * cols + col);
-      }
-      if (col + 1 < cols && grid[row][col + 1] === '1') {
-        unionFind.union(row * cols + col, row * cols + col + 1);
-      }
+                //only look right and down, the left and up edges
+                //were already merged when we visited those cells
+                if (row + 1 < rows && grid[row + 1][col] == '1') {
+                    unionFind.union(row * cols + col, (row + 1) * cols + col);
+                }
+                if (col + 1 < cols && grid[row][col + 1] == '1') {
+                    unionFind.union(row * cols + col, row * cols + col + 1);
+                }
+            }
+        }
+
+        return unionFind.count - waterCells;
     }
-  }
 
-  return unionFind.count - waterCells;
+    public static void main(String[] args) {
+        System.out.println("Number of islands: " + numIslands(new char[][]{{'1', '1', '1', '1', '0'}, {'1', '1', '0', '1', '0'}, {'1', '1', '0', '0', '0'}, {'0', '0', '0', '0', '0'}}));
+        //Number of islands: 1
+        System.out.println("Number of islands: " + numIslands(new char[][]{{'1', '1', '0', '0', '0'}, {'1', '1', '0', '0', '0'}, {'0', '0', '1', '0', '0'}, {'0', '0', '0', '1', '1'}}));
+        //Number of islands: 3
+        System.out.println("Number of islands: " + numIslands(new char[][]{{'1', '0', '1'}, {'0', '1', '0'}, {'1', '0', '1'}}));
+        //Number of islands: 5
+    }
 }
-
-console.log(`Number of islands: ${numIslands([['1', '1', '1', '1', '0'], ['1', '1', '0', '1', '0'], ['1', '1', '0', '0', '0'], ['0', '0', '0', '0', '0']])}`);
-//Number of islands: 1
-console.log(`Number of islands: ${numIslands([['1', '1', '0', '0', '0'], ['1', '1', '0', '0', '0'], ['0', '0', '1', '0', '0'], ['0', '0', '0', '1', '1']])}`);
-//Number of islands: 3
-console.log(`Number of islands: ${numIslands([['1', '0', '1'], ['0', '1', '0'], ['1', '0', '1']])}`);
-//Number of islands: 5
-````
+```
 The last case is a useful sanity check on the "no diagonals" rule. The checkerboard has five `'1'`s, none of them horizontally or vertically adjacent, so the answer is `5` distinct islands - not `1`.
 
 - The <b>time complexity</b> of the above algorithm is `O(M*N)`, where `M` is the number of rows and `N` the number of columns. We visit each cell once and perform at most two `union` calls per cell, each `O(α(M*N))` amortized.
@@ -536,101 +621,125 @@ The algorithm is then three passes:
 1. <b>Union accounts that share an email.</b> We keep a `Map` from email to the first account index that claimed it. When we meet an email we have seen before, we union the current account with that earlier owner. Remember that index `0` of each account is the <i>name</i>, so emails start at index `1`.
 2. <b>Bucket the emails by root.</b> For each email in the map, find the root of its owning account and push the email into that root's bucket. This is where the transitive chains pay off - emails first seen under different accounts land in the same bucket if those accounts were ever merged.
 3. <b>Assemble the output.</b> Sort each bucket, then prepend the name. Since the problem guarantees that all of a person's accounts share the same name, we can take the name from <i>any</i> account in the group - the root's is the convenient one.
-````js
+```java
+import java.util.*;
+
 class UnionFind {
-  constructor(size) {
-    this.parent = Array(size)
-      .fill(0)
-      .map((value, index) => index);
-    this.rank = Array(size).fill(1);
-    this.count = size;
-  }
+    int[] parent;
+    int[] rank;
+    int count;
 
-  find(x) {
-    let current = x;
-    while (this.parent[current] !== current) {
-      this.parent[current] = this.parent[this.parent[current]];
-      current = this.parent[current];
-    }
-    return current;
-  }
-
-  union(x, y) {
-    const rootX = this.find(x);
-    const rootY = this.find(y);
-    if (rootX === rootY) return false;
-
-    if (this.rank[rootX] < this.rank[rootY]) {
-      this.parent[rootX] = rootY;
-    } else if (this.rank[rootX] > this.rank[rootY]) {
-      this.parent[rootY] = rootX;
-    } else {
-      this.parent[rootY] = rootX;
-      this.rank[rootX]++;
+    public UnionFind(int size) {
+        parent = new int[size];
+        for (int i = 0; i < size; i++) {
+            parent[i] = i;
+        }
+        rank = new int[size];
+        for (int i = 0; i < size; i++) {
+            rank[i] = 1;
+        }
+        count = size;
     }
 
-    this.count--;
-    return true;
-  }
+    public int find(int x) {
+        int current = x;
+        while (parent[current] != current) {
+            parent[current] = parent[parent[current]];
+            current = parent[current];
+        }
+        return current;
+    }
+
+    public boolean union(int x, int y) {
+        int rootX = find(x);
+        int rootY = find(y);
+        if (rootX == rootY) return false;
+
+        if (rank[rootX] < rank[rootY]) {
+            parent[rootX] = rootY;
+        } else if (rank[rootX] > rank[rootY]) {
+            parent[rootY] = rootX;
+        } else {
+            parent[rootY] = rootX;
+            rank[rootX]++;
+        }
+
+        count--;
+        return true;
+    }
 }
 
-function accountsMerge(accounts) {
-  const unionFind = new UnionFind(accounts.length);
-  //remembers the first account index that claimed each email
-  const emailToAccount = new Map();
+class Solution {
+    public static List<List<String>> accountsMerge(List<List<String>> accounts) {
+        UnionFind unionFind = new UnionFind(accounts.size());
+        //remembers the first account index that claimed each email
+        Map<String, Integer> emailToAccount = new HashMap<>();
 
-  //1. union every account that shares at least one email
-  for (let account = 0; account < accounts.length; account++) {
-    //index 0 is the owner's name, the emails start at index 1
-    for (let i = 1; i < accounts[account].length; i++) {
-      const email = accounts[account][i];
-      if (emailToAccount.has(email)) {
-        unionFind.union(account, emailToAccount.get(email));
-      } else {
-        emailToAccount.set(email, account);
-      }
+        //1. union every account that shares at least one email
+        for (int account = 0; account < accounts.size(); account++) {
+            //index 0 is the owner's name, the emails start at index 1
+            for (int i = 1; i < accounts.get(account).size(); i++) {
+                String email = accounts.get(account).get(i);
+                if (emailToAccount.containsKey(email)) {
+                    unionFind.union(account, emailToAccount.get(email));
+                } else {
+                    emailToAccount.put(email, account);
+                }
+            }
+        }
+
+        //2. bucket every email under the root of its account
+        Map<Integer, List<String>> groups = new HashMap<>();
+        for (Map.Entry<String, Integer> entry : emailToAccount.entrySet()) {
+            String email = entry.getKey();
+            int account = entry.getValue();
+            int root = unionFind.find(account);
+            groups.putIfAbsent(root, new ArrayList<>());
+            groups.get(root).add(email);
+        }
+
+        //3. the name of any account in the group is the name of the merged account
+        List<List<String>> merged = new ArrayList<>();
+        for (Map.Entry<Integer, List<String>> entry : groups.entrySet()) {
+            int root = entry.getKey();
+            List<String> emails = entry.getValue();
+            Collections.sort(emails);
+            List<String> mergedAccount = new ArrayList<>();
+            mergedAccount.add(accounts.get(root).get(0));
+            mergedAccount.addAll(emails);
+            merged.add(mergedAccount);
+        }
+
+        return merged;
     }
-  }
 
-  //2. bucket every email under the root of its account
-  const groups = new Map();
-  emailToAccount.forEach((account, email) => {
-    const root = unionFind.find(account);
-    if (!groups.has(root)) groups.set(root, []);
-    groups.get(root).push(email);
-  });
+    public static void main(String[] args) {
+        List<List<String>> accounts1 = Arrays.asList(
+            Arrays.asList("John", "johnsmith@mail.com", "john_newyork@mail.com"),
+            Arrays.asList("John", "johnsmith@mail.com", "john00@mail.com"),
+            Arrays.asList("Mary", "mary@mail.com"),
+            Arrays.asList("John", "johnnybravo@mail.com")
+        );
+        System.out.println(accountsMerge(accounts1));
+        //[[John, john00@mail.com, john_newyork@mail.com, johnsmith@mail.com], [Mary, mary@mail.com], [John, johnnybravo@mail.com]]
 
-  //3. the name of any account in the group is the name of the merged account
-  const merged = [];
-  groups.forEach((emails, root) => {
-    emails.sort();
-    merged.push([accounts[root][0], ...emails]);
-  });
+        List<List<String>> accounts2 = Arrays.asList(
+            Arrays.asList("Alex", "alex@mail.com"),
+            Arrays.asList("Alex", "alex@mail.com", "alex.work@mail.com"),
+            Arrays.asList("Alex", "alex.work@mail.com")
+        );
+        System.out.println(accountsMerge(accounts2));
+        //[[Alex, alex.work@mail.com, alex@mail.com]]
 
-  return merged;
+        List<List<String>> accounts3 = Arrays.asList(
+            Arrays.asList("Gabe", "Gabe0@m.co", "Gabe3@m.co"),
+            Arrays.asList("Kevin", "Kevin3@m.co", "Kevin5@m.co")
+        );
+        System.out.println(accountsMerge(accounts3));
+        //[[Gabe, Gabe0@m.co, Gabe3@m.co], [Kevin, Kevin3@m.co, Kevin5@m.co]]
+    }
 }
-
-console.log(JSON.stringify(accountsMerge([
-  ['John', 'johnsmith@mail.com', 'john_newyork@mail.com'],
-  ['John', 'johnsmith@mail.com', 'john00@mail.com'],
-  ['Mary', 'mary@mail.com'],
-  ['John', 'johnnybravo@mail.com'],
-])));
-//[["John","john00@mail.com","john_newyork@mail.com","johnsmith@mail.com"],["Mary","mary@mail.com"],["John","johnnybravo@mail.com"]]
-
-console.log(JSON.stringify(accountsMerge([
-  ['Alex', 'alex@mail.com'],
-  ['Alex', 'alex@mail.com', 'alex.work@mail.com'],
-  ['Alex', 'alex.work@mail.com'],
-])));
-//[["Alex","alex.work@mail.com","alex@mail.com"]]
-
-console.log(JSON.stringify(accountsMerge([
-  ['Gabe', 'Gabe0@m.co', 'Gabe3@m.co'],
-  ['Kevin', 'Kevin3@m.co', 'Kevin5@m.co'],
-])));
-//[["Gabe","Gabe0@m.co","Gabe3@m.co"],["Kevin","Kevin3@m.co","Kevin5@m.co"]]
-````
+```
 The first case is the canonical one: accounts `0` and `1` both list `johnsmith@mail.com`, so they merge into a single `John` with three emails. Account `3` is <i>also</i> named `John` but shares no email with anyone, so it stays separate - the name is not evidence of identity.
 
 The second case exercises the transitive chain. Account `0` claims `alex@mail.com`; account `1` shares that email so it merges with `0`, and also introduces `alex.work@mail.com`; account `2` shares <i>that</i> email and so merges in too. All three collapse into one group, even though accounts `0` and `2` have no email in common.
@@ -654,69 +763,81 @@ This one looks like a greedy simulation problem and is actually a disguised coun
 Say we group the stones so that two stones are in the same group whenever they share a row or a column, transitively. Now consider one group of `k` stones. Because the group is connected, we can always order the removals so that we peel off stones one at a time, each time picking a stone that still has a surviving partner in its row or column. The way to see this is that a connected graph has a <i>spanning tree</i>, and repeatedly removing a <b>leaf</b> of that tree always leaves the rest connected. So we can strip a group of `k` stones down to exactly `1` stone, removing `k - 1`. And we can never do better, because the last stone in a group has no partner left.
 
 Therefore the answer is `total stones - number of groups`, which is `stones.length - count`. No simulation at all.
-````js
+```java
 class UnionFind {
-  constructor(size) {
-    this.parent = Array(size)
-      .fill(0)
-      .map((value, index) => index);
-    this.rank = Array(size).fill(1);
-    this.count = size;
-  }
+    int[] parent;
+    int[] rank;
+    int count;
 
-  find(x) {
-    let current = x;
-    while (this.parent[current] !== current) {
-      this.parent[current] = this.parent[this.parent[current]];
-      current = this.parent[current];
-    }
-    return current;
-  }
-
-  union(x, y) {
-    const rootX = this.find(x);
-    const rootY = this.find(y);
-    if (rootX === rootY) return false;
-
-    if (this.rank[rootX] < this.rank[rootY]) {
-      this.parent[rootX] = rootY;
-    } else if (this.rank[rootX] > this.rank[rootY]) {
-      this.parent[rootY] = rootX;
-    } else {
-      this.parent[rootY] = rootX;
-      this.rank[rootX]++;
+    public UnionFind(int size) {
+        parent = new int[size];
+        for (int i = 0; i < size; i++) {
+            parent[i] = i;
+        }
+        rank = new int[size];
+        for (int i = 0; i < size; i++) {
+            rank[i] = 1;
+        }
+        count = size;
     }
 
-    this.count--;
-    return true;
-  }
+    public int find(int x) {
+        int current = x;
+        while (parent[current] != current) {
+            parent[current] = parent[parent[current]];
+            current = parent[current];
+        }
+        return current;
+    }
+
+    public boolean union(int x, int y) {
+        int rootX = find(x);
+        int rootY = find(y);
+        if (rootX == rootY) return false;
+
+        if (rank[rootX] < rank[rootY]) {
+            parent[rootX] = rootY;
+        } else if (rank[rootX] > rank[rootY]) {
+            parent[rootY] = rootX;
+        } else {
+            parent[rootY] = rootX;
+            rank[rootX]++;
+        }
+
+        count--;
+        return true;
+    }
 }
 
-function removeStones(stones) {
-  const unionFind = new UnionFind(stones.length);
+class Solution {
+    public static int removeStones(int[][] stones) {
+        UnionFind unionFind = new UnionFind(stones.length);
 
-  //two stones belong to the same group if they share a row or a column
-  for (let i = 0; i < stones.length; i++) {
-    for (let j = i + 1; j < stones.length; j++) {
-      if (stones[i][0] === stones[j][0] || stones[i][1] === stones[j][1]) {
-        unionFind.union(i, j);
-      }
+        //two stones belong to the same group if they share a row or a column
+        for (int i = 0; i < stones.length; i++) {
+            for (int j = i + 1; j < stones.length; j++) {
+                if (stones[i][0] == stones[j][0] || stones[i][1] == stones[j][1]) {
+                    unionFind.union(i, j);
+                }
+            }
+        }
+
+        //each connected group of k stones can be reduced to exactly 1 stone
+        return stones.length - unionFind.count;
     }
-  }
 
-  //each connected group of k stones can be reduced to exactly 1 stone
-  return stones.length - unionFind.count;
+    public static void main(String[] args) {
+        System.out.println("Stones removed: " + removeStones(new int[][]{{0, 0}, {0, 1}, {1, 0}, {1, 2}, {2, 1}, {2, 2}}));
+        //Stones removed: 5
+        System.out.println("Stones removed: " + removeStones(new int[][]{{0, 0}, {0, 2}, {1, 1}, {2, 0}, {2, 2}}));
+        //Stones removed: 3
+        System.out.println("Stones removed: " + removeStones(new int[][]{{0, 0}}));
+        //Stones removed: 0
+        System.out.println("Stones removed: " + removeStones(new int[][]{{0, 1}, {1, 0}}));
+        //Stones removed: 0
+    }
 }
-
-console.log(`Stones removed: ${removeStones([[0, 0], [0, 1], [1, 0], [1, 2], [2, 1], [2, 2]])}`);
-//Stones removed: 5
-console.log(`Stones removed: ${removeStones([[0, 0], [0, 2], [1, 1], [2, 0], [2, 2]])}`);
-//Stones removed: 3
-console.log(`Stones removed: ${removeStones([[0, 0]])}`);
-//Stones removed: 0
-console.log(`Stones removed: ${removeStones([[0, 1], [1, 0]])}`);
-//Stones removed: 0
-````
+```
 The first case has all six stones in one group, so `6 - 1 = 5`. The second case has two groups - `{[0,0], [0,2], [2,0], [2,2]}` and the lone `{[1,1]}` - so `5 - 2 = 3`. The last case is the important negative check: `[0, 1]` and `[1, 0]` share neither a row nor a column, so they are two groups and nothing can be removed.
 
 - The <b>time complexity</b> of the above algorithm is `O(N²)`, where `N` is the number of stones, because we compare every pair of stones. Each `union` is `O(α(N))` amortized.

@@ -12,54 +12,61 @@ To reverse a <b>LinkedList</b>, we need to reverse one node at a time. We will s
 
 In a stepwise manner, we will reverse the `current` node by pointing it to the `previous` before moving on to the next node. Also, we will update the `previous` to always point to the previous node that we have processed. 
 
-````js
-class Node {
-  constructor(value, next=null) {
-    this.value = value;
-    this.next = next
-  }
-  
-  printList() {
-    let result = ""
-    let temp = this
-    while(temp !== null) {
-      result += temp.value + " "
-      temp = temp.next
+````java
+class ListNode {
+    int value;
+    ListNode next;
+
+    ListNode(int value) {
+        this.value = value;
+        this.next = null;
     }
-    return result
-  }
+
+    String printList() {
+        StringBuilder result = new StringBuilder();
+        ListNode temp = this;
+        while (temp != null) {
+            result.append(temp.value).append(" ");
+            temp = temp.next;
+        }
+        return result.toString();
+    }
 }
 
-function reverse(head) {
-  let current = head
-  let previous = null
-  
-  while(current !== null) {
-    //temporarily store the next node
-    next = current.next
-    
-    //reverse the current node
-    current.next = previous
-    
-    //before we move to the next node, 
-    //point previous to the current node
-    previous = current
-    
-    //move on to the next node
-    current = next
-  }
-  
-  return previous
+class Solution {
+    public static ListNode reverse(ListNode head) {
+        ListNode current = head;
+        ListNode previous = null;
+        
+        while (current != null) {
+            // temporarily store the next node
+            ListNode next = current.next;
+            
+            // reverse the current node
+            current.next = previous;
+            
+            // before we move to the next node, 
+            // point previous to the current node
+            previous = current;
+            
+            // move on to the next node
+            current = next;
+        }
+        
+        return previous;
+    }
+
+    public static void main(String[] args) {
+        ListNode head = new ListNode(2);
+        head.next = new ListNode(4);
+        head.next.next = new ListNode(6);
+        head.next.next.next = new ListNode(8);
+        head.next.next.next.next = new ListNode(10);
+
+        System.out.println("Nodes of original LinkedList are: " + head.printList());
+        System.out.println("Nodes of reversed LinkedList are: " + reverse(head).printList());
+    }
 }
-
-head = new Node(2)
-head.next = new Node(4);
-head.next.next = new Node(6);
-head.next.next.next = new Node(8);
-head.next.next.next.next = new Node(10);
-
-console.log(`Nodes of original LinkedList are: ${head.printList()}`)
-console.log(`Nodes of reversed LinkedList are: ${reverse(head).printList()}`)
 ````
 
 - The time complexity of our algorithm will be `O(N)` where `N’` is the total number of nodes in the <b>LinkedList</b>.
@@ -75,91 +82,98 @@ The problem follows the <b></i>in-place</i> Reversal</b> of a <b>LinkedList</b> 
 3. Next, reverse the nodes from `p` to `q` using the same approach discussed in <b>Reverse a LinkedList</b>.
 4. Connect the `p-1` and `q+1` nodes to the reversed sub-list.
 
-````js
-class Node {
-  constructor(value, next = null) {
-    this.value = value
-    this.next = next
-  }
-  
-  getList() {
-    let result = ""
-    let temp = this
-    while(temp !== null) {
-      result += temp.value + " "
-      temp = temp.next
+````java
+class ListNode {
+    int value;
+    ListNode next;
+
+    ListNode(int value) {
+        this.value = value;
+        this.next = null;
     }
-    return result
-  }
+
+    String getList() {
+        StringBuilder result = new StringBuilder();
+        ListNode temp = this;
+        while (temp != null) {
+            result.append(temp.value).append(" ");
+            temp = temp.next;
+        }
+        return result.toString();
+    }
 }
 
-function reverseSubList(head, p, q) {
-  if(p === q) {
-    return head
-  }
-  
-  //after skipping p-1 nodes, current will 
-  //point to the p th node
-  
-  let current = head
-  let previous = null
-  
-  let i = 0
-  
-  while(current !== null && i < p - 1) {
-    previous = current
-    current = current.next
-    i++
-  }
-  
-  //we are interested in three parts ofthe LL, 
-  //1. the part before index p
-  //2. the part between p and q
-  //3. and the part after index q
-  
-  const lastNodeOfFirstPart = previous
-  
-  //after reversing the LL current will
-  //become the last node of the subList
-  const lastNodeOfSubList = current
-  
-  //will be used to temporarily store the next node
-  let next = null
-  
-  i = 0
-  //reverse nodes between p and q
-  
-  while (current !== null && i < q - p + 1) {
-    next = current.next
-    current.next = previous
-    previous = current
-    current = next
-    i++
-  }
-  
-  //connect with the first part
-  if(lastNodeOfFirstPart !== null) {
-    //previous is now the first node of the sub list
-    lastNodeOfFirstPart.next = previous
-    //this means p === 1 i.e., we are changing
-    //the first node(head) of the LL
-  } else {
-    head = previous
-  }
-  
-  //connect with the last part
-  lastNodeOfSubList.next = current
-  return head
+class Solution {
+    public static ListNode reverseSubList(ListNode head, int p, int q) {
+        if (p == q) {
+            return head;
+        }
+        
+        // after skipping p-1 nodes, current will 
+        // point to the p th node
+        ListNode current = head;
+        ListNode previous = null;
+        
+        int i = 0;
+        
+        while (current != null && i < p - 1) {
+            previous = current;
+            current = current.next;
+            i++;
+        }
+        
+        // we are interested in three parts of the LL, 
+        // 1. the part before index p
+        // 2. the part between p and q
+        // 3. and the part after index q
+        
+        ListNode lastNodeOfFirstPart = previous;
+        
+        // after reversing the LL current will
+        // become the last node of the subList
+        ListNode lastNodeOfSubList = current;
+        
+        // will be used to temporarily store the next node
+        ListNode next = null;
+        
+        i = 0;
+        // reverse nodes between p and q
+        while (current != null && i < q - p + 1) {
+            next = current.next;
+            current.next = previous;
+            previous = current;
+            current = next;
+            i++;
+        }
+        
+        // connect with the first part
+        if (lastNodeOfFirstPart != null) {
+            // previous is now the first node of the sub list
+            lastNodeOfFirstPart.next = previous;
+            // this means p == 1 i.e., we are changing
+            // the first node(head) of the LL
+        } else {
+            head = previous;
+        }
+        
+        // connect with the last part
+        if (lastNodeOfSubList != null) {
+            lastNodeOfSubList.next = current;
+        }
+        return head;
+    }
+
+    public static void main(String[] args) {
+        ListNode head = new ListNode(1);
+        head.next = new ListNode(2);
+        head.next.next = new ListNode(3);
+        head.next.next.next = new ListNode(4);
+        head.next.next.next.next = new ListNode(5);
+
+        System.out.println("Nodes of original LinkedList are: " + head.getList());
+        System.out.println("Nodes of reversed LinkedList are: " + reverseSubList(head, 2, 4).getList());
+    }
 }
-
-head = new Node(1)
-head.next = new Node(2);
-head.next.next = new Node(3);
-head.next.next.next = new Node(4);
-head.next.next.next.next = new Node(5);
-
-console.log(`Nodes of original LinkedList are: ${head.getList()}`)
-console.log(`Nodes of reversed LinkedList are: ${reverseSubList(head, 2, 4).getList()}`)
 ````
 - The time complexity of our algorithm will be `O(N)` where `N` is the total number of nodes in the <b>LinkedList</b>.
 - We only used constant space, therefore, the space complexity of our algorithm is `O(1)`.
@@ -189,83 +203,92 @@ https://leetcode.com/problems/reverse-nodes-in-k-group/
 
 The problem follows the <b></i>in-place</i> Reversal of a LinkedList</b> pattern and is quite similar to <b>Reverse a Sub-list</b>. The only difference is that we have to reverse all the sub-lists. We can use the same approach, starting with the first sub-list (i.e. `p=1, q=k`) and keep reversing all the sublists of size ‘k’.
 
-````js
-class Node {
-  constructor(value, next=null) {
-    this.value = value
-    this.next = next
-  }
-  
-  getList() {
-    let result = ""
-    let temp = this
-    while(temp !== null) {
-      result += temp.value + " "
-      temp = temp.next
+````java
+class ListNode {
+    int value;
+    ListNode next;
+
+    ListNode(int value) {
+        this.value = value;
+        this.next = null;
     }
-    return result
-  }
+
+    String getList() {
+        StringBuilder result = new StringBuilder();
+        ListNode temp = this;
+        while (temp != null) {
+            result.append(temp.value).append(" ");
+            temp = temp.next;
+        }
+        return result.toString();
+    }
 }
 
-function reverseEveryKElements(head, k) {
-  //edge cases
-  if(k <= 1 || head === null) {
-    return head
-  }
-  
-  let current = head
-  let previous = null
-  
-  while(true) {
-    const lastNodeOfPreviousPart = previous
-    
-    //after reversing the LL current will
-    //become the last node of the sublist
-    const lastNodeOfSubList = current
-    
-    //will be used to temporaily store the next node
-    let next = null
-    
-    let i = 0;
-    
-    //reverse k nodes
-    while(current !== null && i < k) {
-      next = current.next
-      current.next = previous
-      previous = current
-      current = next
-      i++
+class Solution {
+    public static ListNode reverseEveryKElements(ListNode head, int k) {
+        // edge cases
+        if (k <= 1 || head == null) {
+            return head;
+        }
+        
+        ListNode current = head;
+        ListNode previous = null;
+        
+        while (true) {
+            ListNode lastNodeOfPreviousPart = previous;
+            
+            // after reversing the LL current will
+            // become the last node of the sublist
+            ListNode lastNodeOfSubList = current;
+            
+            // will be used to temporarily store the next node
+            ListNode next = null;
+            
+            int i = 0;
+            
+            // reverse k nodes
+            while (current != null && i < k) {
+                next = current.next;
+                current.next = previous;
+                previous = current;
+                current = next;
+                i++;
+            }
+            
+            // connect with the previous part
+            if (lastNodeOfPreviousPart != null) {
+                lastNodeOfPreviousPart.next = previous;
+            } else {
+                head = previous;
+            }
+            
+            // connect with the next part
+            if (lastNodeOfSubList != null) {
+                lastNodeOfSubList.next = current;
+            }
+            
+            if (current == null) {
+                break;
+            }
+            previous = lastNodeOfSubList;
+        }
+        return head;
     }
-    
-    //connect with the previous part
-    if(lastNodeOfPreviousPart !== null) {
-      lastNodeOfPreviousPart.next = previous
-    } else {
-      head = previous
+
+    public static void main(String[] args) {
+        ListNode head = new ListNode(1);
+        head.next = new ListNode(2);
+        head.next.next = new ListNode(3);
+        head.next.next.next = new ListNode(4);
+        head.next.next.next.next = new ListNode(5);
+        head.next.next.next.next.next = new ListNode(6);
+        head.next.next.next.next.next.next = new ListNode(7);
+        head.next.next.next.next.next.next.next = new ListNode(8);
+
+        System.out.println("Nodes of original LinkedList are: " + head.getList());
+        System.out.println("Nodes of reversed LinkedList are: " + reverseEveryKElements(head, 3).getList());
     }
-    
-    //connect with the next part
-    lastNodeOfSubList.next = current
-    
-    if(current === null) {
-      break
-    }
-    previous = lastNodeOfSubList
-  }
-  return head
 }
-
-head = new Node(1)
-head.next = new Node(2)
-head.next.next = new Node(3)
-head.next.next.next = new Node(4)
-head.next.next.next.next = new Node(5)
-head.next.next.next.next.next = new Node(6)
-head.next.next.next.next.next.next = new Node(7)
-head.next.next.next.next.next.next.next = new Node(8)
-
-console.log(`Nodes of original LinkedList are: ${head.getList()}`)
-console.log(`Nodes of reversed LinkedList are: ${reverseEveryKElements(head, 3).getList()}`)
 ````
 - The time complexity of our algorithm will be `O(N)` where `N` is the total number of nodes in the <b>LinkedList</b>. 
 - We only used constant space, therefore, the space complexity of our algorithm is `O(1)`. 
@@ -277,87 +300,93 @@ console.log(`Nodes of reversed LinkedList are: ${reverseEveryKElements(head, 3).
 
 The problem follows the <b></i>in-place</i> Reversal of a LinkedList</b> pattern and is quite similar to <b>Reverse every K-element Sub-list</b>. The only difference is that we have to skip `K` alternating elements. We can follow a similar approach, and in each iteration after reversing `K` elements, we will skip the next `K` elements.
 
-````js
-class Node {
-  constructor(value, next = null) {
-    this.value = value
-    this.next = next
+````java
+class ListNode {
+    int value;
+    ListNode next;
+
+    ListNode(int value) {
+        this.value = value;
+        this.next = null;
+    }
+
+    void printList() {
+        ListNode temp = this;
+        while (temp != null) {
+            System.out.print(temp.value + " ");
+            temp = temp.next;
+        }
+        System.out.println();
+    }
 }
 
-  printList() {
-    let temp = this
-    while(temp !== null) {
-      process.stdout.write(`${temp.value} `);
-      temp = temp.next
+class Solution {
+    public static ListNode reverseAlternateKElements(ListNode head, int k) {
+        if (head == null || k <= 1) return head;
+        
+        ListNode current = head;
+        ListNode previous = null;
+        
+        while (current != null) {
+            // break if we've reached the end of the list
+            ListNode lastNodeOfPreviousPart = previous;
+            
+            // after reversing the LinkedList current will become the last node of the sub-list
+            ListNode lastNodeOfSubList = current;
+            
+            // will be used to temporarily store the next node
+            ListNode next = null;
+            
+            // reverse k nodes
+            int i = 0;
+            while (current != null && i < k) {
+                next = current.next;
+                current.next = previous;
+                previous = current;
+                current = next;
+                i++;
+            }
+            
+            // connect with the previous part
+            if (lastNodeOfPreviousPart != null) {
+                lastNodeOfPreviousPart.next = previous;
+            } else {
+                head = previous;
+            }
+            
+            // connect with the next part
+            if (lastNodeOfSubList != null) {
+                lastNodeOfSubList.next = current;
+            }
+            
+            // skip k nodes
+            i = 0;
+            while (current != null && i < k) {
+                previous = current;
+                current = current.next;
+                i++;
+            }
+        } 
+        return head;
     }
-    console.log()
-  }
+
+    public static void main(String[] args) {
+        ListNode head = new ListNode(1);
+        head.next = new ListNode(2);
+        head.next.next = new ListNode(3);
+        head.next.next.next = new ListNode(4);
+        head.next.next.next.next = new ListNode(5);
+        head.next.next.next.next.next = new ListNode(6);
+        head.next.next.next.next.next.next = new ListNode(7);
+        head.next.next.next.next.next.next.next = new ListNode(8);
+
+        System.out.print("Nodes of original LinkedList are: ");
+        head.printList();
+        ListNode result = reverseAlternateKElements(head, 2);
+        System.out.print("Nodes of reversed LinkedList are: ");
+        result.printList();
+    }
 }
-
-function reverseAlternateKElements(head, k) {
-  if(head === null || k <= 1) return head
-  
-  let current = head
-  let previous = null
-  
-  while (current !== null) {
-    //break if we've reached the end of the list
-    const lastNodeOfPreviousPart = previous
-    
-    //after reversing the LinkedList current will become the last node of the sub-list
-    const lastNodeOfSubList = current
-    
-    //will be used to temporarily store the next node
-    let next = null
-    
-    //reverse k nodes
-    let i = 0
-    while(current !== null && i < k) {
-      next = current.next
-      current.next = previous
-      previous = current
-      current = next
-      i++
-    }
-    
-    //connect with the previous part
-    if(lastNodeOfPreviousPart !== null) {
-      lastNodeOfPreviousPart.next = previous
-    } else {
-      head = previous
-    }
-    
-    //connect with the next part
-    lastNodeOfSubList.next = current
- 
-  
-    //skip k nodes
-    i = 0
-    while (current !== null && i < k){
-      previous = current
-      current = current.next
-      i++
-     }
-  } 
-  return head
-};
-
-
-
-let head = new Node(1);
-head.next = new Node(2);
-head.next.next = new Node(3);
-head.next.next.next = new Node(4);
-head.next.next.next.next = new Node(5);
-head.next.next.next.next.next = new Node(6);
-head.next.next.next.next.next.next = new Node(7);
-head.next.next.next.next.next.next.next = new Node(8);
-
-process.stdout.write('Nodes of original LinkedList are: ');
-head.printList();
-result =  reverseAlternateKElements(head, 2);
-process.stdout.write('Nodes of reversed LinkedList are: ');
-result.printList();
 ````
 
 - The time complexity of our algorithm will be `O(N)`where  `N’` is the total number of nodes in the <b>LinkedList</b>.
@@ -373,66 +402,71 @@ Another way of defining the rotation is to take the sub-list of `K` ending nodes
 2. The new head of the <b>LinkedList</b> will be the node at the beginning of the sublist.
 3. The node right before the start of sub-list will be the new tail of the rotated <b>LinkedList</b>.
 
-````js
-class Node {
-  constructor(value, next=null){
-    this.value = value;
-    this.next = next;
-  }
+````java
+class ListNode {
+    int value;
+    ListNode next;
 
-  getList() {
-    let result = "";
-    let temp = this;
-    while (temp !== null) {
-      result += temp.value + " ";
-      temp = temp.next;
+    ListNode(int value) {
+        this.value = value;
+        this.next = null;
     }
-    return result;
-  }
-};
 
+    String getList() {
+        StringBuilder result = new StringBuilder();
+        ListNode temp = this;
+        while (temp != null) {
+            result.append(temp.value).append(" ");
+            temp = temp.next;
+        }
+        return result.toString();
+    }
+}
 
-function rotate(head, rotations) {
-  if(head === null || head.next === null || rotations <= 0) return head
-  
-  //find the length and the last node of the list
-  let lastNode = head
-  let listLength = 1
-  
-  while(lastNode.next !== null) {
-    lastNode = lastNode.next
-    listLength++
-  }
-  
-  //connect the last node with the head to make it a circular list
-  lastNode.next = head
-  
-  //no need to do rotations more than the length of the list
-  rotations %= listLength
-  let skipLength = listLength - rotations
-  let lastNodeOfRotatedList = head
-  
-  for(let i = 0; i < skipLength - 1; i++) {
-    lastNodeOfRotatedList = lastNodeOfRotatedList.next
-  }
-  
-  //lastNodeOfRotatedList.next is pointing to the sub-list of k ending nodes
-  head = lastNodeOfRotatedList.next
-  lastNodeOfRotatedList.next = null
-  
-  return head
-};
+class Solution {
+    public static ListNode rotate(ListNode head, int rotations) {
+        if (head == null || head.next == null || rotations <= 0) return head;
+        
+        // find the length and the last node of the list
+        ListNode lastNode = head;
+        int listLength = 1;
+        
+        while (lastNode.next != null) {
+            lastNode = lastNode.next;
+            listLength++;
+        }
+        
+        // connect the last node with the head to make it a circular list
+        lastNode.next = head;
+        
+        // no need to do rotations more than the length of the list
+        rotations %= listLength;
+        int skipLength = listLength - rotations;
+        ListNode lastNodeOfRotatedList = head;
+        
+        for (int i = 0; i < skipLength - 1; i++) {
+            lastNodeOfRotatedList = lastNodeOfRotatedList.next;
+        }
+        
+        // lastNodeOfRotatedList.next is pointing to the sub-list of k ending nodes
+        head = lastNodeOfRotatedList.next;
+        lastNodeOfRotatedList.next = null;
+        
+        return head;
+    }
 
+    public static void main(String[] args) {
+        ListNode head = new ListNode(1);
+        head.next = new ListNode(2);
+        head.next.next = new ListNode(3);
+        head.next.next.next = new ListNode(4);
+        head.next.next.next.next = new ListNode(5);
+        head.next.next.next.next.next = new ListNode(6);
 
-head = new Node(1)
-head.next = new Node(2)
-head.next.next = new Node(3)
-head.next.next.next = new Node(4)
-head.next.next.next.next = new Node(5)
-head.next.next.next.next.next = new Node(6)
-
-console.log(`Nodes of original LinkedList are: ${head.getList()}`)
-console.log(`Nodes of rotated LinkedList are: ${rotate(head, 3).getList()}`)
+        System.out.println("Nodes of original LinkedList are: " + head.getList());
+        System.out.println("Nodes of rotated LinkedList are: " + rotate(head, 3).getList());
+    }
+}
 ````
 - The time complexity of our algorithm will be `O(N)` where `N’` is the total number of nodes in the <b>LinkedList</b>.
 - We only used constant space, therefore, the space complexity of our algorithm is `O(1)`.

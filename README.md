@@ -1,6 +1,6 @@
 # Several Coding Patterns for Solving Data Structures and Algorithms Problems during Interviews
 
-These are my notes in <b>Javascript</b> from a [course](https://www.educative.io/courses/grokking-the-coding-interview) that categorizes coding interview problems into a set of <b>16 patterns</b>, plus <b>10 additional patterns</b> (17-26) that the course does not cover but which show up constantly in interviews.
+These are my notes in <b>Java</b> from a [course](https://www.educative.io/courses/grokking-the-coding-interview) that categorizes coding interview problems into a set of <b>16 patterns</b>, plus <b>10 additional patterns</b> (17-26) that the course does not cover but which show up constantly in interviews.
 
 ### The 16 course patterns
 
@@ -26,18 +26,17 @@ These are my notes in <b>Javascript</b> from a [course](https://www.educative.io
 |<b>[Pattern 21: Island (Matrix Traversal)](./✅%20Pattern%2021:%20Island%20%28Matrix%20Traversal%29.md)</b>|<b>[Pattern 26: Data Structure Design](./✅%20Pattern%2026:%20Data%20Structure%20Design.md)</b>|
 
 ## Additional Resources
-Here are a few other resources that I found helpful when learning <b>Data Structures and Algorithms</b> using <b>JavaScript</b>
+Here are a few other resources that I found helpful when learning <b>Data Structures and Algorithms</b> using <b>Java</b>
 
-- [Run JS](https://runjs.app/) - A JavaScript playground
-for your desktop
+- [JDoodle](https://www.jdoodle.com/online-java-compiler/) - A Java playground
+for your browser
 - [Big O CheatSheet](https://www.bigocheatsheet.com/) - Reference for <b>Big-O</b> complexities of common algorithms
 - [Blind 75](https://www.teamblind.com/post/New-Year-Gift---Curated-List-of-Top-75-LeetCode-Questions-to-Save-Your-Time-OaM1orEU) - For additional practice, the [Blind75 list](https://www.teamblind.com/post/New-Year-Gift---Curated-List-of-Top-75-LeetCode-Questions-to-Save-Your-Time-OaM1orEU) of interview questions is 🔥.  I would approach the questions in [this order](https://www.techinterviewhandbook.org/best-practice-questions) or [this order](https://neetcode.io/) or [create a custom Blind75 study plan](https://www.techinterviewhandbook.org/grind75)
-- [Edabit](https://edabit.com/) is a great resource if you need additional <b>Javascript</b> practice before you start using <b>leetcode</b>.
+- [Edabit](https://edabit.com/) is a great resource if you need additional <b>Java</b> practice before you start using <b>leetcode</b>.
 - [LeetCode](https://leetcode.com/problemset/all/) of course
 😋
 - [Pramp](https://www.pramp.com/) - for mock interviews
 - [FreeCodeCamp's Algorithms](https://www.freecodecamp.org/learn/coding-interview-prep/#algorithms) - Extra practice, esp. the <b>Sort Algorithms</b> section.
-- [Build 15 JavaScript Projects - Vanilla JavaScript Course](https://www.youtube.com/watch?v=3PHXvlpOkf4) - for extra <b>Vanilla JavaScript/DOM Manipulation</b> practice.
 # 
 #### 🌟 Challenge Questions
 
@@ -128,10 +127,6 @@ We will be using recursion (or we can also use a stack for the iterative approac
 In many problems, where we are given a set of elements such that we can divide them into two parts. To solve the problem, we are interested in knowing the smallest element in one part and the biggest element in the other part. This pattern is an efficient approach to solve such problems.
 
 This pattern uses two <b>Heaps</b> to solve these problems; A <b>Min Heap</b> to find the smallest element and a <b>Max Heap</b> to find the biggest element.
-<!-- ### ❗ NOTE
-
-Although this course uses <b>Heaps</b> to solve <b>Top 'K' Elements</b> problems, <b>JavaScript</b> does not have a built in method for <b>Heaps/Priority Queues</b>. It can be very time consuming to implement a <b>Heap class</b> from scratch, especially during an interview. After reviewing the <i>JavaScript</i> solutions on <i>Leetcode</i> the most effecient way to solve a <b>Top 'K' Elements</b> problem is usually with <b>[QuickSort](https://github.com/Chanda-Abdul/leetcode/blob/master/0%20%E2%9D%97Sort%20Algorithms.md#-quick-sort)</b>, <b>[BinarySearch](https://github.com/Chanda-Abdul/leetcode/blob/master/0%20%E2%9D%97Sort%20Algorithms.md#binary-search)</b>, <b>[BucketSort](https://initjs.org/bucket-sort-in-javascript-dc040b8f0058)</b>, <b>[Greedy Algorithms](https://github.com/Chanda-Abdul/Grokking-Algorithm-Book-Notes/blob/main/8.%20Greedy%20Algoritms.md)</b>, or <b>[HashMaps](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map)</b>.  -->
-
 ## [Pattern 10: Subsets](./✅%20%20Pattern%2010:%20Subsets.md)
 
 A huge number of coding interview problems involve dealing with <b>Permutations</b> and <b>Combinations</b> of a given set of elements. This pattern describes an efficient <b>Breadth First Search (BFS)</b> approach to handle all these problems.
@@ -146,19 +141,10 @@ As we know, whenever we are given a sorted <b>Array</b> or <b>LinkedList</b> or 
 ## [Pattern 13: Top 'K' Elements](./✅%20Pattern%2013:%20Top%20'K'%20Elements.md)
 
 Any problem that asks us to find the <b>top/smallest/frequent `K` elements</b> among a given set falls under this pattern.
-
-
-<!-- ### ❗ NOTE
-
-Although this course uses <b>Heaps</b> to solve <b>Top 'K' Elements</b> problems, <b>JavaScript</b> does not have a built in method for <b>Heaps/Priority Queues</b>. It can be very time consuming to implement a <b>Heap class</b> from scratch, especially during an interview. After reviewing the <i>JavaScript</i> solutions on <i>Leetcode</i> the most effecient way to solve a <b>Top 'K' Elements</b> problem is usually with <b>[QuickSort](https://github.com/Chanda-Abdul/leetcode/blob/master/0%20%E2%9D%97Sort%20Algorithms.md#-quick-sort)</b>, <b>[BinarySearch](https://github.com/Chanda-Abdul/leetcode/blob/master/0%20%E2%9D%97Sort%20Algorithms.md#binary-search)</b>, <b>[BucketSort](https://initjs.org/bucket-sort-in-javascript-dc040b8f0058)</b>, <b>[Greedy Algorithms](https://github.com/Chanda-Abdul/Grokking-Algorithm-Book-Notes/blob/main/8.%20Greedy%20Algoritms.md)</b>, or <b>[HashMaps](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map)</b>.  -->
-
 ## [Pattern 14: K-way merge](./%E2%9C%85%20Pattern%2014%3A%20K-way%20merge.md)
 This pattern helps us solve problems that involve a list of sorted arrays.
 
 Whenever we are given `K` sorted arrays, we can use a <b>Heap</b> to efficiently perform a sorted traversal of all the elements of all arrays. We can push the smallest (first) element of each sorted array in a <b>Min Heap</b> to get the overall minimum. While inserting elements to the <b>Min Heap</b> we keep track of which array the element came from. We can, then, remove the top element from the heap to get the smallest element and push the next element from the same array, to which this smallest element belonged, to the heap. We can repeat this process to make a sorted traversal of all elements.
-<!-- ### ❗ NOTE
-
-Although this course uses <b>Heaps</b> to solve <b>Top 'K' Elements</b> problems, <b>JavaScript</b> does not have a built in method for <b>Heaps/Priority Queues</b>. It can be very time consuming to implement a <b>Heap class</b> from scratch, especially during an interview. After reviewing the <i>JavaScript</i> solutions on <i>Leetcode</i> the most effecient way to solve a <b>Top 'K' Elements</b> problem is usually with <b>[QuickSort](https://github.com/Chanda-Abdul/leetcode/blob/master/0%20%E2%9D%97Sort%20Algorithms.md#-quick-sort)</b>, <b>[BinarySearch](https://github.com/Chanda-Abdul/leetcode/blob/master/0%20%E2%9D%97Sort%20Algorithms.md#binary-search)</b>, <b>[BucketSort](https://initjs.org/bucket-sort-in-javascript-dc040b8f0058)</b>, <b>[Greedy Algorithms](https://github.com/Chanda-Abdul/Grokking-Algorithm-Book-Notes/blob/main/8.%20Greedy%20Algoritms.md)</b>, or <b>[HashMaps](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map)</b>.  -->
 ## [Pattern 15: 0/1 Knapsack (Dynamic Programming)](./%E2%9C%85%20Pattern%2015:%200-1%20Knapsack%20(Dynamic%20Programming).md)
 <b>0/1 Knapsack pattern</b> is based on the famous problem with the same name which is efficiently solved using <b>Dynamic Programming (DP)</b>.
 
@@ -222,7 +208,7 @@ These notes deliberately include cases where the greedy instinct <b>fails</b>, a
 
 The broader bitwise toolkit beyond <b>[Pattern 12: Bitwise XOR](./✅%20Pattern%2012:%20%20Bitwise%20XOR.md)</b> — masking, shifting, the `n & (n-1)` and `n & -n` idioms, and enumerating subsets with a bitmask.
 
-Includes the <b>JavaScript</b> caveat that trips everyone up: bitwise operators coerce to <i>signed</i> 32-bit integers, so `~`, `<<` and `>>` do not behave as they would in Java or C++, and you often need `>>>`.
+Includes the <b>Java</b> caveat for unsigned bitwise operations: Java lacks unsigned integers, so you must use the `>>>` operator for unsigned right shifts.
 
 ## [Pattern 26: Data Structure Design](./✅%20Pattern%2026:%20Data%20Structure%20Design.md)
 

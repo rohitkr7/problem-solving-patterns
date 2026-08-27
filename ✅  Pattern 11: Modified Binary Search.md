@@ -28,55 +28,58 @@ If the array is sorted in the descending order, we have to update the step 4 abo
 - If `key > arr[middle]`, then we can conclude that the `key` will be greater than all numbers after index `middle` as the array is sorted in the descending order. Hence, we can reduce our search to `end = mid - 1`.
 - If `key < arr[middle]`, then we can conclude that the `key` will be smaller than all the numbers before index `middle` as the array is sorted in the descending order. Hence, we can reduce our search to `start = mid + 1`.
 Finally, how can we figure out the sort order of the input array? We can compare the numbers pointed out by `start` and `end` index to find the sort order. If `arr[start] < arr[end]`, it means that the numbers are sorted in ascending order otherwise they are sorted in the descending order.
-````js
-function binarySearch (arr, key) {
-  let start = 0
-  let end = arr.length -1
-  
-  //check to see if arr is sorted ascending or descending
-  const isAscending = arr[start] < arr[end]
-  
-  while(start <= end) {
-    //calculate the middle of the current range
-    let middle = Math.floor(start + (end-start)/2)
-    
-    if(key === arr[middle]) {
-      return middle
-    }
-    
-    if(isAscending) {
-      //ascending order
-      if(key < arr[middle]) {
-        //the key can be in the first half
-        end = middle - 1
-      } else {
-        //key > arr[middle], so the key can be in the 
-        //second half
-        start = middle + 1
-      }
-    } 
-    else {
-      //descending order
-      if(key > arr[middle]) {
-        //the key can be in the first half
-        end = middle -1
-      } else {
-        //key < arr[middle], the key can be in the 
-        //second half
-        start = middle + 1
-      }
-    }
-  }
-  
-  // key not found
-  return -1;
-};
+```java
+class Solution {
+    public static int binarySearch(int[] arr, int key) {
+        int start = 0;
+        int end = arr.length - 1;
 
-binarySearch([4, 6, 10], 10)//2
-binarySearch([1, 2, 3, 4, 5, 6, 7], 5)//4
-binarySearch([10, 6, 4], 10)//0
-binarySearch([10, 6, 4], 4)//2
-````
+        //check to see if arr is sorted ascending or descending
+        boolean isAscending = arr[start] < arr[end];
+
+        while (start <= end) {
+            //calculate the middle of the current range
+            int middle = start + (end - start) / 2;
+
+            if (key == arr[middle]) {
+                return middle;
+            }
+
+            if (isAscending) {
+                //ascending order
+                if (key < arr[middle]) {
+                    //the key can be in the first half
+                    end = middle - 1;
+                } else {
+                    //key > arr[middle], so the key can be in the 
+                    //second half
+                    start = middle + 1;
+                }
+            } else {
+                //descending order
+                if (key > arr[middle]) {
+                    //the key can be in the first half
+                    end = middle - 1;
+                } else {
+                    //key < arr[middle], the key can be in the 
+                    //second half
+                    start = middle + 1;
+                }
+            }
+        }
+
+        // key not found
+        return -1;
+    }
+
+    public static void main(String[] args) {
+        System.out.println(binarySearch(new int[]{4, 6, 10}, 10)); // 2
+        System.out.println(binarySearch(new int[]{1, 2, 3, 4, 5, 6, 7}, 5)); // 4
+        System.out.println(binarySearch(new int[]{10, 6, 4}, 10)); // 0
+        System.out.println(binarySearch(new int[]{10, 6, 4}, 4)); // 2
+    }
+}
+```
 - Since, we are reducing the search range by half at every step, this means that the time complexity of our algorithm will be `O(log N)` where `N` is the total elements in the given array.
 - The algorithm runs in constant space `O(1)`.
 
@@ -94,45 +97,45 @@ Since we are always adjusting our range to find the `key`, when we exit the loop
 
 We can add a check in the beginning to see if the `key` is bigger than the biggest number in the input array. If so, we can return `-1`.
 
-````js
-function searchCeilingOfNumber(arr, key) {
-  const n = arr.length 
-  let start = 0;
-  let end = n - 1;
-  
-  if (key > arr[end]) {
-    return -1;
-  }
-  
-  while (start <= end) {
-    let mid = Math.floor(start + (end - start) / 2);
-    
-    if (arr[mid] > key) {
-        // key is in first half
-        end = mid - 1;
-      } else if (arr[mid] < key) {
-        //key is in second half
-        start = mid + 1;
-      } else {
-        //found the key
-        return mid
-      }
-  }
-  
-  // since the loop is running until 'start <= end', so at the end of the while loop, 'start === end+1'
-  // we are not able to find the element in the given array, so the next big number will be arr[start]
-  return start;
-}
+```java
+class Solution {
+    public static int searchCeilingOfNumber(int[] arr, int key) {
+        int n = arr.length;
+        int start = 0;
+        int end = n - 1;
 
-searchCeilingOfNumber([4, 6, 10], 6); 
-//1, The smallest number greater than or equal to '6' is '6' having index '1'.
-searchCeilingOfNumber([1, 3, 8, 10, 15], 12); 
-//4, The smallest number greater than or equal to '12' is '15' having index '4'.
-searchCeilingOfNumber([4, 6, 10], 17); 
-//-1, There is no number greater than or equal to '17' in the given array.
-searchCeilingOfNumber([4, 6, 10], -1); 
-//0, The smallest number greater than or equal to '-1' is '4' having index '0'.
-````
+        if (key > arr[end]) {
+            return -1;
+        }
+
+        while (start <= end) {
+            int mid = start + (end - start) / 2;
+
+            if (arr[mid] > key) {
+                // key is in first half
+                end = mid - 1;
+            } else if (arr[mid] < key) {
+                //key is in second half
+                start = mid + 1;
+            } else {
+                //found the key
+                return mid;
+            }
+        }
+
+        // since the loop is running until 'start <= end', so at the end of the while loop, 'start === end+1'
+        // we are not able to find the element in the given array, so the next big number will be arr[start]
+        return start;
+    }
+
+    public static void main(String[] args) {
+        System.out.println(searchCeilingOfNumber(new int[]{4, 6, 10}, 6)); // 1
+        System.out.println(searchCeilingOfNumber(new int[]{1, 3, 8, 10, 15}, 12)); // 4
+        System.out.println(searchCeilingOfNumber(new int[]{4, 6, 10}, 17)); // -1
+        System.out.println(searchCeilingOfNumber(new int[]{4, 6, 10}, -1)); // 0
+    }
+}
+```
 
 - Since, we are reducing the search range by half at every step, this means that the time complexity of our algorithm will be `O(log N)` where `N` is the total elements in the given array.
 - The algorithm runs in constant space `O(1)`.
@@ -143,45 +146,44 @@ https://leetcode.com/problems/search-insert-position/
 >
 > Write a function to return the index of the floor of the ‘key’. If there isn’t a floor, return -1.
 
-````js
-function searchFloorOfNumber(arr, key) {
-  let start = 0;
-  let end = arr.length - 1;
+```java
+class Solution {
+    public static int searchFloorOfNumber(int[] arr, int key) {
+        int start = 0;
+        int end = arr.length - 1;
 
-  if (key < arr[start]) {
-    return -1;
-  }
+        if (key < arr[start]) {
+            return -1;
+        }
 
-  while (start <= end) {
-    let mid = Math.floor(start + (end - start) / 2);
+        while (start <= end) {
+            int mid = start + (end - start) / 2;
 
-    if (key < arr[mid]) {
-      // key is in first half
-      end = mid - 1;
-    } else if (key > arr[mid]) {
-      //key is in second half
-      start = mid + 1;
-    } else {
-      //found the key
-      return mid;
+            if (key < arr[mid]) {
+                // key is in first half
+                end = mid - 1;
+            } else if (key > arr[mid]) {
+                //key is in second half
+                start = mid + 1;
+            } else {
+                //found the key
+                return mid;
+            }
+        }
+
+        // since the loop is running until 'start <= end', so at the end of the while loop, 'start === end+1'
+        // we are not able to find the element in the given array, so the next smaller number will be arr[end]
+        return end;
     }
-  }
 
-  // since the loop is running until 'start <= end', so at the end of the while loop, 'start === end+1'
-  // we are not able to find the element in the given array, so the next smaller number will be arr[end]
-  return end;
+    public static void main(String[] args) {
+        System.out.println(searchFloorOfNumber(new int[]{4, 6, 10}, 6)); // 1
+        System.out.println(searchFloorOfNumber(new int[]{1, 3, 8, 10, 15}, 12)); // 3
+        System.out.println(searchFloorOfNumber(new int[]{4, 6, 10}, 17)); // 2
+        System.out.println(searchFloorOfNumber(new int[]{4, 6, 10}, -1)); // -1
+    }
 }
-
-searchFloorOfNumber([4, 6, 10], 6); 
-//1, The biggest number smaller than or equal to '6' is '6' having index '1'.
-searchFloorOfNumber([1, 3, 8, 10, 15], 12); 
-//3, The biggest number smaller than or equal to '12' is '10' having index '3'.
-searchFloorOfNumber([4, 6, 10], 17); 
-//2, The biggest number smaller than or equal to '17' is '10' having index '2'.
-searchFloorOfNumber([4, 6, 10], -1); 
-//-1, There is no number smaller than or equal to '-1' in the given array.
-
-````
+```
 - Since, we are reducing the search range by half at every step, this means that the time complexity of our algorithm will be `O(log N)` where `N` is the total elements in the given array.
 - The algorithm runs in constant space `O(1)`.
 
@@ -203,37 +205,37 @@ We can use a similar approach as discussed in <b>Ceiling of a Number</b>. There 
 
 In the end, instead of returning the element pointed out by start, we have to return the letter pointed out by `start % array.length`. This is needed because of point 2 discussed above. Imagine that the last letter of the array is equal to the `key`. In that case, we have to return the first letter of the input array.
 
-````js
-function searchNextLetter(letters, key) {
-  let n = letters.length;
-  let start = 0;
-  let end = n - 1;
+```java
+class Solution {
+    public static char searchNextLetter(char[] letters, char key) {
+        int n = letters.length;
+        int start = 0;
+        int end = n - 1;
 
-  while (start <= end) {
-    let mid = Math.floor(start + (end - start) / 2);
+        while (start <= end) {
+            int mid = start + (end - start) / 2;
 
-    //in first half
-    if (key < letters[mid]) {
-      end = mid - 1;
-    } else {
-      //key > letters[mid]
-      //in second half
-      start = mid + 1;
+            //in first half
+            if (key < letters[mid]) {
+                end = mid - 1;
+            } else {
+                //key > letters[mid] or key == letters[mid]
+                //in second half
+                start = mid + 1;
+            }
+        }
+        // since the loop is running until 'start <= end', so at the end of the while loop, 'start === end+1'
+        return letters[start % n];
     }
-  }
-  // since the loop is running until 'start <= end', so at the end of the while loop, 'start === end+1'
-  return letters[start % n];
-}
 
-searchNextLetter(['a', 'c', 'f', 'h'], 'f'); 
-//'h', The smallest letter greater than 'f' is 'h' in the given array.
-searchNextLetter(['a', 'c', 'f', 'h'], 'b'); 
-//'c', The smallest letter greater than 'b' is 'c'.
-searchNextLetter(['a', 'c', 'f', 'h'], 'm'); 
-//'a', As the array is assumed to be circular, the smallest letter greater than 'm' is 'a'.
-searchNextLetter(['a', 'c', 'f', 'h'], 'h'); 
-//'a', As the array is assumed to be circular, the smallest letter greater than 'h' is 'a'.
-````
+    public static void main(String[] args) {
+        System.out.println(searchNextLetter(new char[]{'a', 'c', 'f', 'h'}, 'f')); // 'h'
+        System.out.println(searchNextLetter(new char[]{'a', 'c', 'f', 'h'}, 'b')); // 'c'
+        System.out.println(searchNextLetter(new char[]{'a', 'c', 'f', 'h'}, 'm')); // 'a'
+        System.out.println(searchNextLetter(new char[]{'a', 'c', 'f', 'h'}, 'h')); // 'a'
+    }
+}
+```
 - Since, we are reducing the search range by half at every step, this means that the time complexity of our algorithm will be `O(log N)` where `N` is the total elements in the given array.
 - The algorithm runs in constant space `O(1)`.
 ## Number Range (medium)
@@ -249,50 +251,55 @@ We can use a similar approach as discussed in <b>Order-agnostic Binary Search</b
 1. When trying to find the first position of the `key`, we can update `end = middle - 1` to see if the `key` is present before `middle`.
 2. When trying to find the last position of the `key`, we can update `start = middle + 1` to see if the `key` is present after `middle`.
 In both cases, we will keep track of the last position where we found the `key`. These positions will be the required range.
-````js
-function findRange(arr, key) {
-  let result = [-1, -1]
-  result[0] = binarySearch(arr, key, false)
-  
-  if(result[0] !== -1){
-    //no need to search, if key is not present in the input array
-    result[1] = binarySearch(arr, key, true)
-  }
-  return result;
-}
+```java
+import java.util.*;
 
-function binarySearch(arr, key, findMaxIndex) {
-  let keyIndex = -1;
-  let start = 0;
-  let end = arr.length - 1;
+class Solution {
+    public static int[] findRange(int[] arr, int key) {
+        int[] result = new int[]{-1, -1};
+        result[0] = binarySearch(arr, key, false);
 
-  while (start <= end) {
-    let mid = Math.floor(start + (end - start) / 2);
-
-    if (key < arr[mid]) {
-      end = mid - 1;
-    } else if (key > arr[mid]) {
-      start = mid + 1;
-    } else {
-      //key === arr[mid];
-      keyIndex = mid;
-      if (findMaxIndex) {
-        //search ahead to find the last index of key
-        start = mid + 1;
-      } else {
-        //search behind to find the last index of key
-        end = mid - 1;
-      }
+        if (result[0] != -1) {
+            //no need to search, if key is not present in the input array
+            result[1] = binarySearch(arr, key, true);
+        }
+        return result;
     }
-  }
 
-  return keyIndex;
+    private static int binarySearch(int[] arr, int key, boolean findMaxIndex) {
+        int keyIndex = -1;
+        int start = 0;
+        int end = arr.length - 1;
+
+        while (start <= end) {
+            int mid = start + (end - start) / 2;
+
+            if (key < arr[mid]) {
+                end = mid - 1;
+            } else if (key > arr[mid]) {
+                start = mid + 1;
+            } else {
+                //key == arr[mid];
+                keyIndex = mid;
+                if (findMaxIndex) {
+                    //search ahead to find the last index of key
+                    start = mid + 1;
+                } else {
+                    //search behind to find the last index of key
+                    end = mid - 1;
+                }
+            }
+        }
+        return keyIndex;
+    }
+
+    public static void main(String[] args) {
+        System.out.println(Arrays.toString(findRange(new int[]{4, 6, 6, 6, 9}, 6))); // [1, 3]
+        System.out.println(Arrays.toString(findRange(new int[]{1, 3, 8, 10, 15}, 10))); // [3, 3]
+        System.out.println(Arrays.toString(findRange(new int[]{1, 3, 8, 10, 15}, 12))); // [-1, -1]
+    }
 }
-
-findRange([4, 6, 6, 6, 9], 6); //[1, 3]
-findRange([1, 3, 8, 10, 15], 10); //[3, 3]
-findRange([1, 3, 8, 10, 15], 12); //[-1,-1]
-````
+```
 - Since, we are reducing the search range by half at every step, this means that the time complexity of our algorithm will be `O(log N)` where `N` is the total elements in the given array.
 - The algorithm runs in constant space `O(1)`.
 
@@ -308,56 +315,61 @@ The problem follows the <b>Binary Search</b> pattern. Since <b>Binary Search</b>
 The only issue with applying binary search in this problem is that we don’t know the bounds of the array. To handle this situation, we will first find the proper bounds of the array where we can perform a binary search.
 
 An efficient way to find the proper bounds is to start at the beginning of the array with the bound’s size as `1` and exponentially increase the bound’s size (i.e., double it) until we find the bounds that can have the key.
-````js
+```java
 class ArrayReader {
-  constructor(arr) {
-    this.arr = arr;
-  }
+    int[] arr;
 
-  get(index) {
-    if (index >= this.arr.length) return Number.MAX_SAFE_INTEGER;
-    return this.arr[index];
-  }
-}
-
-function searchInInfiniteArray(reader, key) {
-  //1. find the proper bounds
-  let start = 0;
-  let end = 1;
-  while (reader.get(end) < key) {
-    let newStart = end + 1;
-    end += (end - start + 1) * 2;
-
-    //2. increase to double the bounds size
-    start = newStart;
-  }
-  return binarySearch(reader, key, start, end);
-}
-
-function binarySearch(reader, key, start, end) {
-  while (start <= end) {
-    let mid = Math.floor(start + (end - start) / 2);
-
-    if (key < reader.get(mid)) {
-      end = mid - 1;
-    } else if (key > reader.get(mid)) {
-      start = mid + 1;
-    } else {
-      //found the key
-      return mid;
+    ArrayReader(int[] arr) {
+        this.arr = arr;
     }
-  }
-  return -1;
+
+    public int get(int index) {
+        if (index >= arr.length)
+            return Integer.MAX_VALUE;
+        return arr[index];
+    }
 }
 
-reader = new ArrayReader([4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30]);
-searchInInfiniteArray(reader, 11); //-1, The key is not present in the array.
-searchInInfiniteArray(reader, 16); // 6, The key is present at index '6' in the array.
+class Solution {
+    public static int searchInInfiniteArray(ArrayReader reader, int key) {
+        //1. find the proper bounds
+        int start = 0;
+        int end = 1;
+        while (reader.get(end) < key) {
+            int newStart = end + 1;
+            end += (end - start + 1) * 2;
+            //2. increase to double the bounds size
+            start = newStart;
+        }
+        return binarySearch(reader, key, start, end);
+    }
 
-reader = new ArrayReader([1, 3, 8, 10, 15]);
-searchInInfiniteArray(reader, 15); //4, The key is present at index '4' in the array.
-searchInInfiniteArray(reader, 200); //-1, The key is not present in the array.
-````
+    private static int binarySearch(ArrayReader reader, int key, int start, int end) {
+        while (start <= end) {
+            int mid = start + (end - start) / 2;
+            if (key < reader.get(mid)) {
+                end = mid - 1;
+            } else if (key > reader.get(mid)) {
+                start = mid + 1;
+            } else {
+                //found the key
+                return mid;
+            }
+        }
+        return -1;
+    }
+
+    public static void main(String[] args) {
+        ArrayReader reader = new ArrayReader(new int[]{4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30});
+        System.out.println(searchInInfiniteArray(reader, 11)); // -1
+        System.out.println(searchInInfiniteArray(reader, 16)); // 6
+
+        reader = new ArrayReader(new int[]{1, 3, 8, 10, 15});
+        System.out.println(searchInInfiniteArray(reader, 15)); // 4
+        System.out.println(searchInInfiniteArray(reader, 200)); // -1
+    }
+}
+```
 
 - There are two parts of the algorithm. In the first part, we keep increasing the bound’s size exponentially (double it every time) while searching for the proper bounds. Therefore, this step will take `O(log N)` assuming that the array will have maximum `N` numbers. In the second step, we perform the binary search which will take `O(log N)`, so the overall time complexity of our algorithm will be` O(log N + log N)` which is asymptotically equivalent to `O(log N)`.
 
@@ -370,46 +382,46 @@ https://leetcode.com/problems/minimum-absolute-difference/
 The problem follows the <b>Binary Search</b> pattern. Since <b>Binary Search</b> helps us find a number in a sorted array efficiently, we can use a modified version of the <b>Binary Search</b> to find the number that has the minimum difference with the given `key`.
 
 We can use a similar approach as discussed in <b>Order-agnostic Binary Search</b>. We will try to search for the `key` in the given array. If we find the `key` we will return it as the minimum difference number. If we can’t find the `key`, (at the end of the loop) we can find the differences between the `key` and the numbers pointed out by indices `start` and `end`, as these two numbers will be closest to the `key`. The number that gives minimum difference will be our required number.
-````js
-function searchMinDiffElement(arr, key) {
-  let start = 0;
-  let end = arr.length - 1;
+```java
+class Solution {
+    public static int searchMinDiffElement(int[] arr, int key) {
+        int start = 0;
+        int end = arr.length - 1;
 
-  if (key <= arr[start]) {
-    return arr[start];
-  } else if (key >= arr[end]) {
-    return arr[end];
-  }
+        if (key <= arr[start]) {
+            return arr[start];
+        } else if (key >= arr[end]) {
+            return arr[end];
+        }
 
-  while (start <= end) {
-    let mid = Math.floor(start + (end - start) / 2);
+        while (start <= end) {
+            int mid = start + (end - start) / 2;
 
-    if (key < arr[mid]) {
-      end = mid - 1;
-    } else if (key > arr[mid]) {
-      start = mid + 1;
-    } else {
-      return arr[mid];
+            if (key < arr[mid]) {
+                end = mid - 1;
+            } else if (key > arr[mid]) {
+                start = mid + 1;
+            } else {
+                return arr[mid];
+            }
+        }
+        // at the end of the while loop, 'start === end+1'
+        // we are not able to find the element in the given array
+        // return the element which is closest to the 'key'
+        if (arr[start] - key < key - arr[end]) {
+            return arr[start];
+        }
+        return arr[end];
     }
-  }
-  // at the end of the while loop, 'start === end+1'
-  // we are not able to find the element in the given array
-  // return the element which is closest to the 'key'
-  if (arr[start] - key < key - arr[end]) {
-    return arr[start];
-  }
-  return arr[end];
-}
 
-searchMinDiffElement([4, 6, 10], 7);
-//6, The difference between the key '7' and '6' is minimum than any other number in the array
-searchMinDiffElement([4, 6, 10], 4);
-//4
-searchMinDiffElement([1, 3, 8, 10, 15], 12);
-//10
-searchMinDiffElement([4, 6, 10], 17);
-//10
-````
+    public static void main(String[] args) {
+        System.out.println(searchMinDiffElement(new int[]{4, 6, 10}, 7)); // 6
+        System.out.println(searchMinDiffElement(new int[]{4, 6, 10}, 4)); // 4
+        System.out.println(searchMinDiffElement(new int[]{1, 3, 8, 10, 15}, 12)); // 10
+        System.out.println(searchMinDiffElement(new int[]{4, 6, 10}, 17)); // 10
+    }
+}
+```
 - Since, we are reducing the search range by half at every step, this means the time complexity of our algorithm will be `O(logN)` where `N` is the total elements in the given array.
 - The algorithm runs in constant space `O(1)`.
 ## Bitonic Array Maximum (easy)
@@ -421,35 +433,34 @@ A <b>bitonic array</b> is a sorted array; the only difference is that its first 
 
 We can break when `start == end`. Due to the two points mentioned above, both `start` and `end` will be pointing at the maximum number of the bitonic array.
 
-````js
-function findMaxInBitonicArray(arr) {
-  let start = 0;
-  let end = arr.length - 1;
+```java
+class Solution {
+    public static int findMaxInBitonicArray(int[] arr) {
+        int start = 0;
+        int end = arr.length - 1;
 
-  while (start < end) {
-    let mid = Math.floor(start + (end - start) / 2);
+        while (start < end) {
+            int mid = start + (end - start) / 2;
 
-    if (arr[mid] > arr[mid + 1]) {
-      end = mid;
-    } else {
-      //arr[mid] < arr[mid+1]
-      start = mid + 1;
+            if (arr[mid] > arr[mid + 1]) {
+                end = mid;
+            } else {
+                //arr[mid] < arr[mid+1]
+                start = mid + 1;
+            }
+        }
+        //at the end of the while loop start == end
+        return arr[start];
     }
-  }
-  //at the end of the while loop start === end
-  return arr[start];
+
+    public static void main(String[] args) {
+        System.out.println(findMaxInBitonicArray(new int[]{1, 3, 8, 12, 4, 2})); // 12
+        System.out.println(findMaxInBitonicArray(new int[]{3, 8, 3, 1})); // 8
+        System.out.println(findMaxInBitonicArray(new int[]{1, 3, 8, 12})); // 12
+        System.out.println(findMaxInBitonicArray(new int[]{10, 9, 8})); // 10
+    }
 }
-
-findMaxInBitonicArray([1, 3, 8, 12, 4, 2]);
-//12, The maximum number in the input bitonic array is '12'.
-
-findMaxInBitonicArray([3, 8, 3, 1]);
-//8
-findMaxInBitonicArray([1, 3, 8, 12]);
-//12
-findMaxInBitonicArray([10, 9, 8]);
-//10
-````
+```
 
 - Since, we are reducing the search range by half at every step, this means the time complexity of our algorithm will be `O(logN)` where `N` is the total elements in the given array.
 - The algorithm runs in constant space `O(1)`.
@@ -467,85 +478,85 @@ Here is how we can search in a <b>bitonic array</b>:
     - Array from index `0` to `maxIndex`, sorted in ascending order.
     - Array from index `maxIndex+1` to `array_length-1`, sorted in descending order.
 3. We can then call <b>Binary Search</b> separately in these two arrays to search the `key`. We can use the same <b>Order-agnostic Binary Search</b> for searching.
-````js
-function searchBitonicArray(arr, key) {
-  const maxIndex = findMax(arr);
-  const keyIndex = binarySearch(arr, key, 0, maxIndex);
-  if (keyIndex !== -1) {
-    return keyIndex;
-  }
+```java
+class Solution {
+    public static int searchBitonicArray(int[] arr, int key) {
+        int maxIndex = findMax(arr);
+        int keyIndex = binarySearch(arr, key, 0, maxIndex);
+        if (keyIndex != -1) {
+            return keyIndex;
+        }
 
-  return binarySearch(arr, key, maxIndex + 1, arr.length - 1);
-}
-
-//find index of the max value in bitonic array
-function findMax(arr) {
-  let start = 0;
-  let end = arr.length - 1;
-
-  while (start < end) {
-    const mid = Math.floor(start + (end - start) / 2);
-
-    if (arr[mid] > arr[mid + 1]) {
-      end = mid;
-    } else {
-      //arr[mid] < arr[mid+1]
-      start = mid + 1;
-    }
-  }
-  //at the end of the while loop start === end
-  return start;
-}
-
-//order-agnostic binary search
-function binarySearch(arr, key, start, end) {
-  //check to see if arr is sorted ascending or descending
-  const isAscending = arr[start] < arr[end];
-
-  while (start <= end) {
-    //calculate the middle of the current range
-    const middle = Math.floor(start + (end - start) / 2);
-
-    if (key === arr[middle]) {
-      return middle;
+        return binarySearch(arr, key, maxIndex + 1, arr.length - 1);
     }
 
-    if (isAscending) {
-      //ascending order
-      if (key < arr[middle]) {
-        //the key can be in the first half
-        end = middle - 1;
-      } else {
-        //key > arr[middle], so the key can be in the
-        //second half
-        start = middle + 1;
-      }
-    } else {
-      //descending order
-      if (key > arr[middle]) {
-        //the key can be in the first half
-        end = middle - 1;
-      } else {
-        //key < arr[middle], the key can be in the
-        //second half
-        start = middle + 1;
-      }
+    //find index of the max value in bitonic array
+    private static int findMax(int[] arr) {
+        int start = 0;
+        int end = arr.length - 1;
+
+        while (start < end) {
+            int mid = start + (end - start) / 2;
+
+            if (arr[mid] > arr[mid + 1]) {
+                end = mid;
+            } else {
+                //arr[mid] < arr[mid+1]
+                start = mid + 1;
+            }
+        }
+        //at the end of the while loop start == end
+        return start;
     }
-  }
 
-  // key not found
-  return -1;
+    //order-agnostic binary search
+    private static int binarySearch(int[] arr, int key, int start, int end) {
+        //check to see if arr is sorted ascending or descending
+        boolean isAscending = arr[start] < arr[end];
+
+        while (start <= end) {
+            //calculate the middle of the current range
+            int middle = start + (end - start) / 2;
+
+            if (key == arr[middle]) {
+                return middle;
+            }
+
+            if (isAscending) {
+                //ascending order
+                if (key < arr[middle]) {
+                    //the key can be in the first half
+                    end = middle - 1;
+                } else {
+                    //key > arr[middle], so the key can be in the
+                    //second half
+                    start = middle + 1;
+                }
+            } else {
+                //descending order
+                if (key > arr[middle]) {
+                    //the key can be in the first half
+                    end = middle - 1;
+                } else {
+                    //key < arr[middle], the key can be in the
+                    //second half
+                    start = middle + 1;
+                }
+            }
+        }
+
+        // key not found
+        return -1;
+    }
+
+    public static void main(String[] args) {
+        System.out.println(searchBitonicArray(new int[]{1, 3, 8, 4, 3}, 4)); // 3
+        System.out.println(searchBitonicArray(new int[]{3, 8, 3, 1}, 8)); // 1
+        System.out.println(searchBitonicArray(new int[]{1, 3, 8, 12}, 12)); // 3
+        System.out.println(searchBitonicArray(new int[]{10, 9, 8}, 10)); // 0
+    }
 }
-
-searchBitonicArray([1, 3, 8, 4, 3], 4);
-//3
-searchBitonicArray([3, 8, 3, 1], 8);
-//1
-searchBitonicArray([1, 3, 8, 12], 12);
-//3
-searchBitonicArray([10, 9, 8], 10);
-//0
-````
+```
 - Since, we are reducing the search range by half at every step, this means the time complexity of our algorithm will be `O(logN)` where `N` is the total elements in the given array.
 - The algorithm runs in constant space `O(1)`.
 ## 🌟 Search in Rotated Array (medium)
@@ -566,47 +577,49 @@ Once we know which part of the array is sorted, it is easy to adjust our ranges.
 
 Since there are no duplicates in the given array, it is always easy to skip one part of the array in each iteration. However, if there are duplicates, it is not always possible to know which part is sorted. We will look into this case in the <b>Similar Problems</b> section.
 
-````js
-function searchRotatedArray(arr, key) {
-  let start = 0;
-  let end = arr.length - 1;
+```java
+class Solution {
+    public static int searchRotatedArray(int[] arr, int key) {
+        int start = 0;
+        int end = arr.length - 1;
 
-  while (start <= end) {
-    const mid = Math.floor(start + (end - start) / 2);
+        while (start <= end) {
+            int mid = start + (end - start) / 2;
 
-    if (key === arr[mid]) {
-      return mid;
+            if (key == arr[mid]) {
+                return mid;
+            }
+
+            if (arr[start] <= arr[mid]) {
+                //first half is sorted in ascending order
+                if (key >= arr[start] && key < arr[mid]) {
+                    //the key can be in the first half
+                    end = mid - 1;
+                } else {
+                    //key > arr[middle], so the key can be in the
+                    //second half
+                    start = mid + 1;
+                }
+            } else {
+                //second half is in ascending order
+                if (key > arr[mid] && key <= arr[end]) {
+                    start = mid + 1;
+                } else {
+                    end = mid - 1;
+                }
+            }
+        }
+
+        // key not found
+        return -1;
     }
 
-    if (arr[start] <= arr[mid]) {
-      //first half is sorted in ascending order
-      if (key >= arr[start] && key < arr[mid]) {
-        //the key can be in the first half
-        end = mid - 1;
-      } else {
-        //key > arr[middle], so the key can be in the
-        //second half
-        start = mid + 1;
-      }
-    } else {
-      //second half is in descending order
-      if (key > arr[mid] && key <= arr[end]) {
-        start = mid + 1;
-      } else {
-        end = mid - 1;
-      }
+    public static void main(String[] args) {
+        System.out.println(searchRotatedArray(new int[]{10, 15, 1, 3, 8}, 15)); // 1
+        System.out.println(searchRotatedArray(new int[]{4, 5, 7, 9, 10, -1, 2}, 10)); // 4
     }
-  }
-
-  // key not found
-  return -1;
 }
-
-searchRotatedArray([10, 15, 1, 3, 8], 15);
-//1, '15' is present in the array at index '1'.
-searchRotatedArray([4, 5, 7, 9, 10, -1, 2], 10);
-//4,'10' is present in the array at index '4'.
-````
+```
 - Since, we are reducing the search range by half at every step, this means the time complexity of our algorithm will be `O(logN)` where `N` is the total elements in the given array.
 - The algorithm runs in constant space `O(1)`.
 ### Similar Problem
@@ -616,51 +629,53 @@ https://leetcode.com/problems/search-in-rotated-sorted-array-ii/
 > The code above will fail in the following example!
 
 The only problematic scenario is when the numbers at indices `start`, `middle`, and `end` are the same, as in this case, we can’t decide which part of the array is sorted. In such a case, the best we can do is to skip one number from both ends: `start = start + 1` & `end = end - 1`.
-````js
-function searchRotatedArrayWithDuplicates(arr, key) {
-  let start = 0;
-  let end = arr.length - 1;
+```java
+class Solution {
+    public static int searchRotatedArrayWithDuplicates(int[] arr, int key) {
+        int start = 0;
+        int end = arr.length - 1;
 
-  while (start <= end) {
-    const mid = Math.floor(start + (end - start) / 2);
+        while (start <= end) {
+            int mid = start + (end - start) / 2;
 
-    if (key === arr[mid]) {
-      return mid;
+            if (key == arr[mid]) {
+                return mid;
+            }
+            // the only difference from the previous solution,
+            // if numbers at indices start, mid, and end are same, we can't choose a side
+            // the best we can do, is to skip one number from both ends as key != arr[mid]
+            if (arr[start] == arr[mid] && arr[end] == arr[mid]) {
+                start += 1;
+                end -= 1;
+            } else if (arr[start] <= arr[mid]) {
+                //first half is sorted in ascending order
+                if (key >= arr[start] && key < arr[mid]) {
+                    //the key can be in the first half
+                    end = mid - 1;
+                } else {
+                    //key > arr[middle], so the key can be in the
+                    //second half
+                    start = mid + 1;
+                }
+            } else {
+                //second half is in ascending order
+                if (key > arr[mid] && key <= arr[end]) {
+                    start = mid + 1;
+                } else {
+                    end = mid - 1;
+                }
+            }
+        }
+
+        // key not found
+        return -1;
     }
-    // the only difference from the previous solution,
-    // if numbers at indexes start, mid, and end are same, we can't choose a side
-    // the best we can do, is to skip one number from both ends as key !== arr[mid]
-    if (arr[start] === arr[mid] && arr[end] === arr[mid]) {
-      start += 1;
-      end -= 1;
-    } else if (arr[start] <= arr[mid]) {
-      //first half is sorted in ascending order
-      if (key >= arr[start] && key < arr[mid]) {
-        //the key can be in the first half
-        end = mid - 1;
-      } else {
-        //key > arr[middle], so the key can be in the
-        //second half
-        start = mid + 1;
-      }
-    } else {
-      //second half is in descending order
-      if (key > arr[mid] && key <= arr[end]) {
-        start = mid + 1;
-      } else {
-        end = mid - 1;
-      }
-    }
-  }
 
-  // key not found
-  return -1;
+    public static void main(String[] args) {
+        System.out.println(searchRotatedArrayWithDuplicates(new int[]{3, 7, 3, 3, 3}, 7)); // 1
+    }
 }
-
-searchRotatedArrayWithDuplicates([3, 7, 3, 3, 3], 7);
-//1, '7' is present in the array at index '1'.
-
-````
+```
 - This algorithm will run most of the times in `O(logN)`. However, since we only skip two numbers in case of duplicates instead of half of the numbers, the worst case time complexity will become `O(N)`.
 - The algorithm runs in constant space `O(1)`.
 
@@ -685,47 +700,45 @@ After calculating the `middle`, we can compare the number at index `middle` with
 To adjust the ranges we can follow the same approach as discussed in <b>Search in Rotated Array</b>. Comparing the numbers at indices `start` and `middle` will give us two options:
 1. If `arr[start] < arr[middle]`, the numbers from `start` to `middle` are sorted.
 2. Else, the numbers from `middle + 1` to `end` are sorted.
-````js
-function countRotations(arr) {
-  let start = 0;
-  let end = arr.length - 1;
+```java
+class Solution {
+    public static int countRotations(int[] arr) {
+        int start = 0;
+        int end = arr.length - 1;
 
-  while (start < end) {
-    const mid = Math.floor(start + (end - start) / 2);
+        while (start < end) {
+            int mid = start + (end - start) / 2;
 
-    // if mid is greater than the next element
-    if (mid < end && arr[mid] > arr[mid + 1]) {
-      return mid + 1;
+            // if mid is greater than the next element
+            if (mid < end && arr[mid] > arr[mid + 1]) {
+                return mid + 1;
+            }
+
+            // if mid is smaller than the next element
+            if (mid > start && arr[mid - 1] > arr[mid]) {
+                return mid;
+            }
+
+            if (arr[start] < arr[mid]) {
+                //first half is sorted, so pivot is in second half
+                start = mid + 1;
+            } else {
+                //second half is sorted, so pivot is in first half
+                end = mid - 1;
+            }
+        }
+
+        // key not found (array not rotated)
+        return 0;
     }
 
-    // if mid is smaller than the next element
-    if (mid > start && arr[mid - 1] > arr[mid]) {
-      return mid;
+    public static void main(String[] args) {
+        System.out.println(countRotations(new int[]{10, 15, 1, 3, 8})); // 2
+        System.out.println(countRotations(new int[]{4, 5, 7, 9, 10, -1, 2})); // 5
+        System.out.println(countRotations(new int[]{1, 3, 8, 10})); // 0
     }
-
-    if (arr[start] < arr[mid]) {
-      //first half is sorted, so pivot is in second half
-      start = mid + 1;
-    } else {
-      //second half is sorted, so pivot is in first half
-
-      end = mid - 1;
-    }
-  }
-
-  // key not found
-  return 0;
 }
-
-countRotations([10, 15, 1, 3, 8]);
-//2, The array has been rotated 2 times.
-
-countRotations([4, 5, 7, 9, 10, -1, 2]);
-//5, The array has been rotated 5 times.
-
-countRotations([1, 3, 8, 10]);
-//0, The array has been not been rotated.
-````
+```
 - Since, we are reducing the search range by half at every step, this means the time complexity of our algorithm will be `O(logN)` where `N` is the total elements in the given array.
 - The algorithm runs in constant space `O(1)`.
 
@@ -736,58 +749,61 @@ https://leetcode.com/problems/find-minimum-in-rotated-sorted-array-ii/
 > The above code will fail on the following example!
 
 We can follow the same approach as discussed in <b>Search in Rotated Array</b>. The only difference is that before incrementing `start` or decrementing `end`, we will check if either of them is the smallest number.
-````js
-function countRotationsWithDuplicates(arr) {
-  let start = 0;
-  let end = arr.length - 1;
+```java
+class Solution {
+    public static int countRotationsWithDuplicates(int[] arr) {
+        int start = 0;
+        int end = arr.length - 1;
 
-  while (start < end) {
-    const mid = Math.floor(start + (end - start) / 2);
+        while (start < end) {
+            int mid = start + (end - start) / 2;
 
-    // if mid is greater than the next element
-    if (mid < end && arr[mid] > arr[mid + 1]) {
-      return mid + 1;
+            // if mid is greater than the next element
+            if (mid < end && arr[mid] > arr[mid + 1]) {
+                return mid + 1;
+            }
+
+            // if mid is smaller than the next element
+            if (mid > start && arr[mid - 1] > arr[mid]) {
+                return mid;
+            }
+
+            // this is the only difference from the previous solution
+            // if numbers at indices start, mid, and end are same, we can't choose a side
+            // the best we can do is to skip one number from both ends if they are not the smallest number
+            if (arr[start] == arr[mid] && arr[end] == arr[mid]) {
+                if (arr[start] > arr[start + 1]) {
+                    // if element at start+1 is not the smallest
+                    return start + 1;
+                }
+                start++;
+                if (arr[end - 1] > arr[end]) {
+                    // if the element at end is not the smallest
+                    return end;
+                }
+                end--;
+            }
+            // left side is sorted, so the pivot is on right side
+            else if (
+                    arr[start] < arr[mid] ||
+                    (arr[start] == arr[mid] && arr[mid] > arr[end])
+            ) {
+                start = mid + 1;
+            } else {
+                // right side is sorted, so the pivot is on the left side
+                end = mid - 1;
+            }
+        }
+
+        // the array has not been rotated
+        return 0;
     }
 
-    // if mid is smaller than the next element
-    if (mid > start && arr[mid - 1] > arr[mid]) {
-      return mid;
+    public static void main(String[] args) {
+        System.out.println(countRotationsWithDuplicates(new int[]{3, 3, 7, 3})); // 3
     }
-
-    // this is the only difference from the previous solution
-    // if numbers at indices start, mid, and end are same, we can't choose a side
-    // the best we can do is to skip one number from both ends if they are not the smallest number
-    if (arr[start] === arr[mid] && arr[end] === arr[mid]) {
-      if (arr[start] > arr[start + 1]) {
-        // if element at start+1 is not the smallest
-        return start + 1;
-      }
-      start++;
-      if (arr[end - 1] > arr[end]) {
-        // if the element at end is not the smallest
-        return end;
-      }
-      end--;
-    }
-    // left side is sorted, so the pivot is on right side
-    else if (
-      arr[start] < arr[mid] ||
-      (arr[start] == arr[mid] && arr[mid] > arr[end])
-    ) {
-      start = mid + 1;
-    } else {
-      // right side is sorted, so the pivot is on the left side
-      end = mid - 1;
-    }
-  }
-
-  // the array has not been rotated
-  return 0;
 }
-
-countRotationsWithDuplicates([3, 3, 7, 3]);
-//3, The array has been rotated 3 times
-````
+```
 - This algorithm will run in `O(logN)` most of the times, but since we only skip two numbers in case of duplicates instead of the half of the numbers, therefore the worst case time complexity will become `O(N)`.
 - The algorithm runs in constant space `O(1)`.
 

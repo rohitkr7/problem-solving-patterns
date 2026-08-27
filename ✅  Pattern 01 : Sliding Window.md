@@ -12,23 +12,27 @@ Lets understand this problem with a real input:
 
 A <b>brute-force</b> algorithm will calculate the sum of every 5-element contiguous subarray of the given array and divide the sum by 5 to find the average.
 
-````js
-function findAvgOfSubarrays(arr, K) {
-  const results = []
-  
-  for(let i = 0; i < arr.length - K + 1; i++) {
-    let sum = 0
-    
-    for(let j = i; j < i + K; j++) {
-      sum += arr[j]
+````java
+class Solution {
+    public static double[] findAvgOfSubarrays(int[] arr, int K) {
+        double[] results = new double[arr.length - K + 1];
+        
+        for (int i = 0; i <= arr.length - K; i++) {
+            double sum = 0;
+            
+            for (int j = i; j < i + K; j++) {
+                sum += arr[j];
+            }
+            results[i] = sum / K;
+        }
+        return results;
     }
-    results.push(sum/K)  
-  }
-  return results
+
+    public static void main(String[] args) {
+        double[] result = findAvgOfSubarrays(new int[]{1, 3, 2, 6, -1, 4, 1, 8, 2}, 5);
+        // Arrays.toString(result) -> [2.2, 2.8, 2.4, 3.6, 2.8]
+    }
 }
-
-
-findAvgOfSubarrays([1, 3, 2, 6, -1, 4, 1, 8, 2], 5)
 ````
 
 <b>Time complexity: </b> Since for every element of the input array, we are calculating the sum of its next `K` elements, the time complexity of the above algorithm will be `O(N*K)` where `N` is the number of elements in the input array.
@@ -40,40 +44,39 @@ The inefficiency is that for any two consecutive subarrays of size `5`, the over
 The efficient way to solve this problem would be to visualize each contiguous subarray as a <i>sliding window</i> of `5` elements. This means that we will slide the window by one element when we move on to the next subarray. To reuse the sum from the previous subarray, we will subtract the element going out of the window and add the element now being included in the <i>sliding window</i>. This will save us from going through the whole subarray to find the sum and, as a result, the algorithm complexity will reduce to `O(N)`.
 
 Here is the algorithm for the <b>Sliding Window</b> approach:
-````js
-function findAveragesOfSubarrays(arr, k) {
-  //sliding window approach
-  
-  const results = []
-  let windowSum = 0
-  let windowStart = 0
-  
-  for(let windowEnd = 0; windowEnd < arr.length; windowEnd++) {
-    //add the next element
-    windowSum += arr[windowEnd]
-    
-    //slide the window forward 
-    //we don't need to slide if we have not hit the required window size of k
-    
-    if (windowEnd >= k - 1) {
-      //we are **AUTOMATICALLY** returning the window average once we hit the window size of k
-      //and pushing to the output array
-      results.push(windowSum/k)
-      
-      //subtracting the element going out
-      windowSum -= arr[windowStart]
-      
-      //then sliding the window forward
-      windowStart++
-      
-      //adding the element coming in, in the outer/previous loop
-      //and repeating this process until we hit the end of the array
-    } 
-  }
-  return results
-}
+````java
+class Solution {
+    public static double[] findAveragesOfSubarrays(int[] arr, int k) {
+        // sliding window approach
+        double[] results = new double[arr.length - k + 1];
+        double windowSum = 0;
+        int windowStart = 0;
+        
+        for (int windowEnd = 0; windowEnd < arr.length; windowEnd++) {
+            // add the next element
+            windowSum += arr[windowEnd];
+            
+            // slide the window forward 
+            // we don't need to slide if we have not hit the required window size of k
+            if (windowEnd >= k - 1) {
+                // return the window average once we hit the window size of k
+                results[windowStart] = windowSum / k;
+                
+                // subtract the element going out
+                windowSum -= arr[windowStart];
+                
+                // slide the window forward
+                windowStart++;
+            } 
+        }
+        return results;
+    }
 
-findAveragesOfSubarrays([1, 3, 2, 6, -1, 4, 1, 8, 2], 5)//[2.2, 2.8, 2.4, 3.6, 2.8]
+    public static void main(String[] args) {
+        findAveragesOfSubarrays(new int[]{1, 3, 2, 6, -1, 4, 1, 8, 2}, 5); 
+        // [2.2, 2.8, 2.4, 3.6, 2.8]
+    }
+}
 ````
 ## Maximum Sum Subarray of Size K (easy)
 https://leetcode.com/problems/largest-subarray-length-k/
@@ -81,30 +84,32 @@ https://leetcode.com/problems/largest-subarray-length-k/
 ### Brute Force
 
 A basic brute force solution will be to calculate the sum of all `K` sized subarrays of the given array to find the subarray with the highest sum. We can start from every index of the given array and add the next `K` elements to find the subarrays sum.
-````js
-function maxSubarrayOfSizeK(arr, k) {
-  //brute force
-  let maxSum = 0
-  let windowSum = 0
-  
-  //loop through array
-  for(let i = 0; i < arr.length -k + 1; i++) {
-    
-    //keep track of sum in current window
-    windowSum = 0
-    for(let j = i; j < i + k; j++) {
-      windowSum += arr[j]
+````java
+class Solution {
+    public static int maxSubarrayOfSizeK(int[] arr, int k) {
+        // brute force
+        int maxSum = 0;
+        int windowSum = 0;
+        
+        // loop through array
+        for (int i = 0; i <= arr.length - k; i++) {
+            // keep track of sum in current window
+            windowSum = 0;
+            for (int j = i; j < i + k; j++) {
+                windowSum += arr[j];
+            }
+            // if currentWindowSum is > maxWindowSum
+            // set currentWindwoSum to maxWindowSum
+            maxSum = Math.max(maxSum, windowSum);
+        }
+        return maxSum;
     }
-    
-    //if currentWindowSum is > maxWindowSum
-    //set currentWindwoSum to maxWindowSum
-    maxSum = Math.max(maxSum, windowSum)
-  }
-  return maxSum
-}
 
-maxSubarrayOfSizeK([2, 1, 5, 1, 3, 2], 3)//9
-maxSubarrayOfSizeK([2, 3, 4, 1, 5], 2)//7
+    public static void main(String[] args) {
+        System.out.println(maxSubarrayOfSizeK(new int[]{2, 1, 5, 1, 3, 2}, 3)); // 9
+        System.out.println(maxSubarrayOfSizeK(new int[]{2, 3, 4, 1, 5}, 2)); // 7
+    }
+}
 ````
 - Time complexity will be `O(N*K)`, where `N` is the total number of elements in the given array
 
@@ -114,36 +119,39 @@ If you observe closely, you will realize that to calculate the sum of a contiguo
 2. Add the new element getting included in the <i>sliding window</i>, i.e., the element coming right after the end of the window.
 
 This approach will save us from re-calculating the sum of the overlapping part of the <i>sliding window</i>. 
-````js
-function maxSubarrayOfSizeK(arr, k) {
-  //sliding window
-  let maxSum = 0
-  let windowSum = 0
-  let windowStart = 0
-  
-  //loop through array
-  for(let windowEnd = 0; windowEnd < arr.length; windowEnd++) {
-    //add the next element
-    windowSum += arr[windowEnd]
-    
-    //slide the window, we dont need to slid if we
-    //haven't hit the required window size of 'k'
-    if(windowEnd >= k -1) {
-      maxSum = Math.max(maxSum, windowSum)
-      
-      //subtract the element going out
-      windowSum -= arr[windowStart]
-      
-      //slide the window ahead
-      windowStart ++
+````java
+class Solution {
+    public static int maxSubarrayOfSizeK(int[] arr, int k) {
+        // sliding window
+        int maxSum = 0;
+        int windowSum = 0;
+        int windowStart = 0;
+        
+        // loop through array
+        for (int windowEnd = 0; windowEnd < arr.length; windowEnd++) {
+            // add the next element
+            windowSum += arr[windowEnd];
+            
+            // slide the window, we don't need to slide if we
+            // haven't hit the required window size of 'k'
+            if (windowEnd >= k - 1) {
+                maxSum = Math.max(maxSum, windowSum);
+                
+                // subtract the element going out
+                windowSum -= arr[windowStart];
+                
+                // slide the window ahead
+                windowStart++;
+            }
+        }
+        return maxSum;
     }
-  }
-  return maxSum
+
+    public static void main(String[] args) {
+        System.out.println(maxSubarrayOfSizeK(new int[]{2, 1, 5, 1, 3, 2}, 3)); // 9 
+        System.out.println(maxSubarrayOfSizeK(new int[]{2, 3, 4, 1, 5}, 2)); // 7 
+    }
 }
-
-
-maxSubarrayOfSizeK([2, 1, 5, 1, 3, 2], 3)//9 
-maxSubarrayOfSizeK([2, 3, 4, 1, 5], 2)//7 
 ````
 - The time complexity of the above algorithm will be `O(N)`
 - The space complexity of the above algorithm will be `O(1)`
@@ -163,45 +171,39 @@ This problem follows the <b>Sliding Window pattern</b>, and we can use a similar
   - Subtract the first element of the window from the running sum to shrink the sliding window.
 
 
-````js
-function smallestSubarrayWithGivenSum(arr, s) {
-  //sliding window, BUT the window size is not fixed
-  let windowSum = 0
-  let minLength = Infinity
-  let windowStart = 0
-  
-  //First, we will add-up elements from the beginning of the array until their sum becomes greater than or equal to S.
-  for(windowEnd = 0; windowEnd < arr.length; windowEnd++) {
-    
-    //add the next element
-    windowSum += arr[windowEnd]
-    
-    //shrink the window as small as possible
-    //until windowSum is small than s
-    while(windowSum >= s) {
-      //These elements will constitute our sliding window. We are asked to find the smallest such window having a sum greater than or equal to S. We will remember the length of this window as the smallest window so far.
-      //After this, we will keep adding one element in the sliding window (i.e., slide the window ahead) in a stepwise fashion.
-      //In each step, we will also try to shrink the window from the beginning. We will shrink the window until the windows sum is smaller than S again. This is needed as we intend to find the smallest window. This shrinking will also happen in multiple steps; in each step, we will do two things:
-      //Check if the current window length is the smallest so far, and if so, remember its length.
-      minLength = Math.min(minLength, windowEnd - windowStart + 1)
-      
-      //Subtract the first element of the window from the running sum to shrink the sliding window.
-      windowSum -= arr[windowStart]
-      windowStart++
+````java
+class Solution {
+    public static int smallestSubarrayWithGivenSum(int[] arr, int s) {
+        // sliding window, BUT the window size is not fixed
+        int windowSum = 0;
+        int minLength = Integer.MAX_VALUE;
+        int windowStart = 0;
+        
+        // First, add-up elements from the beginning of the array until their sum >= S.
+        for (int windowEnd = 0; windowEnd < arr.length; windowEnd++) {
+            // add the next element
+            windowSum += arr[windowEnd];
+            
+            // shrink the window as small as possible
+            // until windowSum is smaller than s
+            while (windowSum >= s) {
+                minLength = Math.min(minLength, windowEnd - windowStart + 1);
+                
+                // Subtract the first element of the window from the running sum
+                windowSum -= arr[windowStart];
+                windowStart++;
+            }
+        } 
+        
+        return minLength == Integer.MAX_VALUE ? 0 : minLength;
     }
-  } 
-  
-  if(minLength === Infinity) {
-    return 0
-  }
-  return minLength
+
+    public static void main(String[] args) {
+        System.out.println(smallestSubarrayWithGivenSum(new int[]{2, 1, 5, 2, 3, 2}, 7)); // 2
+        System.out.println(smallestSubarrayWithGivenSum(new int[]{2, 1, 5, 2, 8}, 7)); // 1
+        System.out.println(smallestSubarrayWithGivenSum(new int[]{3, 4, 1, 1, 6}, 8)); // 3
+    }
 }
-
-
-smallestSubarrayWithGivenSum([2, 1, 5, 2, 3, 2], 7)//2
-smallestSubarrayWithGivenSum([2, 1, 5, 2, 8], 7)//1
-smallestSubarrayWithGivenSum([3, 4, 1, 1, 6], 8)//3
-
 ````
 - The time complexity of the above algorithm will be `O(N)`. The outer for loop runs for all elements, and the inner while loop processes each element only once; therefore, the time complexity of the algorithm will be `O(N+N)`), which is asymptotically equivalent to `O(N)`.
 - The algorithm runs in constant space `O(1)`.
@@ -222,45 +224,44 @@ This problem follows the <b>Sliding Window pattern</b>, and we can use a similar
 5. While shrinking, well decrement the characters frequency going out of the window and remove it from the <b>HashMap</b> if its frequency becomes zero.
 6. At the end of each step, well check if the current window length is the longest so far, and if so, remember its length.
 
-````js
-function longestSubstringWithKdistinct(str, k) {
-   // Given a string, find the length of the longest substring in it with no more than K distinct characters.
-  let windowStart = 0
-  let maxLength = 0
-  let charFrequency = {}
+````java
+import java.util.HashMap;
+import java.util.Map;
 
-  //in the following loop we'll try to extend the range [windowStart, windowEnd]
-  for(let windowEnd = 0; windowEnd < str.length; windowEnd++) {
-    const endChar = str[windowEnd]
-    if(!(endChar in charFrequency)) {
-      charFrequency[endChar] = 0
-    }
-    charFrequency[endChar]++
-    //shrink the window until we are left with k distinct characters 
-    //in the charFrequency Object
-    
-    while(Object.keys(charFrequency).length > k) {
-      //insert characters from the beginning of the string until we have 'K' distinct characters in the hashMap 
-    //these characters will consitutue our sliding window.  We are asked to find the longest such window having no more that K distinct characters.  We will remember the length of the window as the longest window so far
-    //we will keep adding on character in the sliding window in a stepwise fashion
-      //in each step we will try to shrink the window from the beginning if the count of distinct characters in the hashmap is larger than K. We will shrink the window until we have no more that K distinct characters in the HashMap
-      const startChar = str[windowStart]
-      charFrequency[startChar]--
-      //while shrinking , we will decrement the characters frequency going out of the window and remove it from the HashMap if it's frequency becomes zero
-      if(charFrequency[startChar] === 0) {
-        delete charFrequency[startChar]
-      }
-      windowStart++
-    }
-    //after each step we will check if the current window length is the longest so far, and if so, remember it's length
-    maxLength = Math.max(maxLength, windowEnd - windowStart + 1)
-  }
-    return maxLength
-};
+class Solution {
+    public static int longestSubstringWithKdistinct(String str, int k) {
+        int windowStart = 0;
+        int maxLength = 0;
+        Map<Character, Integer> charFrequency = new HashMap<>();
 
-longestSubstringWithKdistinct("araaci", 2)//4, The longest substring with no more than '2' distinct characters is "araa".
-longestSubstringWithKdistinct("araaci", 1)//2, The longest substring with no more than '1' distinct characters is "aa".
-longestSubstringWithKdistinct("cbbebi", 3)//5, The longest substrings with no more than '3' distinct characters are "cbbeb" & "bbebi".
+        // in the following loop we'll try to extend the range [windowStart, windowEnd]
+        for (int windowEnd = 0; windowEnd < str.length(); windowEnd++) {
+            char endChar = str.charAt(windowEnd);
+            charFrequency.put(endChar, charFrequency.getOrDefault(endChar, 0) + 1);
+            
+            // shrink the window until we are left with k distinct characters 
+            // in the charFrequency map
+            while (charFrequency.size() > k) {
+                char startChar = str.charAt(windowStart);
+                charFrequency.put(startChar, charFrequency.get(startChar) - 1);
+                
+                if (charFrequency.get(startChar) == 0) {
+                    charFrequency.remove(startChar);
+                }
+                windowStart++;
+            }
+            // remember the maximum length so far
+            maxLength = Math.max(maxLength, windowEnd - windowStart + 1);
+        }
+        return maxLength;
+    }
+
+    public static void main(String[] args) {
+        System.out.println(longestSubstringWithKdistinct("araaci", 2)); // 4
+        System.out.println(longestSubstringWithKdistinct("araaci", 1)); // 2
+        System.out.println(longestSubstringWithKdistinct("cbbebi", 3)); // 5
+    }
+}
 ````
 - The above algorithms time complexity will be `O(N)`, where `N` is the number of characters in the input string. The outer for loop runs for all characters, and the inner while loop processes each character only once; therefore, the time complexity of the algorithm will be `O(N+N)`, which is asymptotically equivalent to `O(N)`
 - The algorithms space complexity is `O(K)`, as we will be storing a maximum of `K+1` characters in the <b>HashMap</b>.
@@ -280,82 +281,84 @@ In this problem, we need to find the length of the longest subarray with no more
 
 This transforms the current problem into Longest Substring with <b>K Distinct Characters</b> where `K=2`.
 ### Map Class Solution
-````js
-function totalFruit (fruits) {
-  let windowStart = 0
-  let windowMax = 0
-  let fruitMap = new Map()
+````java
+import java.util.HashMap;
+import java.util.Map;
 
-  
-  //1. try to extend the window range
-  for(let windowEnd = 0; windowEnd < fruits.length; windowEnd++) {
-    let endFruit = fruits[windowEnd]
-    
-    fruitMap.set(endFruit, fruitMap.get(endFruit)+1 || 1)
-    
-    
-    //2. Shrink the sliding window, until we are left with 2 fruits in the fruitMap
-    while(fruitMap.size > 2) {
-      let startFruit = fruits[windowStart]
-      
-      fruitMap.set(startFruit, fruitMap.get(startFruit)-1)
-      
-      
-      if(fruitMap.get(startFruit) === 0){
-        fruitMap.delete(startFruit)
-      }
-      windowStart++
+class Solution {
+    public static int totalFruit(int[] fruits) {
+        int windowStart = 0;
+        int windowMax = 0;
+        Map<Integer, Integer> fruitMap = new HashMap<>();
+
+        // 1. try to extend the window range
+        for (int windowEnd = 0; windowEnd < fruits.length; windowEnd++) {
+            int endFruit = fruits[windowEnd];
+            
+            fruitMap.put(endFruit, fruitMap.getOrDefault(endFruit, 0) + 1);
+            
+            // 2. Shrink the sliding window, until we are left with 2 fruits
+            while (fruitMap.size() > 2) {
+                int startFruit = fruits[windowStart];
+                
+                fruitMap.put(startFruit, fruitMap.get(startFruit) - 1);
+                
+                if (fruitMap.get(startFruit) == 0) {
+                    fruitMap.remove(startFruit);
+                }
+                windowStart++;
+            }
+            
+            windowMax = Math.max(windowMax, windowEnd - windowStart + 1);
+        }
+        
+        return windowMax;   
     }
-    
-    windowMax = Math.max(windowMax, windowEnd - windowStart + 1)
-  }
-  
-  return windowMax   
-};
 
-totalFruit ([3,3,3,1,2,1,1,2,3,3,4])
-//5
-
-totalFruit ([1,2,1])
-//3,We can pick from all 3 trees.
-
-totalFruit ([0,1,2,2])
-//3,We can pick from trees [1,2,2].If we had started at the first tree, we would only pick from trees [0,1].
-
-totalFruit ([1,2,3,2,2])
-//4,We can pick from trees [2,3,2,2]. If we had started at the first tree, we would only pick from trees [1,2].
-````
-### Map Object Solution
-````js
-function fruitsInBaskets(fruits) {
-  let windowStart = 0; 
-  let maxLength = 0; 
-  let fruitFrequency = {};
-  
-  //try to extend the range
-  for(let windowEnd = 0; windowEnd < fruits.length; windowEnd++) {
-    const endFruit = fruits[windowEnd]
-    if(!(endFruit in fruitFrequency)) {
-      fruitFrequency[endFruit] = 0
+    public static void main(String[] args) {
+        System.out.println(totalFruit(new int[]{3,3,3,1,2,1,1,2,3,3,4})); // 5
+        System.out.println(totalFruit(new int[]{1,2,1})); // 3
+        System.out.println(totalFruit(new int[]{0,1,2,2})); // 3
+        System.out.println(totalFruit(new int[]{1,2,3,2,2})); // 4
     }
-    fruitFrequency[endFruit]++
-    
-    //shrink the sliding window, until we are left with '2' fruits in the fruitFrequency hashMap
-    while(Object.keys(fruitFrequency).length > 2) {
-      const startFruit = fruits[windowStart];
-      fruitFrequency[startFruit]--
-      if(fruitFrequency[startFruit] === 0) {
-        delete fruitFrequency[startFruit]
-      }
-      windowStart++
-    }
-    maxLength = Math.max(maxLength, windowEnd - windowStart + 1)
-  }
-  return maxLength
 }
+````
+### Frequency Map Solution
+````java
+import java.util.HashMap;
+import java.util.Map;
 
-fruitsInBaskets(['A', 'B', 'C', 'A', 'C'])//3 , We can put 2 'C' in one basket and one 'A' in the other from the subarray ['C', 'A', 'C']
-fruitsInBaskets(['A', 'B', 'C', 'B', 'B', 'C'])//5 , We can put 3 'B' in one basket and two 'C' in the other basket. This can be done if we start with the second letter: ['B', 'C', 'B', 'B', 'C']
+class Solution {
+    public static int fruitsInBaskets(char[] fruits) {
+        int windowStart = 0; 
+        int maxLength = 0; 
+        Map<Character, Integer> fruitFrequency = new HashMap<>();
+        
+        // try to extend the range
+        for (int windowEnd = 0; windowEnd < fruits.length; windowEnd++) {
+            char endFruit = fruits[windowEnd];
+            fruitFrequency.put(endFruit, fruitFrequency.getOrDefault(endFruit, 0) + 1);
+            
+            // shrink the sliding window, until we are left with '2' fruits
+            while (fruitFrequency.size() > 2) {
+                char startFruit = fruits[windowStart];
+                fruitFrequency.put(startFruit, fruitFrequency.get(startFruit) - 1);
+                
+                if (fruitFrequency.get(startFruit) == 0) {
+                    fruitFrequency.remove(startFruit);
+                }
+                windowStart++;
+            }
+            maxLength = Math.max(maxLength, windowEnd - windowStart + 1);
+        }
+        return maxLength;
+    }
+
+    public static void main(String[] args) {
+        System.out.println(fruitsInBaskets(new char[]{'A', 'B', 'C', 'A', 'C'})); // 3
+        System.out.println(fruitsInBaskets(new char[]{'A', 'B', 'C', 'B', 'B', 'C'})); // 5
+    }
+}
 ````
 - The above algorithms time complexity will be `O(N)`, where `N` is the number of characters in the input array. The outer `for` loop runs for all characters, and the inner `while` loop processes each character only once; therefore, the time complexity of the algorithm will be `O(N+N)`, which is asymptotically equivalent to `O(N)`.
 - The algorithm runs in constant space `O(1)` as there can be a maximum of three types of fruits stored in the frequency map.
@@ -363,40 +366,43 @@ fruitsInBaskets(['A', 'B', 'C', 'B', 'B', 'C'])//5 , We can put 3 'B' in one bas
 https://leetcode.com/problems/longest-substring-with-at-most-two-distinct-characters/
 > Given a string, find the length of the longest substring in it with at most two distinct characters.
 
-````js
-function lengthOfLongestSubstringTwoDistinct(s) {
-    let windowStart = 0
-    let maxLength = 0
-    let charFreq = {}
-  
-    //try to extend the range
-    for(let windowEnd = 0; windowEnd < s.length; windowEnd++) {
-        const endChar = s[windowEnd]
-        
-        if(!(endChar in charFreq)) {
-            charFreq[endChar] = 0
-        }
-        charFreq[endChar]++
-      
-      //shrink the sliding window, until we are left
-      //with 2 chars in charFreq hashMap
-      
-      while(Object.keys(charFreq).length > 2) {
-        const startChar = s[windowStart]
-        charFreq[startChar]--
-        if(charFreq[startChar] === 0) {
-          delete charFreq[startChar]
-        }
-        windowStart++
-      }
-      maxLength = Math.max(maxLength, windowEnd - windowStart + 1)
-    }
-    
-    return maxLength
-};
+````java
+import java.util.HashMap;
+import java.util.Map;
 
-lengthOfLongestSubstringTwoDistinct('eceba')//3
-lengthOfLongestSubstringTwoDistinct('ccaabbb')//5
+class Solution {
+    public static int lengthOfLongestSubstringTwoDistinct(String s) {
+        int windowStart = 0;
+        int maxLength = 0;
+        Map<Character, Integer> charFreq = new HashMap<>();
+      
+        // try to extend the range
+        for (int windowEnd = 0; windowEnd < s.length(); windowEnd++) {
+            char endChar = s.charAt(windowEnd);
+            charFreq.put(endChar, charFreq.getOrDefault(endChar, 0) + 1);
+          
+            // shrink the sliding window, until we are left
+            // with 2 chars in charFreq hashMap
+            while (charFreq.size() > 2) {
+                char startChar = s.charAt(windowStart);
+                charFreq.put(startChar, charFreq.get(startChar) - 1);
+                
+                if (charFreq.get(startChar) == 0) {
+                    charFreq.remove(startChar);
+                }
+                windowStart++;
+            }
+            maxLength = Math.max(maxLength, windowEnd - windowStart + 1);
+        }
+        
+        return maxLength;
+    }
+
+    public static void main(String[] args) {
+        System.out.println(lengthOfLongestSubstringTwoDistinct("eceba")); // 3
+        System.out.println(lengthOfLongestSubstringTwoDistinct("ccaabbb")); // 5
+    }
+}
 ````
 
 
@@ -409,43 +415,48 @@ https://leetcode.com/problems/longest-substring-without-repeating-characters/
 
 This problem follows the <b>Sliding Window pattern</b>, and we can use a similar dynamic <i>sliding window</i> strategy as discussed in <b>Longest Substring with K Distinct Characters</b>. We can use a <b>HashMap</b> to remember the last index of each character we have processed. Whenever we get a repeating character, we will shrink our <i>sliding window</i> to ensure that we always have distinct characters in the <i>sliding window</i>.
 
-````js
-function nonRepeatSubstring(str) {
-  // sliding window with hashmap
-  
-  let windowStart = 0
-  let maxLength = 0
-  let charIndexMap = {}
-  
-  //try to extend the range [windowStart, windowEnd]
-  for(let windowEnd = 0; windowEnd < str.length; windowEnd++) {
-    const endChar = str[windowEnd]
-    
-    //if the map already contains the endChar, 
-    //shrink the window from the beginning 
-    //so that we only have on occurance of endChar
-    if(endChar in charIndexMap) {
-    
-      //this is tricky; in the current window, 
-      //we will not have any endChar after
-      //it's previous index. and if windowStart
-      //is already ahead of the last index of
-      //endChar, we'll keep windowStart
-      windowStart = Math.max(windowStart, charIndexMap[endChar] + 1)
-    }
-    
-    //insert the endChar into the map
-    charIndexMap[endChar] = windowEnd
-    
-    //remember the maximum length so far
-    maxLength = Math.max(maxLength, windowEnd - windowStart+1)
-  } 
-  return maxLength
-};
+````java
+import java.util.HashMap;
+import java.util.Map;
 
-nonRepeatSubstring("aabccbb")//3
-nonRepeatSubstring("abbbb")//2
-nonRepeatSubstring("abccde")//3
+class Solution {
+    public static int nonRepeatSubstring(String str) {
+        // sliding window with hashmap
+        int windowStart = 0;
+        int maxLength = 0;
+        Map<Character, Integer> charIndexMap = new HashMap<>();
+        
+        // try to extend the range [windowStart, windowEnd]
+        for (int windowEnd = 0; windowEnd < str.length(); windowEnd++) {
+            char endChar = str.charAt(windowEnd);
+            
+            // if the map already contains the endChar, 
+            // shrink the window from the beginning 
+            // so that we only have one occurrence of endChar
+            if (charIndexMap.containsKey(endChar)) {
+                // this is tricky; in the current window, 
+                // we will not have any endChar after
+                // its previous index. and if windowStart
+                // is already ahead of the last index of
+                // endChar, we'll keep windowStart
+                windowStart = Math.max(windowStart, charIndexMap.get(endChar) + 1);
+            }
+            
+            // insert the endChar into the map
+            charIndexMap.put(endChar, windowEnd);
+            
+            // remember the maximum length so far
+            maxLength = Math.max(maxLength, windowEnd - windowStart + 1);
+        } 
+        return maxLength;
+    }
+
+    public static void main(String[] args) {
+        System.out.println(nonRepeatSubstring("aabccbb")); // 3
+        System.out.println(nonRepeatSubstring("abbbb")); // 2
+        System.out.println(nonRepeatSubstring("abccde")); // 3
+    }
+}
 ````
 - The above algorithms time complexity will be `O(N)`, where `N` is the number of characters in the input string.
 - The algorithms space complexity will be `O(K)`, where `K` is the number of distinct characters in the input string. This also means `K<=N`, because in the worst case, the whole string might not have any repeating character, so the entire string will be added to the <b>HashMap</b>. Having said that, since we can expect a fixed set of characters in the input string (e.g., 26 for English letters), we can say that the algorithm runs in fixed space `O(1)`; in this case, we can use a fixed-size array instead of the <b>HashMap</b>.
@@ -464,41 +475,46 @@ This problem follows the <b>Sliding Window pattern</b>, and we can use a similar
   - If we have more than `K` remaining letters, we should shrink the window as we cannot replace more than `K` letters.
 
 While shrinking the window, we dont need to update `maxRepeatLetterCount` (hence, it represents the maximum repeating count of ANY letter for ANY window). Why dont we need to update this count when we shrink the window? Since we have to replace all the remaining letters to get the longest substring having the same letter in any window, we cant get a better answer from any other window even though all occurrences of the letter with frequency `maxRepeatLetterCount` is not in the current window.
-````js
-function lengthOfLongestSubstring(str, k) {
-  let windowStart = 0
-  let maxLength = 0
-  let maxRepeatLetterCount = 0
-  let charFrequency = {}
-  
-  //Try to extend the range [windowStart, windowEnd]
-  for(let windowEnd = 0; windowEnd < str.length; windowEnd++) {
-    const endChar = str[windowEnd]
-    if(!(endChar in charFrequency)) {
-      charFrequency[endChar] = 0
-    }
-    charFrequency[endChar]++
-    //*REVIEW THIS LINE*
-    maxRepeatLetterCount = Math.max(maxRepeatLetterCount, charFrequency[endChar])
-    
-    //current window size is from windowStart to windowEnd, overall we have a letter which is
-    //repeating maxRepeatLetterCount times, this mean we can have a window which has one letter
-    //repeating maxRepeatLetterCount times and the remaining letters we should replace
-    //if the remaining letters are more than k, it is the time to shrink the window as we
-    //are not allowed to replace more than k letters
-    if((windowEnd - windowStart + 1 - maxRepeatLetterCount) > k) {
-      const startChar = str[windowStart]
-      charFrequency[startChar]--
-      windowStart++
-    }
-    maxLength = Math.max(maxLength, windowEnd - windowStart + 1)
-  }
-  return maxLength
-}
+````java
+import java.util.HashMap;
+import java.util.Map;
 
-lengthOfLongestSubstring("aabccbb", 2)//5, Replace the two 'c' with 'b' to have a longest repeating substring "bbbbb".
-lengthOfLongestSubstring("abbcb", 1)//4, Replace the 'c' with 'b' to have a longest repeating substring "bbbb".
-lengthOfLongestSubstring("abccde", 1)//3, Replace the 'b' or 'd' with 'c' to have the longest repeating substring "ccc".
+class Solution {
+    public static int lengthOfLongestSubstring(String str, int k) {
+        int windowStart = 0;
+        int maxLength = 0;
+        int maxRepeatLetterCount = 0;
+        Map<Character, Integer> charFrequency = new HashMap<>();
+        
+        // Try to extend the range [windowStart, windowEnd]
+        for (int windowEnd = 0; windowEnd < str.length(); windowEnd++) {
+            char endChar = str.charAt(windowEnd);
+            charFrequency.put(endChar, charFrequency.getOrDefault(endChar, 0) + 1);
+            
+            // *REVIEW THIS LINE*
+            maxRepeatLetterCount = Math.max(maxRepeatLetterCount, charFrequency.get(endChar));
+            
+            // current window size is from windowStart to windowEnd, overall we have a letter which is
+            // repeating maxRepeatLetterCount times, this mean we can have a window which has one letter
+            // repeating maxRepeatLetterCount times and the remaining letters we should replace
+            // if the remaining letters are more than k, it is the time to shrink the window as we
+            // are not allowed to replace more than k letters
+            if ((windowEnd - windowStart + 1 - maxRepeatLetterCount) > k) {
+                char startChar = str.charAt(windowStart);
+                charFrequency.put(startChar, charFrequency.get(startChar) - 1);
+                windowStart++;
+            }
+            maxLength = Math.max(maxLength, windowEnd - windowStart + 1);
+        }
+        return maxLength;
+    }
+
+    public static void main(String[] args) {
+        System.out.println(lengthOfLongestSubstring("aabccbb", 2)); // 5
+        System.out.println(lengthOfLongestSubstring("abbcb", 1)); // 4
+        System.out.println(lengthOfLongestSubstring("abccde", 1)); // 3
+    }
+}
 ````
 
 - The above algorithms time complexity will be `O(N)`, where `N` is the number of letters in the input string.
@@ -514,38 +530,42 @@ This problem follows the <b>Sliding Window pattern</b> and is quite similar to <
 
 Following a similar approach, well iterate through the array to add one number at a time in the window. Well also keep track of the maximum number of repeating `1`'s in the current window (lets call it `maxOnesCount`). So at any time, we know that we can have a window with `1`'s repeating `maxOnesCount` time, so we should try to replace the remaining `0`'s. If we have more than `K` remaining `0`'s, we should shrink the window as we are not allowed to replace more than `K` `0`'s.
 
-````js
-function lengthOfLongestSubstring (arr, k) {
-  let windowStart = 0
-  let maxLength = 0
-  let maxOnesCount = 0
-  
-  //Try to extend the range [windowStart, windowEnd]
-  for(let windowEnd = 0; windowEnd < arr.length; windowEnd++) {
-    if(arr[windowEnd] === 1) {
-      maxOnesCount++
+````java
+class Solution {
+    public static int lengthOfLongestSubstring(int[] arr, int k) {
+        int windowStart = 0;
+        int maxLength = 0;
+        int maxOnesCount = 0;
+        
+        // Try to extend the range [windowStart, windowEnd]
+        for (int windowEnd = 0; windowEnd < arr.length; windowEnd++) {
+            if (arr[windowEnd] == 1) {
+                maxOnesCount++;
+            }
+            
+            // current window size is from windowStart to windowEnd, overall we have a 
+            // maximum of `1`'s repeating maxOnesCount times, this means we can have a window 
+            // with maxOnesCount `1`'s and the remaining are `0`'s which should replace with `1`'s
+            // now, if the remaining `0`'s are more that k, it is the time to shrink the 
+            // window as we are not allowed to replace more than k `0`'s
+            if ((windowEnd - windowStart + 1 - maxOnesCount) > k) {
+                if (arr[windowStart] == 1) {
+                    maxOnesCount--;
+                }
+                windowStart++;
+            }
+            
+            maxLength = Math.max(maxLength, windowEnd - windowStart + 1);
+        }
+        
+        return maxLength;  
     }
-    
-    //current window size is from windowStart to windowEnd, overall we have a 
-    //maximum of `1`'s repeating maxOnesCount times, this means we can have a window 
-    //with maxOnesCount `1`'s and the remaining are `0`'s which should replace with `1`'s
-    //now, if the remaining `0`'s are more that k, it is the time to shrink the 
-    //window as we are not allowed to replace more than k `0`'s
-    if((windowEnd - windowStart + 1 - maxOnesCount) > k) {
-      if(arr[windowStart] === 1) {
-        maxOnesCount--
-      }
-      windowStart++
-    }
-    
-    maxLength = Math.max(maxLength, windowEnd - windowStart + 1)
-  }
-  
-  return maxLength  
-}
 
-lengthOfLongestSubstring ([0, 1, 1, 0, 0, 0, 1, 1, 0, 1, 1], 2)//6, Replace the '0' at index 5 and 8 to have the longest contiguous subarray of `1`'s having length 6.
-lengthOfLongestSubstring ([0, 1, 0, 0, 1, 1, 0, 1, 1, 0, 0, 1, 1], 3)//9, Replace the '0' at index 6, 9, and 10 to have the longest contiguous subarray of `1`'s having length 9.
+    public static void main(String[] args) {
+        System.out.println(lengthOfLongestSubstring(new int[]{0, 1, 1, 0, 0, 0, 1, 1, 0, 1, 1}, 2)); // 6
+        System.out.println(lengthOfLongestSubstring(new int[]{0, 1, 0, 0, 1, 1, 0, 1, 1, 0, 0, 1, 1}, 3)); // 9
+    }
+}
 ````
 - The above algorithms time complexity will be `O(N)`, where `N` is the count of numbers in the input array.
 - The algorithm runs in constant space `O(1)`.
@@ -572,55 +592,59 @@ This problem follows the <b>Sliding Window pattern</b>, and we can use a similar
 - If at any time, the number of characters matched is equal to the number of distinct characters in the pattern (i.e., total characters in the <b>HashMap</b>), we have gotten our required permutation.
 - If the window size is greater than the length of the pattern, shrink the window to make it equal to the patterns size. At the same time, if the character going out was part of the pattern, put it back in the frequency <b>HashMap</b>.
 
-````js
-function findPermutation(str, pattern) {
-  //sliding window
-  let windowStart = 0
-  let isMatch = 0
-  let charFrequency = {}
-  
- for(i = 0; i < pattern.length; i++) {
-   const char = pattern[i]
-   if(!(char in charFrequency)) {
-     charFrequency[char] = 0
-   }
-   charFrequency[char]++
- }
-  
-  //our goal is to math all the characters from charFrequency with the current window
-  //try to extend the range [windowStart, windowEnd]
-  for(windowEnd = 0; windowEnd < str.length; windowEnd++) {
-    const endChar = str[windowEnd]
-    if(endChar in charFrequency) {
-      //decrement the frequency of the matched character
-      charFrequency[endChar]--
-      if(charFrequency[endChar] === 0) {
-        isMatch++
-      }
-    }
-    if(isMatch === Object.keys(charFrequency).length) {
-      return true
-    }
-    
-    //shrink the sliding window
-    if(windowEnd >= pattern.length - 1) {
-      let startChar = str[windowStart]
-      windowStart++
-      if(startChar in charFrequency) {
-        if(charFrequency[startChar] === 0) {
-          isMatch--
-        }
-        charFrequency[startChar]++
-      }
-    }
-  }
-  return false
-}
+````java
+import java.util.HashMap;
+import java.util.Map;
 
-findPermutation("oidbcaf", "abc")//true, The string contains "bca" which is a permutation of the given pattern.
-findPermutation("odicf", "dc")//false
-findPermutation("bcdxabcdy", "bcdxabcdy")//true
-findPermutation("aaacb", "abc")//true, The string contains "acb" which is a permutation of the given pattern.
+class Solution {
+    public static boolean findPermutation(String str, String pattern) {
+        // sliding window
+        int windowStart = 0;
+        int isMatch = 0;
+        Map<Character, Integer> charFrequency = new HashMap<>();
+        
+        for (int i = 0; i < pattern.length(); i++) {
+            char ch = pattern.charAt(i);
+            charFrequency.put(ch, charFrequency.getOrDefault(ch, 0) + 1);
+        }
+        
+        // our goal is to match all the characters from charFrequency with the current window
+        // try to extend the range [windowStart, windowEnd]
+        for (int windowEnd = 0; windowEnd < str.length(); windowEnd++) {
+            char endChar = str.charAt(windowEnd);
+            if (charFrequency.containsKey(endChar)) {
+                // decrement the frequency of the matched character
+                charFrequency.put(endChar, charFrequency.get(endChar) - 1);
+                if (charFrequency.get(endChar) == 0) {
+                    isMatch++;
+                }
+            }
+            if (isMatch == charFrequency.size()) {
+                return true;
+            }
+            
+            // shrink the sliding window
+            if (windowEnd >= pattern.length() - 1) {
+                char startChar = str.charAt(windowStart);
+                windowStart++;
+                if (charFrequency.containsKey(startChar)) {
+                    if (charFrequency.get(startChar) == 0) {
+                        isMatch--;
+                    }
+                    charFrequency.put(startChar, charFrequency.get(startChar) + 1);
+                }
+            }
+        }
+        return false;
+    }
+
+    public static void main(String[] args) {
+        System.out.println(findPermutation("oidbcaf", "abc")); // true
+        System.out.println(findPermutation("odicf", "dc")); // false
+        System.out.println(findPermutation("bcdxabcdy", "bcdxabcdy")); // true
+        System.out.println(findPermutation("aaacb", "abc")); // true
+    }
+}
 ````
 
 - The above algorithms time complexity will be `O(N + M)`, where `N` and `M` are the number of characters in the input string and the pattern, respectively.
@@ -644,58 +668,65 @@ As we know, when we are not allowed to repeat characters while finding permutati
 > Write a function to return a list of starting indices of the anagrams of the pattern in the given string.
 
 This problem follows the <b>Sliding Window pattern</b> and is very similar to <b>Permutation in a String</b>. In this problem, we need to find every occurrence of any permutation of the pattern in the string. We will use a list to store the starting indices of the anagrams of the pattern in the string.
-````js
-function findStringAnagrams(str, pattern){
-  let windowStart = 0, matched = 0, charFreq = {}
-  
-  for(let i = 0; i < pattern.length; i++){
-    const char = pattern[i]
-    if(!(char in charFreq)) {
-      charFreq[char] = 0
-    }
-    charFreq[char]++
-  }
-  const resultIndex = []
-  
-  //our goal is to match all the characters from the charFreq
-  //with the current window try to 
-  //extend the range [windowStart, windowEnd]
-  for(let windowEnd = 0; windowEnd < str.length; windowEnd++) {
-    const endChar = str[windowEnd]
-    if(endChar in charFreq) {
-      //decrement the frequency of matched character
-      charFreq[endChar]--
-      if(charFreq[endChar] === 0) {
-        matched++
-      }
-    }
-    
-    if(matched === Object.keys(charFreq).length){
-      //have we found an anagram
-      resultIndex.push(windowStart)
-    }
-    
-    //shrink the sliding window
-    if(windowEnd >= pattern.length -1) {
-      const startChar = str[windowStart]
-      windowStart++
-      if(startChar in charFreq) {
-        if(charFreq[startChar] === 0) {
-          //before putting the character back
-          //decrement the matched count
-          matched--
-        }
-        //put the character back
-        charFreq[startChar]++
-      }
-    }
-  }
-  
-  return resultIndex
-}
+````java
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-findStringAnagrams('ppqp', 'pq')//[1,2], The two anagrams of the pattern in the given string are "pq" and "qp".
-findStringAnagrams('abbcabc', 'abc')//[2,3,4], The three anagrams of the pattern in the given string are "bca", "cab", and "abc".
+class Solution {
+    public static List<Integer> findStringAnagrams(String str, String pattern) {
+        int windowStart = 0, matched = 0;
+        Map<Character, Integer> charFreq = new HashMap<>();
+        
+        for (int i = 0; i < pattern.length(); i++) {
+            char ch = pattern.charAt(i);
+            charFreq.put(ch, charFreq.getOrDefault(ch, 0) + 1);
+        }
+        List<Integer> resultIndex = new ArrayList<>();
+        
+        // our goal is to match all the characters from the charFreq
+        // with the current window try to 
+        // extend the range [windowStart, windowEnd]
+        for (int windowEnd = 0; windowEnd < str.length(); windowEnd++) {
+            char endChar = str.charAt(windowEnd);
+            if (charFreq.containsKey(endChar)) {
+                // decrement the frequency of matched character
+                charFreq.put(endChar, charFreq.get(endChar) - 1);
+                if (charFreq.get(endChar) == 0) {
+                    matched++;
+                }
+            }
+            
+            if (matched == charFreq.size()) {
+                // have we found an anagram
+                resultIndex.add(windowStart);
+            }
+            
+            // shrink the sliding window
+            if (windowEnd >= pattern.length() - 1) {
+                char startChar = str.charAt(windowStart);
+                windowStart++;
+                if (charFreq.containsKey(startChar)) {
+                    if (charFreq.get(startChar) == 0) {
+                        // before putting the character back
+                        // decrement the matched count
+                        matched--;
+                    }
+                    // put the character back
+                    charFreq.put(startChar, charFreq.get(startChar) + 1);
+                }
+            }
+        }
+        
+        return resultIndex;
+    }
+
+    public static void main(String[] args) {
+        System.out.println(findStringAnagrams("ppqp", "pq")); // [1,2]
+        System.out.println(findStringAnagrams("abbcabc", "abc")); // [2,3,4]
+    }
+}
 ````
 
 - The time complexity of the above algorithm will be `O(N + M)` where `N` and `M` are the number of characters in the input string and the pattern respectively.
@@ -711,61 +742,65 @@ This problem follows the <b>Sliding Window pattern</b> and has a lot of similari
 2. Whenever we have matched all the characters, we will try to shrink the window from the beginning, keeping track of the smallest substring that has all the matching characters.
 3. We will stop the shrinking process as soon as we remove a matched character from the <i>sliding window</i>. One thing to note here is that we could have redundant matching characters, e.g., we might have two a in the <i>sliding window</i> when we only need one a. In that case, when we encounter the first a, we will simply shrink the window without decrementing the matched count. We will decrement the matched count when the second a goes out of the window.
 
-````js
-function findSubstring(str, pattern) {
-  let windowStart = 0
-  let matched = 0
-  let substrStart = 0
-  let minLength = str.length + 1
-  let charFreq = {}
-  
-  for(let i = 0; i < pattern.length; i++) {
-    const char = pattern[i]
-    if(!(char in charFreq)) {
-      charFreq[char] = 0
-    }
-    charFreq[char]++
-  }
-  
-  //try to extend the range [windowStart, windowEnd]
-  for(let windowEnd = 0; windowEnd < str.length; windowEnd++) {
-    const endChar = str[windowEnd]
-    if(endChar in charFreq) {
-      charFreq[endChar]--
-      if(charFreq[endChar] >= 0) {
-        //count every matching of a character
-        matched++
-      }
-    }
-    
-    //Shrink the window if we can, finish as soon as we remove a 
-    //matched character
-    while(matched === pattern.length) {
-      if(minLength > windowEnd - windowStart + 1) {
-        minLength = windowEnd - windowStart + 1
-        substrStart = windowStart
-      }
-      
-      const startChar = str[windowStart]
-      windowStart++
-      if(startChar in charFreq) {
-        if(charFreq[startChar] === 0) {
-        matched--
-      }
-      charFreq[startChar]++
-        
-      }
-    }
-  } 
-  if(minLength > str.length) {
-  return ''
-}
-return str.substring(substrStart, substrStart + minLength)
-}
+````java
+import java.util.HashMap;
+import java.util.Map;
 
-findSubstring("aabdec", "abc")//"abdec", The smallest substring having all characters of the pattern is "abdec"
-findSubstring("abdbca", "abc")//"bca", The smallest substring having all characters of the pattern is "bca".
-findSubstring("adcad", "abc")//"", No substring in the given string has all characters of the pattern.
+class Solution {
+    public static String findSubstring(String str, String pattern) {
+        int windowStart = 0;
+        int matched = 0;
+        int substrStart = 0;
+        int minLength = str.length() + 1;
+        Map<Character, Integer> charFreq = new HashMap<>();
+        
+        for (int i = 0; i < pattern.length(); i++) {
+            char ch = pattern.charAt(i);
+            charFreq.put(ch, charFreq.getOrDefault(ch, 0) + 1);
+        }
+        
+        // try to extend the range [windowStart, windowEnd]
+        for (int windowEnd = 0; windowEnd < str.length(); windowEnd++) {
+            char endChar = str.charAt(windowEnd);
+            if (charFreq.containsKey(endChar)) {
+                charFreq.put(endChar, charFreq.get(endChar) - 1);
+                if (charFreq.get(endChar) >= 0) {
+                    // count every matching of a character
+                    matched++;
+                }
+            }
+            
+            // Shrink the window if we can, finish as soon as we remove a 
+            // matched character
+            while (matched == pattern.length()) {
+                if (minLength > windowEnd - windowStart + 1) {
+                    minLength = windowEnd - windowStart + 1;
+                    substrStart = windowStart;
+                }
+                
+                char startChar = str.charAt(windowStart);
+                windowStart++;
+                if (charFreq.containsKey(startChar)) {
+                    if (charFreq.get(startChar) == 0) {
+                        matched--;
+                    }
+                    charFreq.put(startChar, charFreq.get(startChar) + 1);
+                }
+            }
+        } 
+        
+        if (minLength > str.length()) {
+            return "";
+        }
+        return str.substring(substrStart, substrStart + minLength);
+    }
+
+    public static void main(String[] args) {
+        System.out.println(findSubstring("aabdec", "abc")); // "abdec"
+        System.out.println(findSubstring("abdbca", "abc")); // "bca"
+        System.out.println(findSubstring("adcad", "abc")); // ""
+    }
+}
 ````
 
 - The time complexity of the above algorithm will be `O(N + M)` where `N` and `M` are the number of characters in the input string and the pattern respectively.
@@ -782,59 +817,62 @@ This problem follows the <b>Sliding Window pattern</b> and has a lot of similari
 4. If a word is not found or has a higher frequency than required, we can move on to the next character in the string.
 5. Store the index if we have found all the `words`.
 
-````js
-function findWordConcatenation(str, words) {
-  if(words.length === 0 || words[0].length === 0) {
-    return []
-  }
-  
-  let wordFreq = {}
-  
-  words.forEach((word) => {
-    if(!(word in wordFreq)) {
-      wordFreq[word] = 0
-    }
-    wordFreq[word]++
-  })
-  
-  const resultIndex = []
-  let wordCount = words.length
-  let wordLength = words[0].length
+````java
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-  for(let i = 0; i < (str.length - wordCount * wordLength) + 1; i++) {
-    const wordsSeen = {}
-    for(let j = 0; j < wordCount; j++) {
-      let nextWordIndex = i + j * wordLength
-      //get the next word from the string
-      const word = str.substring(nextWordIndex, nextWordIndex + wordLength)
-      if(!(word in wordFreq)){
-        //break if we don't need this word
-        break
-      }
-      
-      //add the word ot the wordsSeen ma
-      if(!(word in wordsSeen)){
-        wordsSeen[word] = 0
-      }
-      wordsSeen[word]++
-      
-      //no need to process furrther if the word
-      //has higher frequency than required
-      if(wordsSeen[word] > (wordFreq[word] || 0)){
-        break
-      }
-      
-      if(j + 1 === wordCount){
-        //store index if we have found all the words
-        resultIndex.push(i)
-      }
+class Solution {
+    public static List<Integer> findWordConcatenation(String str, String[] words) {
+        if (words.length == 0 || words[0].length() == 0) {
+            return new ArrayList<>();
+        }
+        
+        Map<String, Integer> wordFreq = new HashMap<>();
+        
+        for (String word : words) {
+            wordFreq.put(word, wordFreq.getOrDefault(word, 0) + 1);
+        }
+        
+        List<Integer> resultIndex = new ArrayList<>();
+        int wordCount = words.length;
+        int wordLength = words[0].length();
+
+        for (int i = 0; i <= str.length() - wordCount * wordLength; i++) {
+            Map<String, Integer> wordsSeen = new HashMap<>();
+            for (int j = 0; j < wordCount; j++) {
+                int nextWordIndex = i + j * wordLength;
+                // get the next word from the string
+                String word = str.substring(nextWordIndex, nextWordIndex + wordLength);
+                if (!wordFreq.containsKey(word)) {
+                    // break if we don't need this word
+                    break;
+                }
+                
+                // add the word to the wordsSeen map
+                wordsSeen.put(word, wordsSeen.getOrDefault(word, 0) + 1);
+                
+                // no need to process further if the word
+                // has higher frequency than required
+                if (wordsSeen.get(word) > wordFreq.getOrDefault(word, 0)) {
+                    break;
+                }
+                
+                if (j + 1 == wordCount) {
+                    // store index if we have found all the words
+                    resultIndex.add(i);
+                }
+            }
+        }
+        return resultIndex;
     }
-  }
-  return resultIndex
+
+    public static void main(String[] args) {
+        System.out.println(findWordConcatenation("catfoxcat", new String[]{"cat", "fox"})); // [0, 3]
+        System.out.println(findWordConcatenation("catcatfoxfox", new String[]{"cat", "fox"})); // [3]
+    }
 }
-
-findWordConcatenation("catfoxcat", ["cat", "fox"])//[0, 3], The two substring containing both the words are "catfox" & "foxcat".
-findWordConcatenation("catcatfoxfox", ["cat", "fox"])//[3], The only substring containing both the words is "catfox".
 ````
 - The time complexity of the above algorithm will be `O(N * M * Len)` where `N` is the number of characters in the given string, `M` is the total number of `words`, and `Len` is the length of a word.
 - The space complexity of the algorithm is `O(M)` since at most, we will be storing all the `words` in the two <b>HashMaps</b>. In the worst case, we also need `O(N)` space for the resulting list. So, the overall space complexity of the algorithm will be `O(M+N)`.

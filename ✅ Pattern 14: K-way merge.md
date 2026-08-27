@@ -14,106 +14,109 @@ https://leetcode.com/problems/merge-k-sorted-lists/
 
 ### Array Sort
 
-```js
+```java
+import java.util.*;
+
 class ListNode {
-  constructor(value, next = null) {
-    this.value = value;
-    this.next = next;
-  }
-}
+    int value;
+    ListNode next;
 
-function mergeLists(lists) {
-  //push to list
-  if (!lists || !lists.length) return null;
-  let mergeArr = [];
-  let resultList = new ListNode(-1);
-
-  lists.forEach((list) => {
-    let curr = list;
-    while (curr) {
-      mergeArr.push(curr.value);
-      curr = curr.next;
+    ListNode(int value) {
+        this.value = value;
     }
-  });
-  let curr = resultList;
-
-  //sort list
-  mergeArr
-    .sort((a, b) => a - b)
-    .forEach((n) => {
-      let temp = new ListNode(n);
-      curr.next = temp;
-      curr = curr.next;
-    });
-
-  return resultList.next;
 }
 
-let l1 = new ListNode(2);
-l1.next = new ListNode(6);
-l1.next.next = new ListNode(8);
+class Solution {
+    public static ListNode mergeLists(ListNode[] lists) {
+        if (lists == null || lists.length == 0) return null;
+        List<Integer> mergeArr = new ArrayList<>();
+        
+        for (ListNode list : lists) {
+            ListNode curr = list;
+            while (curr != null) {
+                mergeArr.add(curr.value);
+                curr = curr.next;
+            }
+        }
+        
+        Collections.sort(mergeArr);
+        
+        ListNode resultList = new ListNode(-1);
+        ListNode curr = resultList;
+        for (int n : mergeArr) {
+            curr.next = new ListNode(n);
+            curr = curr.next;
+        }
+        
+        return resultList.next;
+    }
 
-let l2 = new ListNode(3);
-l2.next = new ListNode(6);
-l2.next.next = new ListNode(7);
+    public static void main(String[] args) {
+        ListNode l1 = new ListNode(2);
+        l1.next = new ListNode(6);
+        l1.next.next = new ListNode(8);
 
-l1.next = new ListNode(6);
+        ListNode l2 = new ListNode(3);
+        l2.next = new ListNode(6);
+        l2.next.next = new ListNode(7);
 
-let l3 = new ListNode(1);
-l3.next = new ListNode(3);
-l3.next.next = new ListNode(4);
+        ListNode l3 = new ListNode(1);
+        l3.next = new ListNode(3);
+        l3.next.next = new ListNode(4);
 
-l2.next = new ListNode(6);
-result = mergeLists([l1, l2, l3]);
-
-let output = "Here are the elements form the merged list: ";
-while (result != null) {
-  output += result.value + " ";
-  result = result.next;
+        ListNode result = mergeLists(new ListNode[] { l1, l2, l3 });
+        System.out.print("Here are the elements form the merged list: ");
+        while (result != null) {
+            System.out.print(result.value + " ");
+            result = result.next;
+        }
+        System.out.println();
+    }
 }
-console.log(output);
 ```
 
 ### Compare Each Node One by One
 
-```js
-function mergeLists(lists) {
-  //compare one by one
-  if (!lists || !lists.length) return null;
+```java
+import java.util.*;
 
-  function findMinNode(lists) {
-    let index = -1;
-    let min = Infinity;
+class Solution {
+    public static ListNode mergeLists(ListNode[] lists) {
+        if (lists == null || lists.length == 0) return null;
 
-    for (let i = 0; i < lists.length; i++) {
-      if (!lists[i]) continue;
-      if (lists[i].value <= min) {
-        min = lists[i].value;
-        index = i;
-      }
+        ListNode resultList = new ListNode(-1);
+        ListNode curr = resultList;
+        ListNode temp = findMinNode(lists);
+
+        while (temp != null) {
+            curr.next = temp;
+            curr = curr.next;
+            temp = findMinNode(lists);
+        }
+
+        return resultList.next;
     }
 
-    let resultNode = null;
+    private static ListNode findMinNode(ListNode[] lists) {
+        int index = -1;
+        int min = Integer.MAX_VALUE;
 
-    if (index !== -1) {
-      resultNode = lists[index];
-      lists[index] = lists[index].next;
+        for (int i = 0; i < lists.length; i++) {
+            if (lists[i] == null) continue;
+            if (lists[i].value <= min) {
+                min = lists[i].value;
+                index = i;
+            }
+        }
+
+        ListNode resultNode = null;
+        if (index != -1) {
+            resultNode = lists[index];
+            lists[index] = lists[index].next;
+        }
+
+        return resultNode;
     }
-
-    return resultNode;
-  }
-
-  let resultList = new ListNode(-1);
-  let curr = resultList;
-  let temp = findMinNode(lists);
-
-  while (temp) {
-    curr.next = temp;
-    curr = curr.next;
-    temp = findMinNode(lists);
-  }
-
-  return resultList.next;
 }
 ```
 
@@ -121,42 +124,62 @@ function mergeLists(lists) {
 
 > Given `M` sorted arrays, find the `Kth` smallest number among all the arrays.
 
-```js
-function findKthSmallest(lists, k) {
-  let minHeap = new Heap();
+```java
+import java.util.*;
 
-  // put the 1st element of each list in the min heap
-  for (let i = 0; i < lists.length; i++) {
-    minHeap.insert([lists[i][0], 0, lists[i]]);
-  }
-  console.log(minHeap);
-  // take the smallest(i.e., top) element form the min heap, if the running count is equal to k return the number
-  let numberCount = 0,
-    number = 0;
-  while (minHeap.size > 0) {
-    [number, i, list] = minHeap.remove();
-    numberCount += 1;
-    if (numberCount === k) {
-      break;
+class Node {
+    int elementIndex;
+    int arrayIndex;
+
+    Node(int elementIndex, int arrayIndex) {
+        this.elementIndex = elementIndex;
+        this.arrayIndex = arrayIndex;
     }
-    // if the array of the top element has more elements, add the next element to the heap
-    if (list.length > i + 1) {
-      minHeap.insert([list[i + 1], i + 1, list]);
-    }
-  }
-  return number;
 }
 
-console.log(
-  `Kth smallest number is: ${findKthSmallest(
-    [
-      [2, 6, 8],
-      [3, 6, 7],
-      [1, 3, 4],
-    ],
-    5
-  )}`
-);
+class Solution {
+    public static int findKthSmallest(List<Integer[]> lists, int k) {
+        PriorityQueue<Node> minHeap = new PriorityQueue<>(
+                (n1, n2) -> lists.get(n1.arrayIndex)[n1.elementIndex] - lists.get(n2.arrayIndex)[n2.elementIndex]);
+
+        // put the 1st element of each array in the min heap
+        for (int i = 0; i < lists.size(); i++) {
+            if (lists.get(i) != null && lists.get(i).length > 0) {
+                minHeap.add(new Node(0, i));
+            }
+        }
+
+        // take the smallest (top) element form the min heap, if the running count is equal to k return the number
+        int numberCount = 0;
+        int result = 0;
+        while (!minHeap.isEmpty()) {
+            Node node = minHeap.poll();
+            result = lists.get(node.arrayIndex)[node.elementIndex];
+            numberCount++;
+            if (numberCount == k) {
+                break;
+            }
+            // if the array of the top element has more elements, add the next element to the heap
+            node.elementIndex++;
+            if (lists.get(node.arrayIndex).length > node.elementIndex) {
+                minHeap.add(node);
+            }
+        }
+        return result;
+    }
+
+    public static void main(String[] args) {
+        Integer[] l1 = new Integer[] { 2, 6, 8 };
+        Integer[] l2 = new Integer[] { 3, 6, 7 };
+        Integer[] l3 = new Integer[] { 1, 3, 4 };
+        List<Integer[]> lists = new ArrayList<>();
+        lists.add(l1);
+        lists.add(l2);
+        lists.add(l3);
+        int result = findKthSmallest(lists, 5);
+        System.out.println("Kth smallest number is: " + result);
+    }
+}
 ```
 
 ### Similar Problems
@@ -200,91 +223,72 @@ An alternative could be to apply the <b>Binary Search</b> on the <i>“number ra
 
 ![](./images/kwaymatrix.png)
 
-```js
-function findKthsmallest(matrix, k) {
-  const n = matrix.length;
-  let start = matrix[0][0];
-  let end = matrix[n - 1][n - 1];
+```java
+import java.util.*;
 
-  while (start < end) {
-    const mid = Math.floor(start + (end - start) / 2);
+class Solution {
+    public static int findKthSmallest(int[][] matrix, int k) {
+        int n = matrix.length;
+        int start = matrix[0][0];
+        int end = matrix[n - 1][n - 1];
 
-    const [count, smaller, larger] = countLessEqual(
-      matrix,
-      mid,
-      matrix[0][0],
-      matrix[n - 1][n - 1]
-    );
+        while (start < end) {
+            int mid = start + (end - start) / 2;
 
-    if (count === k) return smaller;
-    if (count < k) {
-      //search higher
-      start = larger;
-    } else {
-      //search lower
-      end = smaller;
+            int[] smallLargePair = { matrix[0][0], matrix[n - 1][n - 1] };
+            int count = countLessEqual(matrix, mid, smallLargePair);
+
+            if (count == k) return smallLargePair[0];
+
+            if (count < k) {
+                // search higher
+                start = smallLargePair[1];
+            } else {
+                // search lower
+                end = smallLargePair[0];
+            }
+        }
+
+        return start;
     }
-  }
 
-  return start;
-}
+    private static int countLessEqual(int[][] matrix, int mid, int[] smallLargePair) {
+        int count = 0;
+        int n = matrix.length;
+        int row = n - 1;
+        int col = 0;
 
-function countLessEqual(matrix, mid, smaller, larger) {
-  let count = 0;
-  let n = matrix.length;
-  let row = n - 1;
-  let col = 0;
-
-  while (row >= 0 && col < n) {
-    if (matrix[row][col] > mid) {
-      //as matrix[row][col] is bigger than the mid,
-      //keep track of the smallest number greater than the mid
-      larger = Math.min(larger, matrix[row][col]);
-      row--;
-    } else {
-      // as matrix[row][col] is <= mid
-      // keep track of the biggest number <= mid
-      smaller = Math.max(smaller, matrix[row][col]);
-      count += row + 1;
-      col++;
+        while (row >= 0 && col < n) {
+            if (matrix[row][col] > mid) {
+                // as matrix[row][col] is bigger than the mid,
+                // keep track of the smallest number greater than the mid
+                smallLargePair[1] = Math.min(smallLargePair[1], matrix[row][col]);
+                row--;
+            } else {
+                // as matrix[row][col] is <= mid
+                // keep track of the biggest number <= mid
+                smallLargePair[0] = Math.max(smallLargePair[0], matrix[row][col]);
+                count += row + 1;
+                col++;
+            }
+        }
+        return count;
     }
-  }
-  return [count, smaller, larger];
+
+    public static void main(String[] args) {
+        int[][] matrix1 = { { 1, 4 }, { 2, 5 } };
+        System.out.println("Kth smallest number is: " + findKthSmallest(matrix1, 2));
+
+        int[][] matrix2 = { { -5 } };
+        System.out.println("Kth smallest number is: " + findKthSmallest(matrix2, 1));
+
+        int[][] matrix3 = { { 2, 6, 8 }, { 3, 7, 10 }, { 5, 8, 11 } };
+        System.out.println("Kth smallest number is: " + findKthSmallest(matrix3, 5));
+
+        int[][] matrix4 = { { 1, 5, 9 }, { 10, 11, 13 }, { 12, 13, 15 } };
+        System.out.println("Kth smallest number is: " + findKthSmallest(matrix4, 8));
+    }
 }
-
-console.log(
-  `Kth smallest number is: ${findKthsmallest(
-    [
-      [1, 4],
-      [2, 5],
-    ],
-    2
-  )}`
-);
-
-console.log(`Kth smallest number is: ${findKthsmallest([[-5]], 1)}`);
-
-console.log(
-  `Kth smallest number is: ${findKthsmallest(
-    [
-      [2, 6, 8],
-      [3, 7, 10],
-      [5, 8, 11],
-    ],
-    5
-  )}`
-);
-
-console.log(
-  `Kth smallest number is: ${findKthsmallest(
-    [
-      [1, 5, 9],
-      [10, 11, 13],
-      [12, 13, 15],
-    ],
-    8
-  )}`
-);
 ```
 
 - The <b>Binary Search</b> could take `O(log(max-min ))` iterations where `max` is the largest and `min` is the smallest element in the matrix and in each iteration we take `O(N)`
@@ -305,147 +309,97 @@ In a loop, we’ll take the smallest (top) element from the `min-heap()` and `ma
 
 We can finish searching the minimum range as soon as an array is completed or, in other terms, the <b>heap</b> has less than `M` elements.
 
-```js
-class MinHeap {
-  constructor() {
-    this.list = []; // a list of [num, groupID]
-    this.size = 0;
-  }
+```java
+import java.util.*;
 
-  push(item) {
-    const list = this.list;
-    const size = ++this.size;
+class Node {
+    int elementIndex;
+    int arrayIndex;
 
-    list[size - 1] = item;
-    this.bubbleUp(size - 1);
-  }
-
-  pop() {
-    if (this.size === 0) return;
-
-    const list = this.list;
-    const size = this.size;
-    const item = list[0];
-
-    [list[0], list[size - 1]] = [list[size - 1], list[0]];
-    this.size--;
-    this.bubbleDown(0);
-    return item;
-  }
-
-  bubbleUp(index) {
-    const list = this.list;
-    const size = this.size;
-    const parent = Math.floor((index - 1) / 2);
-
-    if (parent < 0 || parent >= size) return;
-    if (index < 0 || index >= size) return;
-
-    if (list[index][0] < list[parent][0]) {
-      [list[index], list[parent]] = [list[parent], list[index]];
-      this.bubbleUp(parent);
+    Node(int elementIndex, int arrayIndex) {
+        this.elementIndex = elementIndex;
+        this.arrayIndex = arrayIndex;
     }
-  }
-
-  bubbleDown(index) {
-    if (index < 0 || index >= this.size) return;
-
-    const list = this.list;
-    const size = this.size;
-    const left = index * 2 + 1;
-    const right = index * 2 + 2;
-    let minVal = list[index][0];
-    let minIndex = index;
-
-    if (left >= 0 && left < size) {
-      if (list[left][0] < minVal) {
-        minVal = list[left][0];
-        minIndex = left;
-      }
-    }
-    if (right >= 0 && right < size) {
-      if (list[right][0] < minVal) {
-        minVal = list[right][0];
-        minIndex = right;
-      }
-    }
-    if (minIndex !== index) {
-      [list[index], list[minIndex]] = [list[minIndex], list[index]];
-      this.bubbleDown(minIndex);
-    }
-  }
 }
 
-function smallestRange(nums) {
-  const minHeap = new MinHeap();
-  const pointers = Array(nums.length).fill(0);
-  let rangeStart = 0;
-  let rangeEnd = Infinity;
-  let maxNumber = -Infinity;
+class Solution {
+    public static int[] smallestRange(List<Integer[]> lists) {
+        PriorityQueue<Node> minHeap = new PriorityQueue<>(
+                (n1, n2) -> lists.get(n1.arrayIndex)[n1.elementIndex] - lists.get(n2.arrayIndex)[n2.elementIndex]);
 
-  // put the first element of each array into the heap
-  for (let i = 0; i < nums.length; i++) {
-    minHeap.push([nums[i][0], i]);
-    maxNumber = Math.max(maxNumber, nums[i][0]);
-  }
+        int rangeStart = 0;
+        int rangeEnd = Integer.MAX_VALUE;
+        int maxNumber = Integer.MIN_VALUE;
 
-  // take the smallest(top) element from the heap, if it gives us smaller range, update the ranges
-  // if the array of the top element has more elements, insert the next element in the heap
-  while (true) {
-    let [minNumber, group] = minHeap.pop();
+        // put the 1st element of each array in the min heap
+        for (int i = 0; i < lists.size(); i++) {
+            if (lists.get(i) != null && lists.get(i).length > 0) {
+                minHeap.add(new Node(0, i));
+                maxNumber = Math.max(maxNumber, lists.get(i)[0]);
+            }
+        }
 
-    if (maxNumber - minNumber < rangeEnd - rangeStart) {
-      rangeStart = minNumber;
-      rangeEnd = maxNumber;
+        // take the smallest (top) element form the min heap, if it gives us smaller range, update the ranges
+        // if the array of the top element has more elements, insert the next element in the heap
+        while (minHeap.size() == lists.size()) {
+            Node node = minHeap.poll();
+            if (rangeEnd - rangeStart > maxNumber - lists.get(node.arrayIndex)[node.elementIndex]) {
+                rangeStart = lists.get(node.arrayIndex)[node.elementIndex];
+                rangeEnd = maxNumber;
+            }
+
+            node.elementIndex++;
+            if (lists.get(node.arrayIndex).length > node.elementIndex) {
+                minHeap.add(node); // insert the next element in the heap
+                maxNumber = Math.max(maxNumber, lists.get(node.arrayIndex)[node.elementIndex]);
+            }
+        }
+
+        return new int[] { rangeStart, rangeEnd };
     }
 
-    pointers[group]++;
-    if (pointers[group] >= nums[group].length) break;
-
-    // insert the next element into the heap
-    minHeap.push([nums[group][pointers[group]], group]);
-    maxNumber = Math.max(maxNumber, nums[group][pointers[group]]);
-  }
-
-  return [rangeStart, rangeEnd];
+    public static void main(String[] args) {
+        Integer[] l1 = new Integer[] { 4, 10, 15, 24, 26 };
+        Integer[] l2 = new Integer[] { 0, 9, 12, 20 };
+        Integer[] l3 = new Integer[] { 5, 18, 22, 30 };
+        List<Integer[]> lists = new ArrayList<>();
+        lists.add(l1);
+        lists.add(l2);
+        lists.add(l3);
+        int[] result = smallestRange(lists);
+        System.out.println("Smallest range is: [" + result[0] + ", " + result[1] + "]");
+        
+        l1 = new Integer[] { 1, 2, 3 };
+        l2 = new Integer[] { 1, 2, 3 };
+        l3 = new Integer[] { 1, 2, 3 };
+        lists = new ArrayList<>();
+        lists.add(l1);
+        lists.add(l2);
+        lists.add(l3);
+        result = smallestRange(lists);
+        System.out.println("Smallest range is: [" + result[0] + ", " + result[1] + "]");
+        
+        l1 = new Integer[] { 1, 5, 8 };
+        l2 = new Integer[] { 4, 12 };
+        l3 = new Integer[] { 7, 8, 10 };
+        lists = new ArrayList<>();
+        lists.add(l1);
+        lists.add(l2);
+        lists.add(l3);
+        result = smallestRange(lists);
+        System.out.println("Smallest range is: [" + result[0] + ", " + result[1] + "]");
+        
+        l1 = new Integer[] { 1, 9 };
+        l2 = new Integer[] { 4, 12 };
+        l3 = new Integer[] { 7, 10, 16 };
+        lists = new ArrayList<>();
+        lists.add(l1);
+        lists.add(l2);
+        lists.add(l3);
+        result = smallestRange(lists);
+        System.out.println("Smallest range is: [" + result[0] + ", " + result[1] + "]");
+    }
 }
-
-console.log(`Smallest range is: 
-${smallestRange([
-  [4, 10, 15, 24, 26],
-  [0, 9, 12, 20],
-  [5, 18, 22, 30],
-])}`);
-// [20,24]
-// List 1: [4, 10, 15, 24,26], 24 is in range [20,24].
-// List 2: [0, 9, 12, 20], 20 is in range [20,24].
-// List 3: [5, 18, 22, 30], 22 is in range [20,24].
-
-console.log(`Smallest range is: 
-${smallestRange(
-  (nums = [
-    [1, 2, 3],
-    [1, 2, 3],
-    [1, 2, 3],
-  ])
-)}`);
-// [1,1]
-
-console.log(`Smallest range is: 
-${smallestRange([
-  [1, 5, 8],
-  [4, 12],
-  [7, 8, 10],
-])}`);
-// The range [4, 7] includes 5 from L1, 4 from L2 and 7 from L3.
-
-console.log(`Smallest range is: 
-${smallestRange([
-  [1, 9],
-  [4, 12],
-  [7, 10, 16],
-])}`);
-// The range [9, 12] includes 9 from L1, 12 from L2 and 10 from L3.
 ```
 
 - Since, at most, we’ll be going through all the elements of all the arrays and will remove/add one element in the heap in each step, the time complexity of the above algorithm will be `O(N*logM)` where `N` is the total number of elements in all the `M` input arrays.
@@ -467,123 +421,55 @@ We can optimize our algorithms in two ways:
 2. As soon as we encounter a pair with a sum that is smaller than the smallest (top) element of the <b>heap</b>, we don’t need to process the next elements of the array. Since the arrays are sorted in descending order, we won’t be able to find a pair with a higher sum moving forward.
 
 😕
-```js
-class Heap {
-  constructor() {
-    this.values = [];
-  }
-  get size() {
-    return this.values.length;
-  }
+```java
+import java.util.*;
 
-  insert(elem) {
-    this.values.push(elem);
-    let index = this.size - 1;
-    if (index === 0) return;
+class Solution {
+    public static List<int[]> findKLargestPairs(int[] nums1, int[] nums2, int k) {
+        PriorityQueue<int[]> minHeap = new PriorityQueue<>((p1, p2) -> (p1[0] + p1[1]) - (p2[0] + p2[1]));
 
-    let parentIndex = Math.floor((index - 1) / 2);
-
-    while (
-      this.values[parentIndex] &&
-      this.values[parentIndex].val < this.values[index].val
-    ) {
-      [this.values[parentIndex], this.values[index]] = [
-        this.values[index],
-        this.values[parentIndex],
-      ];
-      index = parentIndex;
-      parentIndex = Math.floor((index - 1) / 2);
-    }
-    // console.log(this.values[0].index)
-    // this.values.sort((a, b) => b[0] - a[0]))
-  }
-
-  extract() {
-    😕
-    // let parentIndex = this.size - 1;
-    // let lastIndex = 0;
-    // [this.values[parentIndex], this.values[lastIndex]] = [
-    //   this.values[lastIndex],
-    //   this.values[parentIndex],
-    // ];
-    // let result =
-        this.values.pop();
-
-//     let leftChildIndex = 2 * parentIndex + 1;
-//     let rightChildIndex = 2 * parentIndex + 2;
-
-//     while (
-//       (this.values[leftChildIndex] !== undefined &&
-//         this.values[leftChildIndex].val > this.values[parentIndex].val) ||
-//       (this.values[rightChildIndex] !== undefined &&
-//         this.values[rightChildIndex].val > this.values[parentIndex].val)
-//     ) {
-//       let highestChildIndex;
-//       if (
-//         this.values[leftChildIndex] === undefined ||
-//         this.values[rightChildIndex] === undefined
-//       ) {
-//         highestChildIndex = leftChildIndex || rightChildIndex;
-//       } else {
-//         highestChildIndex =
-//           this.values[leftChildIndex].val > this.values[rightChildIndex].val
-//             ? leftChildIndex
-//             : rightChildIndex;
-//       }
-//       [this.values[parentIndex], this.values[highestChildIndex]] = [
-//         this.values[highestChildIndex],
-//         this.values[parentIndex],
-//       ];
-//       parentIndex = highestChildIndex;
-//       leftChildIndex = 2 * parentIndex + 1;
-//       rightChildIndex = 2 * parentIndex + 2;
-//     }
-    return result;
-  }
-}
-
-function findKLargestPairs(nums1, nums2, k) {
-  if (!nums1.length || !nums2.length) return [];
-
-  let heap = new Heap();
-
-    for (let i = 0; i < Math.min(k, nums1.length); i++) {
-        for (let j = 0; j < Math.min(k, nums2.length); j++) {
-            let elem = {
-                index: [nums1[i], nums2[j]],
-                val: nums1[i] + nums2[j]
-            }
-            console.log(elem.index, elem.val, heap.values[heap.size-1])
-            if (heap.size < k) {
-                heap.insert(elem);
-            } else if (elem.val < heap.values[heap.size-1]) {
-              😕
-              // if the sum of the two numbers from the two arrays is smaller than the smallest(top)
-      // element of the heap, we can 'break' here. Since the arrays are sorted in the
-      // descending order, we'll not be able to find a pair with a higher sum moving forward
-                heap.extract();
-                heap.insert(elem);
-
-
-            } else {
-               // we have a pair with a larger sum, remove top and insert this pair in the heap
-                break;
+        for (int i = 0; i < Math.min(k, nums1.length); i++) {
+            for (int j = 0; j < Math.min(k, nums2.length); j++) {
+                if (minHeap.size() < k) {
+                    minHeap.add(new int[] { nums1[i], nums2[j] });
+                } else {
+                    // if the sum of the two numbers from the two arrays is smaller than the smallest (top)
+                    // element of the heap, we can 'break' here. Since the arrays are sorted in the
+                    // descending order, we'll not be able to find a pair with a higher sum moving forward
+                    if (nums1[i] + nums2[j] < minHeap.peek()[0] + minHeap.peek()[1]) {
+                        break;
+                    } else {
+                        // we have a pair with a larger sum, remove top and insert this pair in the heap
+                        minHeap.poll();
+                        minHeap.add(new int[] { nums1[i], nums2[j] });
+                    }
+                }
             }
         }
+
+        return new ArrayList<>(minHeap);
     }
 
-    return heap.values.map(n => n.index);
-};
-
-
-console.log(`Pairs with largest sum are:
-${findKLargestPairs([9, 8, 2], [6, 3, 1], 3)}`);
-//[9, 3], [9, 6], [8, 6]
-// These 3 pairs have the largest sum. No other pair has a sum larger than any of these.
-console.log(
-  `Pairs with largest sum are: ${findKLargestPairs([5, 2, 1], [2, -1], 3)}`
-);
-//[5, 2], [5, -1], [2, 2]
+    public static void main(String[] args) {
+        int[] l1 = new int[] { 9, 8, 2 };
+        int[] l2 = new int[] { 6, 3, 1 };
+        List<int[]> result = findKLargestPairs(l1, l2, 3);
+        System.out.print("Pairs with largest sum are: ");
+        for (int[] pair : result) {
+            System.out.print("[" + pair[0] + ", " + pair[1] + "] ");
+        }
+        System.out.println();
+        
+        int[] l3 = new int[] { 5, 2, 1 };
+        int[] l4 = new int[] { 2, -1 };
+        result = findKLargestPairs(l3, l4, 3);
+        System.out.print("Pairs with largest sum are: ");
+        for (int[] pair : result) {
+            System.out.print("[" + pair[0] + ", " + pair[1] + "] ");
+        }
+        System.out.println();
+    }
+}
 ```
 
 - Since, at most, we’ll be going through all the elements of both arrays and we will add/remove one element in the heap in each step, the time complexity of the above algorithm will be `O(N∗M∗logK)` where `N` and `M` are the total number of elements in both arrays, respectively.  If we assume that both arrays have at least `K` elements then the time complexity can be simplified to `O(K^2logK)`, because we are not iterating more than `K` elements in both arrays.
@@ -634,46 +520,46 @@ Let’s discuss different algorithms to solve this problem and understand their 
 
 The simplest brute-force algorithm will be to find the `Kth` smallest number in a step by step fashion. This means that, first, we will find the smallest element, then 2nd smallest, then 3rd smallest and so on, until we have found the `Kth` smallest element. Here is what the algorithm will look like:
 
-```js
-function findKthSmallestNumber(nums, k) {
-  // to handle duplicates, we will keep track of previous smallest number and its index
-  let previousSmallestNum = -Infinity,
-    previousSmallestIndex = -1;
-  (currentSmallestNum = Infinity), (currentSmallestIndex = -1);
-  for (i = 0; i < k; i++) {
-    for (j = 0; j < nums.length; j++) {
-      if (nums[j] > previousSmallestNum && nums[j] < currentSmallestNum) {
-        // found the next smallest number
-        currentSmallestNum = nums[j];
-        currentSmallestIndex = j;
-      } else if (nums[j] === previousSmallestNum && j > previousSmallestIndex) {
-        // found a number which is equal to the previous smallest number; since numbers can repeat,
-        // we will consider 'nums[j]' only if it has a different index than previous smallest
-        currentSmallestNum = nums[j];
-        currentSmallestIndex = j;
-        break; // break here as we have found our definitive next smallest number
-      }
+```java
+class Solution {
+    public static int findKthSmallestNumber(int[] nums, int k) {
+        // to handle duplicates, we will keep track of previous smallest number and its index
+        int previousSmallestNum = Integer.MIN_VALUE;
+        int previousSmallestIndex = -1;
+        int currentSmallestNum = Integer.MAX_VALUE;
+        int currentSmallestIndex = -1;
+
+        for (int i = 0; i < k; i++) {
+            for (int j = 0; j < nums.length; j++) {
+                if (nums[j] > previousSmallestNum && nums[j] < currentSmallestNum) {
+                    // found the next smallest number
+                    currentSmallestNum = nums[j];
+                    currentSmallestIndex = j;
+                } else if (nums[j] == previousSmallestNum && j > previousSmallestIndex) {
+                    // found a number which is equal to the previous smallest number; since numbers can repeat,
+                    // we will consider 'nums[j]' only if it has a different index than previous smallest
+                    currentSmallestNum = nums[j];
+                    currentSmallestIndex = j;
+                    break; // break here as we have found our definitive next smallest number
+                }
+            }
+            // current smallest number becomes previous smallest number for the next iteration
+            previousSmallestNum = currentSmallestNum;
+            previousSmallestIndex = currentSmallestIndex;
+            currentSmallestNum = Integer.MAX_VALUE;
+        }
+        return previousSmallestNum;
     }
-    // current smallest number becomes previous smallest number for the next iteration
-    previousSmallestNum = currentSmallestNum;
-    previousSmallestIndex = currentSmallestIndex;
-    currentSmallestNum = Infinity;
-  }
-  return previousSmallestNum;
+
+    public static void main(String[] args) {
+        System.out.println("Kth smallest number is: " + findKthSmallestNumber(new int[] { 1, 5, 12, 2, 11, 5 }, 3));
+        
+        // since there are two 5s in the input array, our 3rd and 4th smallest numbers should be a '5'
+        System.out.println("Kth smallest number is: " + findKthSmallestNumber(new int[] { 1, 5, 12, 2, 11, 5 }, 4));
+        
+        System.out.println("Kth smallest number is: " + findKthSmallestNumber(new int[] { 5, 12, 11, -1, 12 }, 3));
+    }
 }
-
-console.log(
-  `Kth smallest number is: ${findKthSmallestNumber([1, 5, 12, 2, 11, 5], 3)}`
-);
-
-// since there are two 5s in the input array, our 3rd and 4th smallest numbers should be a '5'
-console.log(
-  `Kth smallest number is: ${findKthSmallestNumber([1, 5, 12, 2, 11, 5], 4)}`
-);
-
-console.log(
-  `Kth smallest number is: ${findKthSmallestNumber([5, 12, 11, -1, 12], 3)}`
-);
 ```
 
 - The time complexity of the above algorithm will be `O(N∗K)`. The algorithm runs in constant space `O(1)`.
@@ -684,25 +570,24 @@ We can use an <i>in-place sort</i> like a <b>HeapSort</b> to sort the input arra
 
 Following is the code for this solution:
 
-```js
-function findKthSmallestNumber(nums, k) {
-  nums.sort((a, b) => a - b);
+```java
+import java.util.*;
 
-  return nums[k - 1];
+class Solution {
+    public static int findKthSmallestNumber(int[] nums, int k) {
+        Arrays.sort(nums);
+        return nums[k - 1];
+    }
+
+    public static void main(String[] args) {
+        System.out.println("Kth smallest number is: " + findKthSmallestNumber(new int[] { 1, 5, 12, 2, 11, 5 }, 3));
+        
+        // since there are two 5s in the input array, our 3rd and 4th smallest numbers should be a '5'
+        System.out.println("Kth smallest number is: " + findKthSmallestNumber(new int[] { 1, 5, 12, 2, 11, 5 }, 4));
+        
+        System.out.println("Kth smallest number is: " + findKthSmallestNumber(new int[] { 5, 12, 11, -1, 12 }, 3));
+    }
 }
-
-console.log(
-  `Kth smallest number is: ${findKthSmallestNumber([1, 5, 12, 2, 11, 5], 3)}`
-);
-
-// since there are two 5s in the input array, our 3rd and 4th smallest numbers should be a '5'
-console.log(
-  `Kth smallest number is: ${findKthSmallestNumber([1, 5, 12, 2, 11, 5], 4)}`
-);
-
-console.log(
-  `Kth smallest number is: ${findKthSmallestNumber([5, 12, 11, -1, 12], 3)}`
-);
 ```
 
 - Sorting will take `O(NlogN)` and if we are not using an in-place sorting algorithm, we will need `O(N)`space.
@@ -713,41 +598,40 @@ As discussed in [Kth Smallest Number](#💫-kth-smallest-number-hard), we can it
 
 Here is what this algorithm will look like:
 
-```js
-const Heap = require("./collections/heap"); //http://www.collectionsjs.com
+```java
+import java.util.*;
 
-function findKthSmallestNumber(nums, k) {
-  maxHeap = new Heap();
-  // put first k numbers in the max heap
-  for (i = 0; i < k; i++) {
-    maxHeap.push(nums[i]);
-  }
+class Solution {
+    public static int findKthSmallestNumber(int[] nums, int k) {
+        PriorityQueue<Integer> maxHeap = new PriorityQueue<>((n1, n2) -> n2 - n1);
+        
+        // put first k numbers in the max heap
+        for (int i = 0; i < k; i++) {
+            maxHeap.add(nums[i]);
+        }
 
-  // go through the remaining numbers of the array, if the number from the array is smaller than the
-  // top(biggest) number of the heap, remove the top number from heap and add the number from array
-  for (i = k; i < nums.length; i++) {
-    if (nums[i] < maxHeap.peek()) {
-      maxHeap.pop();
-      maxHeap.push(nums[i]);
+        // go through the remaining numbers of the array, if the number from the array is smaller than the
+        // top(biggest) number of the heap, remove the top number from heap and add the number from array
+        for (int i = k; i < nums.length; i++) {
+            if (nums[i] < maxHeap.peek()) {
+                maxHeap.poll();
+                maxHeap.add(nums[i]);
+            }
+        }
+
+        // the root of the heap has the Kth smallest number
+        return maxHeap.peek();
     }
-  }
 
-  // the root of the heap has the Kth smallest number
-  return maxHeap.peek();
+    public static void main(String[] args) {
+        System.out.println("Kth smallest number is: " + findKthSmallestNumber(new int[] { 1, 5, 12, 2, 11, 5 }, 3));
+        
+        // since there are two 5s in the input array, our 3rd and 4th smallest numbers should be a '5'
+        System.out.println("Kth smallest number is: " + findKthSmallestNumber(new int[] { 1, 5, 12, 2, 11, 5 }, 4));
+        
+        System.out.println("Kth smallest number is: " + findKthSmallestNumber(new int[] { 5, 12, 11, -1, 12 }, 3));
+    }
 }
-
-console.log(
-  `Kth smallest number is: ${findKthSmallestNumber([1, 5, 12, 2, 11, 5], 3)}`
-);
-
-// since there are two 5s in the input array, our 3rd and 4th smallest numbers should be a '5'
-console.log(
-  `Kth smallest number is: ${findKthSmallestNumber([1, 5, 12, 2, 11, 5], 4)}`
-);
-
-console.log(
-  `Kth smallest number is: ${findKthSmallestNumber([5, 12, 11, -1, 12], 3)}`
-);
 ```
 
 - The time complexity of the above algorithm is `O(K*logK + (N-K)*logK)`which is asymptotically equal to `O(N∗logK)`. The space complexity will be `O(K)` because we need to store `K` smallest numbers in the heap.
@@ -769,58 +653,62 @@ We can use this <i>partitioning</i> scheme to find the `Kth` smallest number. We
 
 Here is what our algorithm will look like:
 
-```js
-function findKthSmallestNumber(nums, k) {
-  return findKthSmallestNumber_rec(nums, k, 0, nums.length - 1);
-}
-
-function findKthSmallestNumber_rec(nums, k, start, end) {
-  const p = partition(nums, start, end);
-
-  if (p === k - 1) {
-    return nums[p];
-  }
-
-  if (p > k - 1) {
-    // search lower part
-    return findKthSmallestNumber_rec(nums, k, start, p - 1);
-  }
-
-  // search higher part
-  return findKthSmallestNumber_rec(nums, k, p + 1, end);
-}
-
-function partition(nums, low, high) {
-  if (low === high) {
-    return low;
-  }
-
-  const pivot = nums[high];
-  for (i = low; i < high; i++) {
-    // all elements less than 'pivot' will be before the index 'low'
-    if (nums[i] < pivot) {
-      [nums[low], nums[i]] = [nums[i], nums[low]];
-      low += 1;
+```java
+class Solution {
+    public static int findKthSmallestNumber(int[] nums, int k) {
+        return findKthSmallestNumberRec(nums, k, 0, nums.length - 1);
     }
-  }
 
-  // put the pivot in its correct place
-  [nums[low], nums[high]] = [nums[high], nums[low]];
-  return low;
+    private static int findKthSmallestNumberRec(int[] nums, int k, int start, int end) {
+        int p = partition(nums, start, end);
+
+        if (p == k - 1) {
+            return nums[p];
+        }
+
+        if (p > k - 1) {
+            // search lower part
+            return findKthSmallestNumberRec(nums, k, start, p - 1);
+        }
+
+        // search higher part
+        return findKthSmallestNumberRec(nums, k, p + 1, end);
+    }
+
+    private static int partition(int[] nums, int low, int high) {
+        if (low == high) {
+            return low;
+        }
+
+        int pivot = nums[high];
+        for (int i = low; i < high; i++) {
+            // all elements less than 'pivot' will be before the index 'low'
+            if (nums[i] < pivot) {
+                swap(nums, low, i);
+                low++;
+            }
+        }
+
+        // put the pivot in its correct place
+        swap(nums, low, high);
+        return low;
+    }
+
+    private static void swap(int[] nums, int i, int j) {
+        int temp = nums[i];
+        nums[i] = nums[j];
+        nums[j] = temp;
+    }
+
+    public static void main(String[] args) {
+        System.out.println("Kth smallest number is: " + findKthSmallestNumber(new int[] { 1, 5, 12, 2, 11, 5 }, 3));
+        
+        // since there are two 5s in the input array, our 3rd and 4th smallest numbers should be a '5'
+        System.out.println("Kth smallest number is: " + findKthSmallestNumber(new int[] { 1, 5, 12, 2, 11, 5 }, 4));
+        
+        System.out.println("Kth smallest number is: " + findKthSmallestNumber(new int[] { 5, 12, 11, -1, 12 }, 3));
+    }
 }
-
-console.log(
-  `Kth smallest number is: ${findKthSmallestNumber([1, 5, 12, 2, 11, 5], 3)}`
-);
-
-// since there are two 5s in the input array, our 3rd and 4th smallest numbers should be a '5'
-console.log(
-  `Kth smallest number is: ${findKthSmallestNumber([1, 5, 12, 2, 11, 5], 4)}`
-);
-
-console.log(
-  `Kth smallest number is: ${findKthSmallestNumber([5, 12, 11, -1, 12], 3)}`
-);
 ```
 
 - The above algorithm is known as <b>QuickSelect</b> and has a Worst case time complexity of `O(N^2)`. The best and average case is `O(N)`., which is better than the best and average case of <b>Quicksort</b>. Overall, <b>QuickSelect</b> uses the same approach as <b>Quicksort</b> i.e., <i>partitioning</i> the data into two parts based on a <b>pivot</b>. However, contrary to <b>Quicksort</b>, instead of recursing into both sides <b>QuickSelect</b> only recurses into one side – the side with the element it is searching for. This reduces the average and best case time complexity from `O(N∗logN)` to `O(N)`.
@@ -835,59 +723,66 @@ As mentioned above, the worst case for <b>Quicksort</b> occurs when the partitio
 
 Here is what our algorithm will look like (only the highlighted lines have changed):
 
-```js
-function findKthSmallestNumber(nums, k) {
-  return findKthSmallestNumber_rec(nums, k, 0, nums.length - 1);
-}
+```java
+import java.util.*;
 
-function findKthSmallestNumber_rec(nums, k, start, end) {
-  const p = partition(nums, start, end);
-
-  if (p === k - 1) {
-    return nums[p];
-  }
-  if (p > k - 1) {
-    // search lower part
-    return findKthSmallestNumber_rec(nums, k, start, p - 1);
-  }
-  // search higher part
-  return findKthSmallestNumber_rec(nums, k, p + 1, end);
-}
-
-function partition(nums, low, high) {
-  if (low === high) {
-    return low;
-  }
-
-  const pivotIndex = Math.floor(Math.random() * (high - low + 1)) + low;
-  [nums[pivotIndex], nums[high]] = [nums[high], nums[pivotIndex]];
-
-  const pivot = nums[high];
-  for (i = low; i < high; i++) {
-    // all elements less than 'pivot' will be before the index 'low'
-    if (nums[i] < pivot) {
-      [nums[low], nums[i]] = [nums[i], nums[low]];
-      low += 1;
+class Solution {
+    public static int findKthSmallestNumber(int[] nums, int k) {
+        return findKthSmallestNumberRec(nums, k, 0, nums.length - 1);
     }
-  }
 
-  // put the pivot in its correct place
-  [nums[low], nums[high]] = [nums[high], nums[low]]; //swap
-  return low;
+    private static int findKthSmallestNumberRec(int[] nums, int k, int start, int end) {
+        int p = partition(nums, start, end);
+
+        if (p == k - 1) {
+            return nums[p];
+        }
+        if (p > k - 1) {
+            // search lower part
+            return findKthSmallestNumberRec(nums, k, start, p - 1);
+        }
+        // search higher part
+        return findKthSmallestNumberRec(nums, k, p + 1, end);
+    }
+
+    private static int partition(int[] nums, int low, int high) {
+        if (low == high) {
+            return low;
+        }
+
+        Random random = new Random();
+        int pivotIndex = low + random.nextInt(high - low + 1);
+        swap(nums, pivotIndex, high);
+
+        int pivot = nums[high];
+        for (int i = low; i < high; i++) {
+            // all elements less than 'pivot' will be before the index 'low'
+            if (nums[i] < pivot) {
+                swap(nums, low, i);
+                low++;
+            }
+        }
+
+        // put the pivot in its correct place
+        swap(nums, low, high);
+        return low;
+    }
+
+    private static void swap(int[] nums, int i, int j) {
+        int temp = nums[i];
+        nums[i] = nums[j];
+        nums[j] = temp;
+    }
+
+    public static void main(String[] args) {
+        System.out.println("Kth smallest number is: " + findKthSmallestNumber(new int[] { 1, 5, 12, 2, 11, 5 }, 3));
+        
+        // since there are two 5s in the input array, our 3rd and 4th smallest numbers should be a '5'
+        System.out.println("Kth smallest number is: " + findKthSmallestNumber(new int[] { 1, 5, 12, 2, 11, 5 }, 4));
+        
+        System.out.println("Kth smallest number is: " + findKthSmallestNumber(new int[] { 5, 12, 11, -1, 12 }, 3));
+    }
 }
-
-console.log(
-  `Kth smallest number is: ${findKthSmallestNumber([1, 5, 12, 2, 11, 5], 3)}`
-);
-
-// since there are two 5s in the input array, our 3rd and 4th smallest numbers should be a '5'
-console.log(
-  `Kth smallest number is: ${findKthSmallestNumber([1, 5, 12, 2, 11, 5], 4)}`
-);
-
-console.log(
-  `Kth smallest number is: ${findKthSmallestNumber([5, 12, 11, -1, 12], 3)}`
-);
 ```
 
 - The above algorithm has the same worst and average case time complexities as mentioned for the previous algorithm. But choosing the <b>pivot</b> randomly has the effect of rendering the worst-case very unlikely, particularly for large arrays. Therefore, the expected time complexity of the above algorithm will be `O(N)`, but the absolute worst case is still `O(N^2)`. Practically, this algorithm is a lot faster than the non-randomized version.
@@ -905,97 +800,94 @@ This is how the <i>partitioning</i> algorithm works:
 
 Here is what this algorithm will look like:
 
-```js
-function findKthSmallestNumber(nums, k) {
-  return findKthSmallestNumber_rec(nums, k, 0, nums.length - 1);
-}
+```java
+import java.util.*;
 
-function findKthSmallestNumber_rec(nums, k, start, end) {
-  const p = partition(nums, start, end);
-
-  if (p === k - 1) {
-    return nums[p];
-  }
-
-  if (p > k - 1) {
-    // search lower part
-    return findKthSmallestNumber_rec(nums, k, start, p - 1);
-  }
-
-  // search higher part
-  return findKthSmallestNumber_rec(nums, k, p + 1, end);
-}
-
-function partition(nums, low, high) {
-  if (low === high) {
-    return low;
-  }
-
-  const median = median_of_medians(nums, low, high);
-  // find the median in the array and swap it with 'nums[high]' which will become our pivot
-  for (i = low; i < high; i++) {
-    if (nums[i] === median) {
-      [nums[i], nums[high]] = [nums[high], nums[i]];
-      break;
+class Solution {
+    public static int findKthSmallestNumber(int[] nums, int k) {
+        return findKthSmallestNumberRec(nums, k, 0, nums.length - 1);
     }
-  }
 
-  const pivot = nums[high];
-  for (i = low; i < high; i++) {
-    // all elements less than 'pivot' will be before the index 'low'
-    if (nums[i] < pivot) {
-      [nums[low], nums[i]] = [nums[i], nums[low]];
-      low += 1;
+    private static int findKthSmallestNumberRec(int[] nums, int k, int start, int end) {
+        int p = partition(nums, start, end);
+
+        if (p == k - 1) {
+            return nums[p];
+        }
+
+        if (p > k - 1) {
+            // search lower part
+            return findKthSmallestNumberRec(nums, k, start, p - 1);
+        }
+
+        // search higher part
+        return findKthSmallestNumberRec(nums, k, p + 1, end);
     }
-  }
-  // put the pivot at its correct place
-  [nums[low], nums[high]] = [nums[high], nums[low]];
-  return low;
-}
 
-function median_of_medians(nums, low, high) {
-  n = high - low + 1;
-  // if we have less than 5 elements, ignore the partitioning algorithm
-  if (n < 5) {
-    return nums[low];
-  }
+    private static int partition(int[] nums, int low, int high) {
+        if (low == high) {
+            return low;
+        }
 
-  // partition the given array into chunks of 5 elements
-  // for simplicity, lets ignore any partition with less than 5 elements
-  const partitions = [];
-  for (let i = low; i <= high; i += 5) {
-    if (i + 5 <= high + 1) {
-      partitions.push(nums.slice(i, i + 5));
+        int median = medianOfMedians(nums, low, high);
+        // find the median in the array and swap it with 'nums[high]' which will become our pivot
+        for (int i = low; i < high; i++) {
+            if (nums[i] == median) {
+                swap(nums, i, high);
+                break;
+            }
+        }
+
+        int pivot = nums[high];
+        for (int i = low; i < high; i++) {
+            // all elements less than 'pivot' will be before the index 'low'
+            if (nums[i] < pivot) {
+                swap(nums, low, i);
+                low++;
+            }
+        }
+        // put the pivot at its correct place
+        swap(nums, low, high);
+        return low;
     }
-  }
 
-  // sort all partitions
-  partitions.forEach((p) => {
-    p.sort((a, b) => a - b);
-  });
+    private static int medianOfMedians(int[] nums, int low, int high) {
+        int n = high - low + 1;
+        // if we have less than 5 elements, ignore the partitioning algorithm
+        if (n < 5) {
+            return nums[low];
+        }
 
-  // find median of all partitions; the median of each partition is at index '2'
-  const medians = [];
-  partitions.forEach((p) => {
-    medians.push(p[2]);
-  });
+        // partition the given array into chunks of 5 elements
+        // for simplicity, lets ignore any partition with less than 5 elements
+        int numOfPartitions = n / 5;
+        int[] medians = new int[numOfPartitions];
+        for (int i = 0; i < numOfPartitions; i++) {
+            int partitionStart = low + i * 5;
+            int[] partition = Arrays.copyOfRange(nums, partitionStart, partitionStart + 5);
+            Arrays.sort(partition);
+            medians[i] = partition[2];
+        }
 
-  // recursively find the actual median VALUE of the medians array (not just a partition index)
-  return findKthSmallestNumber_rec(medians, Math.ceil(medians.length / 2), 0, medians.length - 1);
+        // recursively find the actual median VALUE of the medians array (not just a partition index)
+        return findKthSmallestNumberRec(medians, (int) Math.ceil(medians.length / 2.0), 0, medians.length - 1);
+    }
+
+    private static void swap(int[] nums, int i, int j) {
+        int temp = nums[i];
+        nums[i] = nums[j];
+        nums[j] = temp;
+    }
+
+    public static void main(String[] args) {
+        System.out.println("Kth smallest number is: " + findKthSmallestNumber(new int[] { 1, 5, 12, 2, 11, 5 }, 3));
+        
+        // since there are two 5s in the input array, our 3rd and 4th smallest numbers should be a '5'
+        System.out.println("Kth smallest number is: " + findKthSmallestNumber(new int[] { 1, 5, 12, 2, 11, 5 }, 4));
+        
+        System.out.println("Kth smallest number is: " + findKthSmallestNumber(new int[] { 5, 12, 11, -1, 12 }, 3));
+    }
 }
-
-console.log(
-  `Kth smallest number is: ${findKthSmallestNumber([1, 5, 12, 2, 11, 5], 3)}`
-);
-
-// since there are two 5s in the input array, our 3rd and 4th smallest numbers should be a '5'
-console.log(
-  `Kth smallest number is: ${findKthSmallestNumber([1, 5, 12, 2, 11, 5], 4)}`
-);
-
-console.log(
-  `Kth smallest number is: ${findKthSmallestNumber([5, 12, 11, -1, 12], 3)}`
-);
 ```
 
 - The above algorithm has a guaranteed `O(N)`worst-case time. Please see the proof of its running time here and under <i>“Selection-based pivoting”</i>. The worst-case space complexity is `O(N)`.

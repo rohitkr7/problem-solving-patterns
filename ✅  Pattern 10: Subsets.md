@@ -18,39 +18,37 @@ Given set: `[1, 5, 3]`
 4. Add the third number `3` to all the existing subsets: `[[], [1], [5], [1,5], `<b>`[3], [1,3], [5,3], [1,5,3]`</b>`]`.
 
 Since the input set has distinct elements, the above steps will ensure that we will not have any duplicate subsets.
-````js
-function findSubsets(nums) {
-  const subsets = [];
-  
-  //start by adding the empty subset
-  subsets.push([])
-  
-  for(let i = 0; i < nums.length; i++) {
-    const currentNumber = nums[i]
-    
-    //we will take all existing subsets and insert the current
-    //number in them to create new subsets
-    const n = subsets.length
+```java
+import java.util.*;
 
-    //create a new subset from the existing subset and insert
-    //the current element to it
-    for(let j = 0; j < n; j++) {
-      
-      //clone the permutation
-      // const set1 = subsets[j].slice(0)
-      
-      // set1.push(currentNumber)
-      subsets.push([...subsets[j], nums[i]])
+class Solution {
+    public static List<List<Integer>> findSubsets(int[] nums) {
+        List<List<Integer>> subsets = new ArrayList<>();
+        // start by adding the empty subset
+        subsets.add(new ArrayList<>());
+
+        for (int currentNumber : nums) {
+            // we will take all existing subsets and insert the current number in them to create new subsets
+            int n = subsets.size();
+            for (int i = 0; i < n; i++) {
+                // create a new subset from the existing subset and insert the current element to it
+                List<Integer> set = new ArrayList<>(subsets.get(i));
+                set.add(currentNumber);
+                subsets.add(set);
+            }
+        }
+        return subsets;
     }
-  }
 
-  return subsets;
-};
+    public static void main(String[] args) {
+        List<List<Integer>> result = findSubsets(new int[] { 1, 3 });
+        System.out.println("Here is the list of subsets: " + result);
 
-
-findSubsets([1, 3])
-findSubsets([1, 5, 3])
-````
+        result = findSubsets(new int[] { 1, 5, 3 });
+        System.out.println("Here is the list of subsets: " + result);
+    }
+}
+```
 - Since, in each step, the number of subsets doubles as we add each element to all the existing subsets, therefore, we will have a total of `O(2ᴺ)` subsets, where `N` is the total number of elements in the input set. And since we construct a new subset from an existing set, therefore, the time complexity of the above algorithm will be `O(N*2ᴺ)`.
 - All the additional space used by our algorithm is for the output list. Since we will have a total of `O(2ᴺ)` subsets, and each subset can take up to `O(N)` space, therefore, the space complexity of our algorithm will be `O(N*2ᴺ)`.
 
@@ -85,44 +83,44 @@ To handle this instead of adding `3` to all the existing subsets, we only add it
 ````
 5. Finally, add the forth number `5` to all the existing subsets: `[[], [1], [3], [1,3], [3,3], [1,3,3], [5], [1,5], [3,5], [1,3,5], [3,3,5], [1,3,3,5]]`
 
-````js
-function subsetsWithDupe(nums) {
-  //sort the numbers to handle duplicates
-  nums.sort((a,b) => a-b)
-  
-  const subsets = [];
-  
-  subsets.push([])
-  
-  let start = 0
-  let end = 0
-  
-  for(let i = 0; i < nums.length; i++) {
-    start = 0
-    
-    //if current and the previous elements are the same,
-    //create new subsets only from the subsets
-    //added in the previous step
-    if(i > 0 && nums[i] === nums[i-1]) {
-      start = end + 1
-    }
-    
-    end = subsets.length - 1
-    
-    for(let j = start; j < end + 1; j++) {
-      //create a new subset from the existing subset and add the
-      //current element to it
-      subsets.push([...subsets[j], nums[i]])
-    }
-  }
-  
-  return subsets;
-};
+```java
+import java.util.*;
 
+class Solution {
+    public static List<List<Integer>> subsetsWithDupe(int[] nums) {
+        // sort the numbers to handle duplicates
+        Arrays.sort(nums);
+        List<List<Integer>> subsets = new ArrayList<>();
+        subsets.add(new ArrayList<>());
 
-subsetsWithDupe([1, 3, 3])
-subsetsWithDupe([1, 5, 3, 3])
-````
+        int start = 0, end = 0;
+        for (int i = 0; i < nums.length; i++) {
+            start = 0;
+            // if current and the previous elements are same, create new subsets only from the subsets 
+            // added in the previous step
+            if (i > 0 && nums[i] == nums[i - 1]) {
+                start = end + 1;
+            }
+            end = subsets.size() - 1;
+            for (int j = start; j <= end; j++) {
+                // create a new subset from the existing subset and add the current element to it
+                List<Integer> set = new ArrayList<>(subsets.get(j));
+                set.add(nums[i]);
+                subsets.add(set);
+            }
+        }
+        return subsets;
+    }
+
+    public static void main(String[] args) {
+        List<List<Integer>> result = subsetsWithDupe(new int[] { 1, 3, 3 });
+        System.out.println("Here is the list of subsets: " + result);
+
+        result = subsetsWithDupe(new int[] { 1, 5, 3, 3 });
+        System.out.println("Here is the list of subsets: " + result);
+    }
+}
+```
 - Since, in each step, the number of subsets doubles (if not duplicate) as we add each element to all the existing subsets, therefore, we will have a total of `O(2ᴺ)` subsets, where `N` is the total number of elements in the input set. And since we construct a new subset from an existing set, therefore, the time complexity of the above algorithm will be `O(N*2ᴺ)`.
 - All the additional space used by our algorithm is for the output list. Since, at most, we will have a total of `O(2ᴺ)` subsets, and each subset can take up to `O(N)` space, therefore, the space complexity of our algorithm will be `O(N*2ᴺ)`.
 ## Permutations (medium)
@@ -155,75 +153,76 @@ If we look closely, we will realize that when we add a new number `5`, we take e
 2. Inserting `5` between `3` and `1`: `[3,5,1]`
 3. Inserting `5` after `1`: `[3,1,5]`
 
-````js
-function findPermutations(nums) {
-  const result = [];
-  let permutations = [[]]
-  let numsLength = nums.length
-  
-   for(let i = 0; i < nums.length; i++) {
-     const currentNumber = nums[i]
-     
-     //we will take all existing permutations an add the
-     //current number to create a new permutation
-     const n = permutations.length
-     
-     for(let p = 0; p < n; p++){
-       const oldPermutation = permutations.shift()
-       console.log(oldPermutation)
-       
-       //create a new permutation by adding the current number at every position
-       for(let j  = 0; j < oldPermutation.length + 1; j++) {
-         
-         //clone the permutation
-         const newPermutation = oldPermutation.slice(0)
-         
-         //insert the current number at index j
-         newPermutation.splice(j, 0, currentNumber)
-         
-         if(newPermutation.length === numsLength) {
-           result.push(newPermutation)
-         } else {
-           permutations.push(newPermutation)
-         }
-       }
-     }
-   }
-  return result;
-};
+```java
+import java.util.*;
 
-findPermutations([1, 3, 5])
-````
+class Solution {
+    public static List<List<Integer>> findPermutations(int[] nums) {
+        List<List<Integer>> result = new ArrayList<>();
+        Queue<List<Integer>> permutations = new LinkedList<>();
+        permutations.add(new ArrayList<>());
+
+        for (int currentNumber : nums) {
+            // we will take all existing permutations and add the current number to create new permutations
+            int n = permutations.size();
+            for (int i = 0; i < n; i++) {
+                List<Integer> oldPermutation = permutations.poll();
+                // create a new permutation by adding the current number at every position
+                for (int j = 0; j <= oldPermutation.size(); j++) {
+                    List<Integer> newPermutation = new ArrayList<>(oldPermutation);
+                    newPermutation.add(j, currentNumber);
+                    if (newPermutation.size() == nums.length) {
+                        result.add(newPermutation);
+                    } else {
+                        permutations.add(newPermutation);
+                    }
+                }
+            }
+        }
+        return result;
+    }
+
+    public static void main(String[] args) {
+        List<List<Integer>> result = findPermutations(new int[] { 1, 3, 5 });
+        System.out.println("Here are all the permutations: " + result);
+    }
+}
+```
 
 - We know that there are a total of `N!` permutations of a set with `N` numbers. In the algorithm above, we are iterating through all of these permutations with the help of the two ‘for’ loops. In each iteration, we go through all the current permutations to insert a new number in them. To insert a number into a permutation of size ‘`N` will take `O(N)`, which makes the overall time complexity of our algorithm `O(N*N!)`.
 - All the additional space used by our algorithm is for the `result` list and the `queue` to store the intermediate permutations. If you see closely, at any time, we don’t have more than `N!` permutations between the result list and the queue. Therefore the overall space complexity to store `N!` permutations each containing `N` elements will be `O(N*N!)`.
 
 ### Recursive Solution
-````js
-function permute(nums) {
-  //recursion
-  let subsets = []
- 
-  generatePermuationsRecursive(nums, 0, [], subsets)
-  
-  return subsets   
-};
+```java
+import java.util.*;
 
-function generatePermuationsRecursive(nums, index, currentPermuation, subsets) {
-    if(index === nums.length) {
-      subsets.push(currentPermuation)
-    } else {
-      //create a new permuation by adding the current number at every position
-      for(let i = 0; i < currentPermuation.length +1; i++) {
-        let newPermutation = currentPermuation.slice(0)
-        
-        //insert nums[index] at index i
-        newPermutation.splice(i, 0, nums[index])
-        generatePermuationsRecursive(nums, index+1, newPermutation, subsets)
-      }
-    }  
-  }
-  ````
+class Solution {
+    public static List<List<Integer>> permute(int[] nums) {
+        List<List<Integer>> result = new ArrayList<>();
+        generatePermutationsRecursive(nums, 0, new ArrayList<>(), result);
+        return result;
+    }
+
+    private static void generatePermutationsRecursive(int[] nums, int index, List<Integer> currentPermutation,
+            List<List<Integer>> result) {
+        if (index == nums.length) {
+            result.add(currentPermutation);
+        } else {
+            // create a new permutation by adding the current number at every position
+            for (int i = 0; i <= currentPermutation.size(); i++) {
+                List<Integer> newPermutation = new ArrayList<>(currentPermutation);
+                newPermutation.add(i, nums[index]);
+                generatePermutationsRecursive(nums, index + 1, newPermutation, result);
+            }
+        }
+    }
+
+    public static void main(String[] args) {
+        List<List<Integer>> result = permute(new int[] { 1, 3, 5 });
+        System.out.println("Here are all the permutations: " + result);
+    }
+}
+```
 ## String Permutations by changing case (medium)
 https://leetcode.com/problems/letter-case-permutation/
 
@@ -241,40 +240,45 @@ Let’s take Example-2 mentioned above to generate all the permutations. Followi
 Let’s analyze the permutations in the 3rd and the 5th step. How can we generate the permutations in the 5th step from the permutations in the 3rd step?
 
 If we look closely, we will realize that in the 5th step, when we processed the new character `c`, we took all the permutations of the previous step (3rd) and changed the case of the letter `c` in them to create four new permutations.
-````js
-function findLetterCaseStringPermutations(str) {
-  const permutations = [];
-  permutations.push(str)
-  
-  //process every character of the string one by one
-  for(let i = 0; i < str.length; i++) {
-    //only characters we will skip digits
-    if(isNaN(parseInt(str[i]), 10)){
-      //we will take all exixting permutations and change the letter case appropriately
-      const n = permutations.length
-      
-      for(let j = 0; j < n; j++) {
-        //string to array
-        const chs = permutations[j].split('')
-        
-        //if the current character is in upper case
-        //change it to lower case or vice verse
-        if(chs[i] === chs[i].toLowerCase()) {
-          chs[i] = chs[i].toUpperCase()
-        } else {
-          chs[i] = chs[i].toLowerCase()
+```java
+import java.util.*;
+
+class Solution {
+    public static List<String> findLetterCaseStringPermutations(String str) {
+        List<String> permutations = new ArrayList<>();
+        if (str == null)
+            return permutations;
+
+        permutations.add(str);
+        // process every character of the string one by one
+        for (int i = 0; i < str.length(); i++) {
+            if (Character.isLetter(str.charAt(i))) { // only process characters, skip digits
+                // we will take all existing permutations and change the letter case appropriately
+                int n = permutations.size();
+                for (int j = 0; j < n; j++) {
+                    char[] chs = permutations.get(j).toCharArray();
+                    // if the current character is in upper case change it to lower case or vice versa
+                    if (Character.isUpperCase(chs[i])) {
+                        chs[i] = Character.toLowerCase(chs[i]);
+                    } else {
+                        chs[i] = Character.toUpperCase(chs[i]);
+                    }
+                    permutations.add(String.valueOf(chs));
+                }
+            }
         }
-        permutations.push(chs.join(''))
-      }
+        return permutations;
     }
-  }
-  return permutations;
-};
 
+    public static void main(String[] args) {
+        List<String> result = findLetterCaseStringPermutations("ad52");
+        System.out.println("String permutations are: " + result);
 
-findLetterCaseStringPermutations("ad52")
-findLetterCaseStringPermutations("ab7c")
-````
+        result = findLetterCaseStringPermutations("ab7c");
+        System.out.println("String permutations are: " + result);
+    }
+}
+```
 
 - Since we can have`2ᴺ` permutations at the most and while processing each permutation we convert it into a character array, the overall time complexity of the algorithm will be `O(N*2ᴺ)`.
 - All the additional space used by our algorithm is for the output list. Since we can have a total of `O(2ᴺ)` permutations, the space complexity of our algorithm is `O(N*2ᴺ)`.
@@ -302,81 +306,98 @@ Following this guideline, let’s generate parentheses for `N=3`:
 8. Finally, we will have the following combinations of balanced parentheses: `“((()))”, “(()())”, “(())()”, “()(())”, “()()()”`
 9. We can’t add more parentheses to any of the combinations, so we stop here.
 
-````js
+```java
+import java.util.*;
+
 class ParenthesesString {
-  constructor(str, openCount, closeCount) {
-    this.str = str;
-    this.openCount = openCount;
-    this.closeCount = closeCount;
-  }
+    String str;
+    int openCount;
+    int closeCount;
+
+    public ParenthesesString(String s, int openCount, int closeCount) {
+        str = s;
+        this.openCount = openCount;
+        this.closeCount = closeCount;
+    }
 }
 
+class Solution {
+    public static List<String> generateValidParentheses(int num) {
+        List<String> result = new ArrayList<>();
+        Queue<ParenthesesString> queue = new LinkedList<>();
+        queue.add(new ParenthesesString("", 0, 0));
 
-function generateValidParentheses(num) {
-  let result = [];
-  let queue = []
-  
-  queue.push(new ParenthesesString('', 0, 0))
-  
-  while(queue.length > 0) {
-    const ps = queue.shift()
-    
-    //if we've reached the maximum number of open and closed
-    //parentheses, add to the result
-    if(ps.openCount === num && ps.closeCount === num) {
-      result.push(ps.str)
-    } else {
-      if(ps.openCount < num) {
-        //if we can add an open parentheses, add it
-        queue.push(new ParenthesesString(`${ps.str}(`, ps.openCount + 1, ps.closeCount))  
-      }
-      if(ps.openCount > ps.closeCount) {
-        //if we can add a close parentheses, add it
-        queue.push(new ParenthesesString(`${ps.str})`, ps.openCount, ps.closeCount + 1))
-      }
+        while (!queue.isEmpty()) {
+            ParenthesesString ps = queue.poll();
+            // if we've reached the maximum number of open and close parentheses, add to the result
+            if (ps.openCount == num && ps.closeCount == num) {
+                result.add(ps.str);
+            } else {
+                if (ps.openCount < num) {
+                    // if we can add an open parentheses, add it
+                    queue.add(new ParenthesesString(ps.str + "(", ps.openCount + 1, ps.closeCount));
+                }
+                if (ps.openCount > ps.closeCount) {
+                    // if we can add a close parentheses, add it
+                    queue.add(new ParenthesesString(ps.str + ")", ps.openCount, ps.closeCount + 1));
+                }
+            }
+        }
+        return result;
     }
-  }
-  return result;
-};
 
+    public static void main(String[] args) {
+        List<String> result = generateValidParentheses(2);
+        System.out.println("All combinations of balanced parentheses are: " + result);
 
-generateValidParentheses(2)
-generateValidParentheses(3)
-````
+        result = generateValidParentheses(3);
+        System.out.println("All combinations of balanced parentheses are: " + result);
+    }
+}
+```
 - Let’s try to estimate how many combinations we can have for `N` pairs of balanced parentheses. If we don’t care for the ordering - that `)` can only come after `(` - then we have two options for every position, i.e., either put open parentheses or close parentheses. This means we can have a maximum of `2ᴺ` combinations. Because of the ordering, the actual number will be less than `2ᴺ`
 - If you see the visual representation of Example-2 closely you will realize that, in the worst case, it is equivalent to a binary tree, where each node will have two children. This means that we will have `2ᴺ` leaf nodes and `2ᴺ-1` intermediate nodes. So the total number of elements pushed to the queue will be `2ᴺ−1`, which is asymptotically equivalent to `O(2ᴺ)`. While processing each element, we do need to concatenate the current string with `(` or `)`. This operation will take `O(N)`, so the overall time complexity of our algorithm will be `O(N*2ᴺ)`. <i>This is not completely accurate but reasonable enough to be presented in the interview.</i>
 
 - All the additional space used by our algorithm is for the output list. Since we can’t have more than `O(2ᴺ)` combinations, the space complexity of our algorithm is `O(N*2ᴺ)`.
 
 ### Recursive Solution 
-````js
-function generateValidParentheses(num) {
-  const result = [];
-  const parenthesesString = Array(2 * num);
-  generateValidParenthesesRecursive(num, 0, 0, parenthesesString, 0, result);
-  return result;
-}
+```java
+import java.util.*;
 
-
-function generateValidParenthesesRecursive(num, openCount, closeCount, parenthesesString, index, result) {
-  // if we've reached the maximum number of open and close parentheses, add to the result
-  if (openCount === num && closeCount === num) {
-    result.push(parenthesesString.join(''));
-  } else {
-    if (openCount < num) { // if we can add an open parentheses, add it
-      parenthesesString[index] = '(';
-     generateValidParenthesesRecursive(num, openCount + 1, closeCount, parenthesesString, index + 1, result);
+class Solution {
+    public static List<String> generateValidParentheses(int num) {
+        List<String> result = new ArrayList<>();
+        char[] parenthesesString = new char[2 * num];
+        generateValidParenthesesRecursive(num, 0, 0, parenthesesString, 0, result);
+        return result;
     }
-    if (openCount > closeCount) { // if we can add a close parentheses, add it
-      parenthesesString[index] = ')';
-      generateValidParenthesesRecursive(num, openCount, closeCount + 1, parenthesesString, index + 1, result);
-    }
-  }
-}
 
-generateValidParentheses(2)
-generateValidParentheses(3)
-````
+    private static void generateValidParenthesesRecursive(int num, int openCount, int closeCount,
+            char[] parenthesesString, int index, List<String> result) {
+        // if we've reached the maximum number of open and close parentheses, add to the result
+        if (openCount == num && closeCount == num) {
+            result.add(new String(parenthesesString));
+        } else {
+            if (openCount < num) { // if we can add an open parentheses, add it
+                parenthesesString[index] = '(';
+                generateValidParenthesesRecursive(num, openCount + 1, closeCount, parenthesesString, index + 1, result);
+            }
+            if (openCount > closeCount) { // if we can add a close parentheses, add it
+                parenthesesString[index] = ')';
+                generateValidParenthesesRecursive(num, openCount, closeCount + 1, parenthesesString, index + 1, result);
+            }
+        }
+    }
+
+    public static void main(String[] args) {
+        List<String> result = generateValidParentheses(2);
+        System.out.println("All combinations of balanced parentheses are: " + result);
+
+        result = generateValidParentheses(3);
+        System.out.println("All combinations of balanced parentheses are: " + result);
+    }
+}
+```
 ## 😕 Unique Generalized Abbreviations (hard)
 https://leetcode.com/problems/generalized-abbreviation/
 
@@ -400,81 +421,101 @@ Following these two rules, let’s abbreviate `BAT`:
 5. The next iteration will give us: `_ _ _, 2T, 1A_, 1AT, B _ _, B1T, BA_, BAT`
 6. The final iteration will give us:`3, 2T, 1A1, 1AT, B2, B1T, BA1, BAT`
 
-````js
+```java
+import java.util.*;
+
 class AbbreviatedWord {
-  constructor(str, start, count) {
-    this.str = str;
-    this.start = start;
-    this.count = count;
-  }
+    StringBuilder str;
+    int start;
+    int count;
+
+    public AbbreviatedWord(StringBuilder str, int start, int count) {
+        this.str = str;
+        this.start = start;
+        this.count = count;
+    }
 }
 
-function generateGeneralizedAbbreviation(word) {
-  let wLength = word.length
-  const result = [];
-  const queue = [];
-  queue.push(new AbbreviatedWord('', 0, 0))
-  while(queue.length > 0) {
-    const abWord = queue.shift()
-    if(abWord.start === wLength){
-      if(abWord.count !== 0) {
-        abWord.str += abWord.count
-      }
-      result.push(abWord.str)
-    } else {
-      //continue abbreviating by incrementing the current abbreviation count
-      queue.push(new AbbreviatedWord(abWord.str, abWord.start + 1, abWord.count + 1))
-      
-      //restart abbreviating, append the count and the current character to the string
-      if(abWord.count !== 0){
-        abWord.str += abWord.count
-      }
-      let newWord = abWord.str + word[abWord.start]
-      queue.push(new AbbreviatedWord(newWord, abWord.start + 1, 0))
+class Solution {
+    public static List<String> generateGeneralizedAbbreviation(String word) {
+        int wordLen = word.length();
+        List<String> result = new ArrayList<>();
+        Queue<AbbreviatedWord> queue = new LinkedList<>();
+        queue.add(new AbbreviatedWord(new StringBuilder(), 0, 0));
+
+        while (!queue.isEmpty()) {
+            AbbreviatedWord abWord = queue.poll();
+            if (abWord.start == wordLen) {
+                if (abWord.count != 0) {
+                    abWord.str.append(abWord.count);
+                }
+                result.add(abWord.str.toString());
+            } else {
+                // continue abbreviating by incrementing the current abbreviation count
+                queue.add(new AbbreviatedWord(new StringBuilder(abWord.str), abWord.start + 1, abWord.count + 1));
+
+                // restart abbreviating, append the count and the current character to the string
+                if (abWord.count != 0) {
+                    abWord.str.append(abWord.count);
+                }
+                abWord.str.append(word.charAt(abWord.start));
+                queue.add(new AbbreviatedWord(new StringBuilder(abWord.str), abWord.start + 1, 0));
+            }
+        }
+        return result;
     }
-  }
-  return result;
-};
 
+    public static void main(String[] args) {
+        List<String> result = generateGeneralizedAbbreviation("BAT");
+        System.out.println("Generalized abbreviation are: " + result);
 
-generateGeneralizedAbbreviation("BAT")//"BAT", "BA1", "B1T", "B2", "1AT", "1A1", "2T", "3"
-
-generateGeneralizedAbbreviation("code")// "code", "cod1", "co1e", "co2", "c1de", "c1d1", "c2e", "c3", "1ode", "1od1", "1o1e", "1o2", "2de", "2d1", "3e", "4"
-````
+        result = generateGeneralizedAbbreviation("code");
+        System.out.println("Generalized abbreviation are: " + result);
+    }
+}
+```
 - Since we had two options for each character, we will have a maximum of `2ᴺ` combinations. If you see the visual representation of Example-1 closely, you will realize that it is equivalent to a binary tree, where each node has two children. This means that we will have `2ᴺ` leaf nodes and `2ᴺ-1` intermediate nodes, so the total number of elements pushed to the queue will be `2ᴺ + 2ᴺ-1`, which is asymptotically equivalent to `O(2ᴺ)`. While processing each element, we do need to concatenate the current string with a character. This operation will take `O(N)`, so the overall time complexity of our algorithm will be `O(N*2ᴺ)`.
  - All the additional space used by our algorithm is for the output list. Since we can’t have more than `O(2ᴺ)` combinations, the space complexity of our algorithm is `O(N*2ᴺ)`.
 ### Recursive Solution 
-````js
-function generate_generalized_abbreviation(word) {
-  const result = [];
-  generate_abbreviation_recursive(word, '', 0, 0, result);
-  return result;
-}
+```java
+import java.util.*;
 
-
-function generate_abbreviation_recursive(word, abWord, start, count, result) {
-  if (start === word.length) {
-    if (count !== 0) {
-      abWord += count;
+class Solution {
+    public static List<String> generateGeneralizedAbbreviation(String word) {
+        List<String> result = new ArrayList<>();
+        generateAbbreviationRecursive(word, new StringBuilder(), 0, 0, result);
+        return result;
     }
-    result.push(abWord);
-  } else {
-    // continue abbreviating by incrementing the current abbreviation count
-    generate_abbreviation_recursive(word, abWord, start + 1, count + 1, result);
 
-    // restart abbreviating, append the count and the current character to the string
-    if (count !== 0) {
-      abWord += count;
+    private static void generateAbbreviationRecursive(String word, StringBuilder abWord, int start, int count,
+            List<String> result) {
+        if (start == word.length()) {
+            if (count != 0) {
+                abWord.append(count);
+            }
+            result.add(abWord.toString());
+        } else {
+            // continue abbreviating by incrementing the current abbreviation count
+            generateAbbreviationRecursive(word, new StringBuilder(abWord), start + 1, count + 1, result);
+
+            // restart abbreviating, append the count and the current character to the string
+            if (count != 0) {
+                abWord.append(count);
+            }
+            abWord.append(word.charAt(start));
+            generateAbbreviationRecursive(word, new StringBuilder(abWord), start + 1, 0, result);
+        }
     }
-    const newWord = abWord + word[start];
-    generate_abbreviation_recursive(word, newWord, start + 1, 0, result);
-  }
+
+    public static void main(String[] args) {
+        List<String> result = generateGeneralizedAbbreviation("BAT");
+        System.out.println("Generalized abbreviation are: " + result);
+
+        result = generateGeneralizedAbbreviation("code");
+        System.out.println("Generalized abbreviation are: " + result);
+    }
 }
-
-
-console.log(`Generalized abbreviation are: ${generate_generalized_abbreviation('BAT')}`);
-console.log(`Generalized abbreviation are: ${generate_generalized_abbreviation('code')}`);
-````
+```
 ## 🌟 Evaluate Expression (hard)
 https://leetcode.com/problems/different-ways-to-add-parentheses/
 
@@ -488,105 +529,105 @@ Let’s take the first example to generate different ways to evaluate the expres
 3. The two parts can be calculated by recursively calling the function.
 4. Once we have the evaluation results from the left and right halves, we can combine them to produce all results.
 
-````js
-function diffWaysToEvaluateExpression(input) {
-  const result = [];
-  
-  // base case: if the input string is a number, parse and add it to output.
-  if(!(input.includes('+')) && !(input.includes('-')) && !(input.includes('*'))) {
-     result.push(parseInt(input))
-     } else {
-       for(let i = 0; i < input.length; i++){
-         const char = input[i];
-         if(isNaN(parseInt(char, 10))){
-        // if not a digit
-        // break the equation here into two parts and make recursively calls
-           const leftParts = diffWaysToEvaluateExpression(input.substring(0, i))
-           const rightParts = diffWaysToEvaluateExpression(input.substring(i + 1))
-         
-           for (let l = 0; l < leftParts.length; l++) {
-          for (let r = 0; r < rightParts.length; r++) {
-            let part1 = leftParts[l],
-              part2 = rightParts[r];
-            if (char === '+') {
-              result.push(part1 + part2);
-            } else if (char === '-') {
-              result.push(part1 - part2);
-            } else if (char === '*') {
-              result.push(part1 * part2);
+```java
+import java.util.*;
+
+class Solution {
+    public static List<Integer> diffWaysToEvaluateExpression(String input) {
+        List<Integer> result = new ArrayList<>();
+        // base case: if the input string is a number, parse and add it to output.
+        if (!input.contains("+") && !input.contains("-") && !input.contains("*")) {
+            result.add(Integer.parseInt(input));
+        } else {
+            for (int i = 0; i < input.length(); i++) {
+                char chr = input.charAt(i);
+                if (!Character.isDigit(chr)) {
+                    // if not a digit, break the equation here into two parts and make recursively calls
+                    List<Integer> leftParts = diffWaysToEvaluateExpression(input.substring(0, i));
+                    List<Integer> rightParts = diffWaysToEvaluateExpression(input.substring(i + 1));
+                    for (int part1 : leftParts) {
+                        for (int part2 : rightParts) {
+                            if (chr == '+') {
+                                result.add(part1 + part2);
+                            } else if (chr == '-') {
+                                result.add(part1 - part2);
+                            } else if (chr == '*') {
+                                result.add(part1 * part2);
+                            }
+                        }
+                    }
+                }
             }
-          }
         }
-      }
+        return result;
     }
-  }
 
-  return result;
-};
+    public static void main(String[] args) {
+        List<Integer> result = diffWaysToEvaluateExpression("1+2*3");
+        System.out.println("Expression evaluations: " + result);
 
-
-console.log(`Expression evaluations: ${diffWaysToEvaluateExpression("1+2*3")}`)//[7, 9],1+(2*3) => 7 and (1+2)*3 => 9
-console.log(`Expression evaluations: ${diffWaysToEvaluateExpression("2*3-4-5")}`)//[8, -12, 7, -7, -3 ], 2*(3-(4-5)) => 8, 2*(3-4-5) => -12, 2*3-(4-5) => 7, 2*(3-4)-5 => -7, (2*3)-4-5 => -3
-````
+        result = diffWaysToEvaluateExpression("2*3-4-5");
+        System.out.println("Expression evaluations: " + result);
+    }
+}
+```
 
 - The time complexity of this algorithm will be exponential and will be similar to Balanced Parentheses. Estimated time complexity will be `O(N*2^N)` but the actual time complexity `( O(4^n/\sqrt{n})` is bounded by the Catalan number and is beyond the scope of a coding interview. 
 - The space complexity of this algorithm will also be exponential, estimated at `O(2^N)` though the actual will be `( O(4^n/\sqrt{n})`.
 
 ### Memoized Solution
 The problem has overlapping subproblems, as our recursive calls can be evaluating the same sub-expression multiple times. To resolve this, we can use <b>memoization</b> and store the intermediate results in a <b>HashMap</b>. In each function call, we can check our map to see if we have already evaluated this sub-expression before
-````js
-function diffWaysToEvaluateExpression(input) {
-  return diffWaysToEvaluateExpressionRecursive({}, input)
-}
+```java
+import java.util.*;
 
-function diffWaysToEvaluateExpressionRecursive(map, input) {
-  
-  if(input in map) {
-    return map[input]
-    // console.log(map[input])
-  }
-  const result = [];
-  
-  // base case: if the input string is a number
-  //parse and add it to output.
-  if(!(input.includes('+')) && !(input.includes('-')) && !(input.includes('*'))) {
-     result.push(parseInt(input))
-     } 
-  else {
-       for(let i = 0; i < input.length; i++){
-         const char = input[i];
-         if(isNaN(parseInt(char, 10))){
-        // if not a digit
-        // break the equation here into two parts and make recursively calls
-           const leftParts = diffWaysToEvaluateExpressionRecursive(map, input.substring(0, i))
-           const rightParts = diffWaysToEvaluateExpressionRecursive(map, input.substring(i + 1))
-         // console.log(leftParts.length)
-           for (let l = 0; l < leftParts.length; l++) {
-          for (let r = 0; r < rightParts.length; r++) {
-            let part1 = leftParts[l],
-              part2 = rightParts[r];
-            if (char === '+') {
-              result.push(part1 + part2);
-            } else if (char === '-') {
-              result.push(part1 - part2);
-            } else if (char === '*') {
-              result.push(part1 * part2);
-            }
-          }
-        }
-      }
+class Solution {
+    public static List<Integer> diffWaysToEvaluateExpression(String input) {
+        return diffWaysToEvaluateExpressionRecursive(new HashMap<>(), input);
     }
-  }
-  
-  map[input] = result
-  
-  return result;
-};
 
+    private static List<Integer> diffWaysToEvaluateExpressionRecursive(Map<String, List<Integer>> map, String input) {
+        if (map.containsKey(input)) {
+            return map.get(input);
+        }
+        List<Integer> result = new ArrayList<>();
 
-console.log(`Expression evaluations: ${diffWaysToEvaluateExpression("1+2*3")}`)//[7, 9],1+(2*3) => 7 and (1+2)*3 => 9
-console.log(`Expression evaluations: ${diffWaysToEvaluateExpression("2*3-4-5")}`)//[8, -12, 7, -7, -3 ], 2*(3-(4-5)) => 8, 2*(3-4-5) => -12, 2*3-(4-5) => 7, 2*(3-4)-5 => -7, (2*3)-4-5 => -3
-````
+        // base case: if the input string is a number, parse and add it to output.
+        if (!input.contains("+") && !input.contains("-") && !input.contains("*")) {
+            result.add(Integer.parseInt(input));
+        } else {
+            for (int i = 0; i < input.length(); i++) {
+                char chr = input.charAt(i);
+                if (!Character.isDigit(chr)) {
+                    // if not a digit, break the equation here into two parts and make recursively calls
+                    List<Integer> leftParts = diffWaysToEvaluateExpressionRecursive(map, input.substring(0, i));
+                    List<Integer> rightParts = diffWaysToEvaluateExpressionRecursive(map, input.substring(i + 1));
+                    for (int part1 : leftParts) {
+                        for (int part2 : rightParts) {
+                            if (chr == '+') {
+                                result.add(part1 + part2);
+                            } else if (chr == '-') {
+                                result.add(part1 - part2);
+                            } else if (chr == '*') {
+                                result.add(part1 * part2);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        map.put(input, result);
+        return result;
+    }
+
+    public static void main(String[] args) {
+        List<Integer> result = diffWaysToEvaluateExpression("1+2*3");
+        System.out.println("Expression evaluations: " + result);
+
+        result = diffWaysToEvaluateExpression("2*3-4-5");
+        System.out.println("Expression evaluations: " + result);
+    }
+}
+```
 
 ## 🌟 Structurally Unique Binary Search Trees (hard)
 https://leetcode.com/problems/unique-binary-search-trees-ii/
@@ -595,56 +636,67 @@ https://leetcode.com/problems/unique-binary-search-trees-ii/
 
 This problem follows the <b>Subsets</b> pattern and is quite similar to <b>Evaluate Expression</b>. Following a similar approach, we can iterate from `1` to `n` and consider each number as the root of a tree. All smaller numbers will make up the left sub-tree and bigger numbers will make up the right sub-tree. We will make recursive calls for the left and right sub-trees
 
-````js
+```java
+import java.util.*;
+
 class TreeNode {
-  constructor(val, left = null, right = null) {
-    this.val = val;
-    this.left = left;
-    this.right = right;
-  }
-}
+    int val;
+    TreeNode left;
+    TreeNode right;
 
-
-function findUniqueTrees(n) {
-   if (n <= 0) {
-    return [];
-  }
-  return findUniqueTreesRecursive(1, n);
-}
-
-function findUniqueTreesRecursive(start, end) {
-  const result = [];
-  // let treeCount = 0
-  // base condition, return 'null' for an empty sub-tree
-  // consider n = 1, in this case we will have start = end = 1, this means we should have only one tree
-  // we will have two recursive calls, findUniqueTreesRecursive(1, 0) & (2, 1)
-  // both of these should return 'null' for the left and the right child
-  if (start > end) {
-    result.push(null);
-    return result;
-  }
-
-  for (let i = start; i < end + 1; i++) {
-    // making 'i' the root of the tree
-    const leftSubtrees = findUniqueTreesRecursive(start, i - 1);
-    const rightSubtrees = findUniqueTreesRecursive(i + 1, end);
-    for (let p = 0; p < leftSubtrees.length; p++) {
-      for (let q = 0; q < rightSubtrees.length; q++) {
-        const root = new TreeNode(i, leftSubtrees[p], rightSubtrees[q]);
-        result.push(root);
-        // treeCount++
-      }
+    TreeNode(int x) {
+        val = x;
     }
-  }
+    
+    TreeNode(int x, TreeNode left, TreeNode right) {
+        this.val = x;
+        this.left = left;
+        this.right = right;
+    }
+}
 
-  //return length of this instead, traverse tree?
-  return result;
-};
+class Solution {
+    public static List<TreeNode> findUniqueTrees(int n) {
+        if (n <= 0) {
+            return new ArrayList<TreeNode>();
+        }
+        return findUniqueTreesRecursive(1, n);
+    }
 
+    private static List<TreeNode> findUniqueTreesRecursive(int start, int end) {
+        List<TreeNode> result = new ArrayList<>();
+        // base condition, return 'null' for an empty sub-tree
+        // consider n = 1, in this case we will have start = end = 1, this means we should have only one tree
+        // we will have two recursive calls, findUniqueTreesRecursive(1, 0) & (2, 1)
+        // both of these should return 'null' for the left and the right child
+        if (start > end) {
+            result.add(null);
+            return result;
+        }
 
-findUniqueTrees(2)//List containing root nodes of all structurally unique BSTs, Here are the 2 structurally unique BSTs storing all numbers from 1 to 2:
-findUniqueTrees(3)//List containing root nodes of all structurally unique BSTs, Here are the 5 structurally unique BSTs storing all numbers from 1 to 3:
-````
+        for (int i = start; i <= end; i++) {
+            // making 'i' the root of the tree
+            List<TreeNode> leftSubtrees = findUniqueTreesRecursive(start, i - 1);
+            List<TreeNode> rightSubtrees = findUniqueTreesRecursive(i + 1, end);
+            for (TreeNode leftTree : leftSubtrees) {
+                for (TreeNode rightTree : rightSubtrees) {
+                    TreeNode root = new TreeNode(i, leftTree, rightTree);
+                    result.add(root);
+                }
+            }
+        }
+        return result;
+    }
+
+    public static void main(String[] args) {
+        List<TreeNode> result = findUniqueTrees(2);
+        System.out.println("Total trees: " + result.size());
+
+        result = findUniqueTrees(3);
+        System.out.println("Total trees: " + result.size());
+    }
+}
+```
 - The time complexity of this algorithm will be exponential and will be similar to Balanced Parentheses. Estimated time complexity will be `O(n*2^n)` but the actual time complexity `( O(4^n/\sqrt{n})` is bounded by the Catalan number and is beyond the scope of a coding interview. 
 - The space complexity of this algorithm will be exponential too, estimated at `O(2^n)`, but the actual will be `( O(4^n/\sqrt{n})`.
 
@@ -656,77 +708,91 @@ https://leetcode.com/problems/unique-binary-search-trees/
 
 > Given a number `n`, write a function to return the count of structurally unique <b>Binary Search Trees (BST)</b> that can store values `1` to `n`.
 
-````js
+```java
 class TreeNode {
-  constructor(value) {
-    this.value = value;
-    this.left = null;
-    this.right = null; 
-  }
-};
+    int val;
+    TreeNode left;
+    TreeNode right;
 
+    TreeNode(int x) {
+        val = x;
+    }
+}
 
-function countTrees(n) {
-if (n <= 1) {
-    return 1;
-  }
-  let count = 0;
-  for (let i = 1; i < n + 1; i++) {
-    // making 'i' the root of the tree
-    const countOfLeftSubtrees = countTrees(i - 1);
-    const countOfRightSubtrees = countTrees(n - i);
-    count += (countOfLeftSubtrees * countOfRightSubtrees);
-  }
-  return count;
-};
+class Solution {
+    public static int countTrees(int n) {
+        if (n <= 1) {
+            return 1;
+        }
+        int count = 0;
+        for (int i = 1; i <= n; i++) {
+            // making 'i' the root of the tree
+            int countOfLeftSubtrees = countTrees(i - 1);
+            int countOfRightSubtrees = countTrees(n - i);
+            count += (countOfLeftSubtrees * countOfRightSubtrees);
+        }
+        return count;
+    }
 
+    public static void main(String[] args) {
+        int count = countTrees(2);
+        System.out.println("Total trees: " + count);
 
-countTrees(2)//2, As we saw in the previous problem, there are 2 unique BSTs storing numbers from 1-2.
-countTrees(3)//5, There will be 5 unique BSTs that can store numbers from 1 to 3.
-````
+        count = countTrees(3);
+        System.out.println("Total trees: " + count);
+    }
+}
+```
 - The time complexity of this algorithm will be exponential and will be similar to Balanced Parentheses. Estimated time complexity will be `O(n*2^n)` but the actual time complexity `( O(4^n/\sqrt{n})` is bounded by the Catalan number and is beyond the scope of a coding interview. 
 - The space complexity of this algorithm will be exponential too, estimated `O(2^n)` but the actual will be `( O(4^n/\sqrt{n})`.
 
 ### Memoized version
 Our algorithm has overlapping subproblems as our recursive call will be evaluating the same sub-expression multiple times. To resolve this, we can use memoization and store the intermediate results in a <b>HashMap</b>. In each function call, we can check our map to see if we have already evaluated this sub-expression before.
-````js
-class TreeNode {
-  constructor(value) {
-    this.value = value;
-    this.left = null;
-    this.right = null; 
-  }
-};
+```java
+import java.util.*;
 
-function countTrees(n) {
-  return countTreesMemo({}, n);
+class TreeNode {
+    int val;
+    TreeNode left;
+    TreeNode right;
+
+    TreeNode(int x) {
+        val = x;
+    }
 }
 
-function countTreesMemo(map, n) {
-   if (n in map) {
-    return map[n];
-  }
-  
-  
-if (n <= 1) {
-    return 1;
-  }
-  let count = 0;
-  for (let i = 1; i < n + 1; i++) {
-    // making 'i' the root of the tree
-    const countOfLeftSubtrees = countTreesMemo(map, i - 1);
-    const countOfRightSubtrees = countTreesMemo(map, n - i);
-    count += (countOfLeftSubtrees * countOfRightSubtrees);
-  }
-  
-  map[n] = count;
-  
-  return count;
-};
+class Solution {
+    public static int countTrees(int n) {
+        return countTreesMemo(new HashMap<Integer, Integer>(), n);
+    }
 
+    private static int countTreesMemo(Map<Integer, Integer> map, int n) {
+        if (map.containsKey(n)) {
+            return map.get(n);
+        }
 
-countTrees(2)//2, As we saw in the previous problem, there are 2 unique BSTs storing numbers from 1-2.
-countTrees(3)//5, There will be 5 unique BSTs that can store numbers from 1 to 3.
-````
+        if (n <= 1) {
+            return 1;
+        }
+        int count = 0;
+        for (int i = 1; i <= n; i++) {
+            // making 'i' the root of the tree
+            int countOfLeftSubtrees = countTreesMemo(map, i - 1);
+            int countOfRightSubtrees = countTreesMemo(map, n - i);
+            count += (countOfLeftSubtrees * countOfRightSubtrees);
+        }
+        map.put(n, count);
+        return count;
+    }
+
+    public static void main(String[] args) {
+        int count = countTrees(2);
+        System.out.println("Total trees: " + count);
+
+        count = countTrees(3);
+        System.out.println("Total trees: " + count);
+    }
+}
+```
 - The time complexity of the memoized algorithm will be `O(n^2)`, since we are iterating from `1` to `n` and ensuring that each sub-problem is evaluated only once. 
 - The space complexity will be `O(n)` for the memoization map.

@@ -36,139 +36,56 @@ Now, we have two elements in the <b>Max Heap</b> and no elements in <b>Min Heap<
 6. `insertNum(4)`: Insert ‘4’ into <b>Min Heap</b>.
 7. `findMedian()`: As we have an even number of elements, the median will be the average of the top element of both the heaps ➡️ `(3+4)/2 = 3.5(3+4)/2=3.5`
 
-### JavaScript Custom Heap Class
-````
-/** 
- *  custom Heap class
- */
-
-class Heap {
-	constructor(comparator) {
-		this.size = 0;
-		this.values = [];
-		this.comparator = comparator || Heap.minComparator;
-	}
-
-	add(val) {
-		this.values.push(val);
-		this.size ++;
-		this.bubbleUp();
-	}
-
-	peek() {
-		return this.values[0] || null;
-	}
-
-	poll() {
-		const max = this.values[0];
-		const end = this.values.pop();
-		this.size --;
-		if (this.values.length) {
-			this.values[0] = end;
-			this.bubbleDown();
-		}
-		return max;
-	}
-
-	bubbleUp() {
-		let index = this.values.length - 1;
-		let parent = Math.floor((index - 1) / 2);
-
-		while (this.comparator(this.values[index], this.values[parent]) < 0) {
-			[this.values[parent], this.values[index]] = [this.values[index], this.values[parent]];
-			index = parent;
-			parent = Math.floor((index - 1) / 2);
-		}
-	}
-
-	bubbleDown() {
-		let index = 0, length = this.values.length;
-
-		while (true) {
-			let left = null,
-				right = null,
-				swap = null,
-				leftIndex = index * 2 + 1,
-				rightIndex = index * 2 + 2;
-
-			if (leftIndex < length) {
-				left = this.values[leftIndex];
-				if (this.comparator(left, this.values[index]) < 0) swap = leftIndex;
-			}
-
-			if (rightIndex < length) {
-				right = this.values[rightIndex];
-				if ((swap !== null && this.comparator(right, left) < 0) || (swap === null && this.comparator(right, this.values[index]))) {
-					swap = rightIndex;
-				}
-			}
-			if (swap === null) break;
-
-			[this.values[index], this.values[swap]] = [this.values[swap], this.values[index]];
-			index = swap;
-		}
-	}
-}
-
-/** 
- *  Min Comparator
- */
-Heap.minComparator = (a, b) => { return a - b; }
-
-/** 
- *  Max Comparator
- */
-Heap.maxComparator = (a, b) => { return b - a; }
-````
 ### Solution 
-````js
+```java
+import java.util.PriorityQueue;
+
 class MedianOfAStream {
-  constructor(){
-     this.maxHeap = new Heap(Heap.maxComparator);
-     this.minHeap = new Heap(Heap.minComparator);
-  }
-  
-  insertNum(num) {
-   if(this.maxHeap.size === 0 || this.maxHeap.peek() >= num){
-     this.maxHeap.add(num)
-   } else {
-     this.minHeap.add(num)
-   }
-    
-    //either both the heaps will have = numnber of elements
-    //or maxHeap will have one or more elements than minHeap
-    if(this.maxHeap.size > this.minHeap.size + 1){
-      this.minHeap.add(this.maxHeap.poll())
-    } else if(this.maxHeap.size < this.minHeap.size) {
-      this.maxHeap.add(this.minHeap.poll())
+    PriorityQueue<Integer> maxHeap; // containing first half of numbers
+    PriorityQueue<Integer> minHeap; // containing second half of numbers
+
+    public MedianOfAStream() {
+        maxHeap = new PriorityQueue<>((a, b) -> b - a);
+        minHeap = new PriorityQueue<>((a, b) -> a - b);
     }
-  }
 
-  findMedian() {
-    if(this.maxHeap.size > this.minHeap.size){
-      //because maxHeap will have one more element 
-      //than the minHeap
-      return this.maxHeap.peek()
-    } else if(this.maxHeap.size < this.minHeap.size){
-      return this.minHeap.peek()
-    } else {
-      //we have an even number of elements
-      //so take the average of the middle two elements
-      return (this.maxHeap.peek() + this.minHeap.peek()) / 2.0
-    } 
-  }
-};
+    public void insertNum(int num) {
+        if (maxHeap.isEmpty() || maxHeap.peek() >= num) {
+            maxHeap.add(num);
+        } else {
+            minHeap.add(num);
+        }
 
+        // either both the heaps will have equal number of elements or max-heap will have one
+        // more element than the min-heap
+        if (maxHeap.size() > minHeap.size() + 1) {
+            minHeap.add(maxHeap.poll());
+        } else if (maxHeap.size() < minHeap.size()) {
+            maxHeap.add(minHeap.poll());
+        }
+    }
 
-const medianOfAStream = new MedianOfAStream()
-medianOfAStream.insertNum(3)
-medianOfAStream.insertNum(1)
-console.log(`The median is: ${medianOfAStream.findMedian()}`)//2
-medianOfAStream.insertNum(5)
-console.log(`The median is: ${medianOfAStream.findMedian()}`)//3
-medianOfAStream.insertNum(4)
-console.log(`The median is: ${medianOfAStream.findMedian()}`)//3.5
-````
+    public double findMedian() {
+        if (maxHeap.size() == minHeap.size()) {
+            // we have even number of elements, take the average of middle two elements
+            return maxHeap.peek() / 2.0 + minHeap.peek() / 2.0;
+        }
+        // because max-heap will have one more element than the min-heap
+        return maxHeap.peek();
+    }
+
+    public static void main(String[] args) {
+        MedianOfAStream medianOfAStream = new MedianOfAStream();
+        medianOfAStream.insertNum(3);
+        medianOfAStream.insertNum(1);
+        System.out.println("The median is: " + medianOfAStream.findMedian());
+        medianOfAStream.insertNum(5);
+        System.out.println("The median is: " + medianOfAStream.findMedian());
+        medianOfAStream.insertNum(4);
+        System.out.println("The median is: " + medianOfAStream.findMedian());
+    }
+}
+```
 - The time complexity of the `insertNum()` will be `O(logN)` due to the insertion in the heap. The time complexity of the `findMedian()` will be `O(1)` as we can find the median from the top elements of the heaps.
 - The space complexity will be `O(N)` because, as at any time, we will be storing all the numbers.
 
@@ -204,178 +121,68 @@ Lets consider all windows of size ‘3’:
 This problem follows the <b>Two Heaps</b> pattern and share similarities with <b>Find the Median of a Number Stream</b>. We can follow a similar approach of maintaining a <b>max-heap</b> and a <b>min-heap</b> for the list of numbers to find their median.
 
 The only difference is that we need to keep track of a sliding window of ‘k’ numbers. This means, in each iteration, when we insert a new number in the heaps, we need to remove one number from the heaps which is going out of the sliding window. After the removal, we need to rebalance the heaps in the same way that we did while inserting.
-### JavaScript Custom Heap Class
-````
-/** 
- *  custom Heap class
- */
-
-class Heap {
-	constructor(comparator) {
-		this.size = 0;
-		this.values = [];
-		this.comparator = comparator || Heap.minComparator;
-	}
-
-	add(val) {
-		this.values.push(val);
-		this.size ++;
-		this.bubbleUp();
-	}
-
-	peek() {
-		return this.values[0] || null;
-	}
-
-	poll() {
-		const max = this.values[0];
-		const end = this.values.pop();
-		this.size --;
-		if (this.values.length) {
-			this.values[0] = end;
-			this.bubbleDown();
-		}
-		return max;
-	}
-
-	bubbleUp(index = this.values.length - 1) {
-		let parent = Math.floor((index - 1) / 2);
-
-		while (index > 0 && this.comparator(this.values[index], this.values[parent]) < 0) {
-			[this.values[parent], this.values[index]] = [this.values[index], this.values[parent]];
-			index = parent;
-			parent = Math.floor((index - 1) / 2);
-		}
-	}
-
-	bubbleDown(index = 0) {
-		let length = this.values.length;
-
-		while (true) {
-			let left = null,
-				right = null,
-				swap = null,
-				leftIndex = index * 2 + 1,
-				rightIndex = index * 2 + 2;
-
-			if (leftIndex < length) {
-				left = this.values[leftIndex];
-				if (this.comparator(left, this.values[index]) < 0) swap = leftIndex;
-			}
-
-			if (rightIndex < length) {
-				right = this.values[rightIndex];
-				if ((swap !== null && this.comparator(right, left) < 0) || (swap === null && this.comparator(right, this.values[index]))) {
-					swap = rightIndex;
-				}
-			}
-			if (swap === null) break;
-
-			[this.values[index], this.values[swap]] = [this.values[swap], this.values[index]];
-			index = swap;
-		}
-	}
-  remove(value) {
-    const idx = this.values.indexOf(value);
-    if (idx === -1) return;
-    this.size--;
-    const end = this.values.pop();
-    if (idx < this.values.length) {
-      this.values[idx] = end;
-      this.bubbleUp(idx);
-      this.bubbleDown(idx);
-    }
-  }
-}
-
-/** 
- *  Min Comparator
- */
-Heap.minComparator = (a, b) => { return a - b; }
-
-/** 
- *  Max Comparator
- */
-Heap.maxComparator = (a, b) => { return b - a; }
-````
 ### Solution 😕(review)
-````
+```java
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.PriorityQueue;
 
 class SlidingWindowMedian {
-  constructor(){
-    this.maxHeap = new Heap(Heap.maxComparator)
-    this.minHeap = new Heap(Heap.minComparator)
-  }
-  
-    balance() {
-    // either both the heaps will have equal number of elements or max-heap will have
-    // one more element than the min-heap
-    if (this.maxHeap.size > this.minHeap.size + 1) {
-      this.minHeap.add(this.maxHeap.poll());
-    } else if (this.maxHeap.size < this.minHeap.size) {
-      this.maxHeap.add(this.minHeap.poll());
-    }
-  }
+    PriorityQueue<Integer> maxHeap = new PriorityQueue<>(Collections.reverseOrder());
+    PriorityQueue<Integer> minHeap = new PriorityQueue<>();
 
-  findSlidingWindowMedian(nums, k) {
-    const result = new Array(nums.length - k + 1).fill(0.0);
-    console.log(result)
-    
-    let n = nums.length
-    console.log(n)
-    
-    for(let i = 0; i < n; i++){
-      console.log(nums[i])
-      if(this.maxHeap.size === 0 || nums[i] <= this.maxHeap.peek()){
-        this.maxHeap.add(nums[i])
-        console.log(this.maxHeap.peek())
-      } else {
-        this.minHeap.add(nums[i])
-        console.log(this.minHeap.peek())
-      }
-      
-      this.balance()
-      
-      if(i - k + 1 >= 0){
-         //if we have at least k elements in the sliding window
-        //then add the median to the result array
-        if(this.maxHeap.size === this.minHeap.size){
-          //we have an enven number of elements
-          //take the average of middle two elements
-          result[i - k + 1] = (this.maxHeap.peek() + this.minHeap.peek())/2
-        } else {
-          //because maxHeap will have one more element than the minHeap
-          result[i - k + 1] = this.maxHeap.peek()
+    public double[] findSlidingWindowMedian(int[] nums, int k) {
+        double[] result = new double[nums.length - k + 1];
+        for (int i = 0; i < nums.length; i++) {
+            if (maxHeap.isEmpty() || maxHeap.peek() >= nums[i]) {
+                maxHeap.add(nums[i]);
+            } else {
+                minHeap.add(nums[i]);
+            }
+            balanceHeaps();
+
+            if (i - k + 1 >= 0) { // if we have at least 'k' elements in the sliding window
+                // add the median to the the result array
+                if (maxHeap.size() == minHeap.size()) {
+                    // we have even number of elements, take the average of middle two elements
+                    result[i - k + 1] = maxHeap.peek() / 2.0 + minHeap.peek() / 2.0;
+                } else {
+                    // because max-heap will have one more element than the min-heap
+                    result[i - k + 1] = maxHeap.peek();
+                }
+
+                // remove the the element going out of the sliding window
+                int elementToBeRemoved = nums[i - k + 1];
+                if (elementToBeRemoved <= maxHeap.peek()) {
+                    maxHeap.remove(elementToBeRemoved);
+                } else {
+                    minHeap.remove(elementToBeRemoved);
+                }
+                balanceHeaps();
+            }
         }
-        
-        //remove the element going out of the sliding window
-        const elementToBeRemoved = nums[i - k + 1]
-        if(elementToBeRemoved <= this.maxHeap.peek()){
-          //delete from heap
-          this.maxHeap.remove(elementToBeRemoved)
-        } else {
-          //delete from heap
-          this.minHeap.remove(elementToBeRemoved)
-        }
-        this.balance()
-     }
+        return result;
     }
-   return result
-  }
-};
 
+    private void balanceHeaps() {
+        if (maxHeap.size() > minHeap.size() + 1) {
+            minHeap.add(maxHeap.poll());
+        } else if (maxHeap.size() < minHeap.size()) {
+            maxHeap.add(minHeap.poll());
+        }
+    }
 
+    public static void main(String[] args) {
+        SlidingWindowMedian slidingWindowMedian = new SlidingWindowMedian();
+        double[] result = slidingWindowMedian.findSlidingWindowMedian(new int[] { 1, 2, -1, 3, 5 }, 2);
+        System.out.println("Sliding window medians are: " + Arrays.toString(result));
 
-let slidingWindowMedian = new SlidingWindowMedian()
-let result = slidingWindowMedian.findSlidingWindowMedian(
-  [1, 2, -1, 3, 5], 2)
-console.log(`Sliding window medians are: ${result}`)//[1.5, 0.5, 1.0, 4.0]
-
-slidingWindowMedian = new SlidingWindowMedian()
-result = slidingWindowMedian.findSlidingWindowMedian(
-  [1, 2, -1, 3, 5], 3)
-console.log(`Sliding window medians are: ${result}`)//[1.0, 2.0, 3.0]
-````
+        slidingWindowMedian = new SlidingWindowMedian();
+        result = slidingWindowMedian.findSlidingWindowMedian(new int[] { 1, 2, -1, 3, 5 }, 3);
+        System.out.println("Sliding window medians are: " + Arrays.toString(result));
+    }
+}
+```
 
 - The time complexity of our algorithm is `O(N*K)`where `N` is the total number of elements in the input array and `K` is the size of the sliding window. This is due to the fact that we are going through all the `N` numbers and, while doing so, we are doing two things:
 	1. Inserting/removing numbers from heaps of size `K`. This will take `O(logK)`.
@@ -442,137 +249,46 @@ We can follow the Two Heaps approach similar to Find the Median of a Number Stre
 2. Go through the top projects of the min-heap and filter the projects that can be completed within our available capital. Insert the profits of all these projects into a max-heap, so that we can choose a project with the maximum profit.
 3. Finally, select the top project of the max-heap for investment.
 4. Repeat the 2nd and 3rd steps for the required number of projects.
-````
-/** 
- *  custom Heap class
- */
+```java
+import java.util.PriorityQueue;
 
-class Heap {
-	constructor(comparator) {
-		this.size = 0;
-		this.values = [];
-		this.comparator = comparator || Heap.minComparator;
-	}
+class Solution {
+    public static int findMaximumCapital(int[] capital, int[] profits, int numberOfProjects, int initialCapital) {
+        int n = profits.length;
+        PriorityQueue<Integer> minCapitalHeap = new PriorityQueue<>(n, (i1, i2) -> capital[i1] - capital[i2]);
+        PriorityQueue<Integer> maxProfitHeap = new PriorityQueue<>(n, (i1, i2) -> profits[i2] - profits[i1]);
 
-	add(val) {
-		this.values.push(val);
-		this.size ++;
-		this.bubbleUp();
-	}
+        // insert all project capitals to a min-heap
+        for (int i = 0; i < n; i++) {
+            minCapitalHeap.add(i);
+        }
 
-	peek() {
-		return this.values[0] || null;
-	}
+        // let's try to find a total of 'numberOfProjects' best projects
+        int availableCapital = initialCapital;
+        for (int i = 0; i < numberOfProjects; i++) {
+            // find all projects that can be selected within the available capital and insert them in a max-heap
+            while (!minCapitalHeap.isEmpty() && capital[minCapitalHeap.peek()] <= availableCapital) {
+                maxProfitHeap.add(minCapitalHeap.poll());
+            }
 
-	poll() {
-		const max = this.values[0];
-		const end = this.values.pop();
-		this.size --;
-		if (this.values.length) {
-			this.values[0] = end;
-			this.bubbleDown();
-		}
-		return max;
-	}
+            // terminate if we are not able to find any project that can be completed within the available capital
+            if (maxProfitHeap.isEmpty()) {
+                break;
+            }
 
-	bubbleUp(index = this.values.length - 1) {
-		let parent = Math.floor((index - 1) / 2);
+            // select the project with the maximum profit
+            availableCapital += profits[maxProfitHeap.poll()];
+        }
 
-		while (index > 0 && this.comparator(this.values[index], this.values[parent]) < 0) {
-			[this.values[parent], this.values[index]] = [this.values[index], this.values[parent]];
-			index = parent;
-			parent = Math.floor((index - 1) / 2);
-		}
-	}
-
-	bubbleDown(index = 0) {
-		let length = this.values.length;
-
-		while (true) {
-			let left = null,
-				right = null,
-				swap = null,
-				leftIndex = index * 2 + 1,
-				rightIndex = index * 2 + 2;
-
-			if (leftIndex < length) {
-				left = this.values[leftIndex];
-				if (this.comparator(left, this.values[index]) < 0) swap = leftIndex;
-			}
-
-			if (rightIndex < length) {
-				right = this.values[rightIndex];
-				if ((swap !== null && this.comparator(right, left) < 0) || (swap === null && this.comparator(right, this.values[index]))) {
-					swap = rightIndex;
-				}
-			}
-			if (swap === null) break;
-
-			[this.values[index], this.values[swap]] = [this.values[swap], this.values[index]];
-			index = swap;
-		}
-	}
-  remove(value) {
-    const idx = this.values.indexOf(value);
-    if (idx === -1) return;
-    this.size--;
-    const end = this.values.pop();
-    if (idx < this.values.length) {
-      this.values[idx] = end;
-      this.bubbleUp(idx);
-      this.bubbleDown(idx);
+        return availableCapital;
     }
-  }
+
+    public static void main(String[] args) {
+        System.out.println("Maximum capital: " + findMaximumCapital(new int[] { 0, 1, 2 }, new int[] { 1, 2, 3 }, 2, 1));
+        System.out.println("Maximum capital: " + findMaximumCapital(new int[] { 0, 1, 2, 3 }, new int[] { 1, 2, 3, 5 }, 3, 0));
+    }
 }
-
-/** 
- *  Min Comparator
- */
-Heap.minComparator = (a, b) => { return a - b; }
-
-/** 
- *  Max Comparator
- */
-Heap.maxComparator = (a, b) => { return b - a; }
-````
-````js
-function findMaximumCapital(capital, profits, numberOfProjects, initialCapital) {
-  // capital/profit pairs are stored as [value, index] tuples, so the heaps
-  // need to compare on the tuple's first element rather than the shared
-  // Heap.minComparator/Heap.maxComparator (which compare plain numbers)
-  const minCapitalHeap = new Heap((a, b) => a[0] - b[0]);
-  const maxProfitHeap = new Heap((a, b) => b[0] - a[0]);
-
-  // insert all project capitals to a min-heap
-  for (i = 0; i < profits.length; i++) {
-    minCapitalHeap.add([capital[i], i]);
-  }
-
-  // let's try to find a total of 'numberOfProjects' best projects
-  let availableCapital = initialCapital;
-  for (i = 0; i < numberOfProjects; i++) {
-    // find all projects that can be selected within the available capital and insert them in a max-heap
-    while (minCapitalHeap.size > 0 && minCapitalHeap.peek()[0] <= availableCapital) {
-      const [capital, index] = minCapitalHeap.poll();
-      maxProfitHeap.add([profits[index], index]);
-    }
-
-    // terminate if we are not able to find any project that can be completed within the available capital
-    if (maxProfitHeap.size === 0) {
-      break;
-    }
-
-    // select the project with the maximum profit
-    availableCapital += maxProfitHeap.poll()[0];
-  }
-
-  return availableCapital;
-}
-
-
-console.log(`Maximum capital: ${findMaximumCapital([0, 1, 2], [1, 2, 3], 2, 1)}`);
-console.log(`Maximum capital: ${findMaximumCapital([0, 1, 2, 3], [1, 2, 3, 5], 3, 0)}`);
-````
+```
 
 - Since, at the most, all the projects will be pushed to both the heaps once, the time complexity of our algorithm is `O(NlogN + KlogN)`, where `N` is the total number of projects and `K` is the number of projects we are selecting.
 - The space complexity will be `O(N)` because we will be storing all the projects in the heaps.
@@ -605,53 +321,61 @@ Add the index of topStart in the result array as the next interval of topEnd. If
 Put the topStart back in the maxStartHeap, as it could be the next interval of other intervals.
 Repeat steps 1-4 until we have no intervals left in maxEndHeap.
 😴(needs review)
-````js
+```java
+import java.util.Arrays;
+import java.util.PriorityQueue;
+
 class Interval {
-  constructor(start, end) {
-    this.start = start;
-    this.end = end;
-  }
-}
+    int start;
+    int end;
 
-
-function find_next_interval(intervals) {
-  const n = intervals.length;
-
-  // heaps for finding the maximum start and end
-  const maxStartHeap = new Heap([], null, ((a, b) => a[0] - b[0]));
-  const maxEndHeap = new Heap([], null, ((a, b) => a[0] - b[0]));
-
-  const result = Array(n).fill(0);
-  for (endIndex = 0; endIndex < n; endIndex++) {
-    maxStartHeap.push([intervals[endIndex].start, endIndex]);
-    maxEndHeap.push([intervals[endIndex].end, endIndex]);
-  }
-
-  // go through all the intervals to find each interval's next interval
-  for (i = 0; i < n; i++) {
-    // let's find the next interval of the interval which has the highest 'end'
-    const [topEnd, endIndex] = maxEndHeap.pop();
-    result[endIndex] = -1; // defaults to -1
-    if (maxStartHeap.peek()[0] >= topEnd) {
-      let [topStart, startIndex] = maxStartHeap.pop();
-      // find the the interval that has the closest 'start'
-      while (maxStartHeap.length > 0 && maxStartHeap.peek()[0] >= topEnd) {
-        [topStart, startIndex] = maxStartHeap.pop();
-      }
-      result[endIndex] = startIndex;
-      // put the interval back as it could be the next interval of other intervals
-      maxStartHeap.push([topStart, startIndex]);
+    Interval(int start, int end) {
+        this.start = start;
+        this.end = end;
     }
-  }
-  return result;
 }
 
+class Solution {
+    public static int[] findNextInterval(Interval[] intervals) {
+        int n = intervals.length;
+        // heaps for finding the maximum start and end
+        PriorityQueue<Integer> maxStartHeap = new PriorityQueue<>(n, (i1, i2) -> intervals[i2].start - intervals[i1].start);
+        PriorityQueue<Integer> maxEndHeap = new PriorityQueue<>(n, (i1, i2) -> intervals[i2].end - intervals[i1].end);
 
-result = find_next_interval([new Interval(2, 3), new Interval(3, 4), new Interval(5, 6)]);
-console.log(`Next interval indices are: ${result}`);
+        int[] result = new int[n];
+        for (int i = 0; i < intervals.length; i++) {
+            maxStartHeap.add(i);
+            maxEndHeap.add(i);
+        }
 
-result = find_next_interval([new Interval(3, 4), new Interval(1, 5), new Interval(4, 6)]);
-console.log(`Next interval indices are: ${result}`);
-````
+        // go through all the intervals to find each interval's next interval
+        for (int i = 0; i < n; i++) {
+            int topEnd = maxEndHeap.poll();
+            result[topEnd] = -1; // defaults to -1
+            if (!maxStartHeap.isEmpty() && intervals[maxStartHeap.peek()].start >= intervals[topEnd].end) {
+                int topStart = maxStartHeap.poll();
+                // find the the interval that has the closest 'start'
+                while (!maxStartHeap.isEmpty() && intervals[maxStartHeap.peek()].start >= intervals[topEnd].end) {
+                    topStart = maxStartHeap.poll();
+                }
+                result[topEnd] = topStart;
+                // put the interval back as it could be the next interval of other intervals
+                maxStartHeap.add(topStart);
+            }
+        }
+        return result;
+    }
+
+    public static void main(String[] args) {
+        Interval[] intervals = new Interval[] { new Interval(2, 3), new Interval(3, 4), new Interval(5, 6) };
+        int[] result = findNextInterval(intervals);
+        System.out.println("Next interval indices are: " + Arrays.toString(result));
+
+        intervals = new Interval[] { new Interval(3, 4), new Interval(1, 5), new Interval(4, 6) };
+        result = findNextInterval(intervals);
+        System.out.println("Next interval indices are: " + Arrays.toString(result));
+    }
+}
+```
 - The time complexity of our algorithm will be `O(NlogN)`, where `N` is the total number of intervals.
 - The space complexity will be `O(N)` because we will be storing all the intervals in the heaps.

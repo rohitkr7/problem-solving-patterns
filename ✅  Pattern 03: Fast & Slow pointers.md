@@ -27,42 +27,48 @@ All other distances between the fast and <i>slow pointers</i> will reduce to one
 
 This concludes that the two pointers will definitely meet if the <b>LinkedList</b> has a cycle. 
 
-````js
-class Node {
-  constructor(value, next = null) {
-    this.value = value;
-    this.next = next
-  }
-}
+````java
+class ListNode {
+    int value = 0;
+    ListNode next;
 
-function hasCycle(head) {
-  let slow = head
-  let fast = head
-  while(fast !== null && fast.next !== null) {
-    fast = fast.next.next;
-    slow = slow.next
-    
-    if(slow === fast) {
-      //found the cycle
-      return true
+    ListNode(int value) {
+        this.value = value;
     }
-  }
-  return false
 }
 
-head = new Node(1)
-head.next = new Node(2)
-head.next.next = new Node(3)
-head.next.next.next = new Node(4)
-head.next.next.next.next = new Node(5)
-head.next.next.next.next.next = new Node(6)
-console.log(`LinkedList has cycle: ${hasCycle(head)}`)
+class Solution {
+    public static boolean hasCycle(ListNode head) {
+        ListNode slow = head;
+        ListNode fast = head;
+        while (fast != null && fast.next != null) {
+            fast = fast.next.next;
+            slow = slow.next;
+            
+            if (slow == fast) {
+                // found the cycle
+                return true;
+            }
+        }
+        return false;
+    }
 
-head.next.next.next.next.next.next = head.next.next
-console.log(`LinkedList has cycle: ${hasCycle(head)}`)
+    public static void main(String[] args) {
+        ListNode head = new ListNode(1);
+        head.next = new ListNode(2);
+        head.next.next = new ListNode(3);
+        head.next.next.next = new ListNode(4);
+        head.next.next.next.next = new ListNode(5);
+        head.next.next.next.next.next = new ListNode(6);
+        System.out.println("LinkedList has cycle: " + hasCycle(head));
 
-head.next.next.next.next.next.next = head.next.next.next
-console.log(`LinkedList has cycle: ${hasCycle(head)}`)
+        head.next.next.next.next.next.next = head.next.next;
+        System.out.println("LinkedList has cycle: " + hasCycle(head));
+
+        head.next.next.next.next.next.next = head.next.next.next;
+        System.out.println("LinkedList has cycle: " + hasCycle(head));
+    }
+}
 ````
 
 - Once the <i>slow pointer</i> enters the cycle, the <i>fast pointer</i> will meet the <i><i>slow pointer</i></i> in the same loop. Therefore, the time complexity of our algorithm will be `O(N)` where `N` is the total number of nodes in the <b>LinkedList</b>.
@@ -72,57 +78,63 @@ console.log(`LinkedList has cycle: ${hasCycle(head)}`)
 
 Once the fast and <i>slow pointers</i> meet, we can save the <i>slow pointer</i> and iterate the whole  <i>cycle</i>  with another pointer until we see the <i>slow pointer</i> again to find the length of the cycle.
 
-````js
-class Node {
-  constructor(value, next = null) {
-    this.value = value;
-    this.next = next
-  }
-}
+````java
+class ListNode {
+    int value = 0;
+    ListNode next;
 
-function findCycleLength(head) {
-  let slow = head
-  let fast = head
-  
-  while(fast !== null && fast.next !== null) {
-    fast = fast.next.next;
-    slow = slow.next
-    
-    if(slow === fast) {
-      //found the cycle
-      return calculateCycleLength(slow)
+    ListNode(int value) {
+        this.value = value;
     }
-  }
-  return 0
 }
 
-function calculateCycleLength(slow) {
-  let current = slow
-  let cycleLength = 0
-  
-  while(true) {
-    current = current.next
-    cycleLength++
-    if(current === slow) {
-      break
+class Solution {
+    public static int findCycleLength(ListNode head) {
+        ListNode slow = head;
+        ListNode fast = head;
+        
+        while (fast != null && fast.next != null) {
+            fast = fast.next.next;
+            slow = slow.next;
+            
+            if (slow == fast) {
+                // found the cycle
+                return calculateCycleLength(slow);
+            }
+        }
+        return 0;
     }
-  }
-  return cycleLength
+
+    private static int calculateCycleLength(ListNode slow) {
+        ListNode current = slow;
+        int cycleLength = 0;
+        
+        while (true) {
+            current = current.next;
+            cycleLength++;
+            if (current == slow) {
+                break;
+            }
+        }
+        return cycleLength;
+    }
+
+    public static void main(String[] args) {
+        ListNode head = new ListNode(1);
+        head.next = new ListNode(2);
+        head.next.next = new ListNode(3);
+        head.next.next.next = new ListNode(4);
+        head.next.next.next.next = new ListNode(5);
+        head.next.next.next.next.next = new ListNode(6);
+        System.out.println("LinkedList has cycle length of: " + findCycleLength(head));
+
+        head.next.next.next.next.next.next = head.next.next;
+        System.out.println("LinkedList has cycle length of: " + findCycleLength(head));
+
+        head.next.next.next.next.next.next = head.next.next.next;
+        System.out.println("LinkedList has cycle length of: " + findCycleLength(head));
+    }
 }
-
-head = new Node(1)
-head.next = new Node(2)
-head.next.next = new Node(3)
-head.next.next.next = new Node(4)
-head.next.next.next.next = new Node(5)
-head.next.next.next.next.next = new Node(6)
-console.log(`LinkedList has cycle length of: ${findCycleLength(head)}`)
-
-head.next.next.next.next.next.next = head.next.next
-console.log(`LinkedList has cycle length of: ${findCycleLength(head)}`)
-
-head.next.next.next.next.next.next = head.next.next.next
-console.log(`LinkedList has cycle length of: ${findCycleLength(head)}`)
 ````
 
 - The above algorithm runs in `O(N)` time complexity and `O(1)` space complexity.
@@ -139,80 +151,85 @@ If we know the length of the <b>LinkedList</b> cycle, we can find the start of t
 4. Move `pointer2` ahead by `K` nodes.
 5. Now, keep incrementing `pointer1` and `pointer2` until they both meet.
 6. As `pointer2` is `K` nodes ahead of `pointer1`, which means, `pointer2` must have completed one loop in the  <i>cycle</i>  when both pointers meet. Their meeting point will be the start of the cycle.
-````js
-class Node {
-  constructor(value, next = null) {
-    this.value = value;
-    this.next = next
-  }
-}
+````java
+class ListNode {
+    int value = 0;
+    ListNode next;
 
-function findCycleStart(head) {
-  let cycleLength = 0
-  let slow = head
-  let fast = head
-   while((fast !== null && fast.next !== null)){
-     fast = fast.next.next
-     slow = slow.next
-     
-     if(slow === fast) {
-       //found the cycle
-       cycleLength = calculateCycleLength(slow)
-       break
-     }
-   }
-  
-  return findStart(head, cycleLength)
-};
-
-
-function calculateCycleLength(slow) {
-  let current = slow
-  let cycleLength = 0
-  
-  while(true) {
-    current = current.next
-    cycleLength++
-    if(current === slow) {
-      break
+    ListNode(int value) {
+        this.value = value;
     }
-  }
-  return cycleLength
 }
 
-function findStart(head, cycleLength) {
-  let pointer1 = head
-  let pointer2 = head
-  //move pointer2 ahead by cycleLength nodes
-  while(cycleLength > 0) {
-    pointer2 = pointer2.next
-    cycleLength--
-  }
-  
-  //increment both pointers until they meet at the start
-  //of the cycle
-  while(pointer1 !== pointer2) {
-    pointer1 = pointer1.next
-    pointer2 = pointer2.next
-  }
-  return pointer1
+class Solution {
+    public static ListNode findCycleStart(ListNode head) {
+        int cycleLength = 0;
+        ListNode slow = head;
+        ListNode fast = head;
+        while (fast != null && fast.next != null) {
+            fast = fast.next.next;
+            slow = slow.next;
+             
+            if (slow == fast) {
+                // found the cycle
+                cycleLength = calculateCycleLength(slow);
+                break;
+            }
+        }
+        
+        return findStart(head, cycleLength);
+    }
+
+    private static int calculateCycleLength(ListNode slow) {
+        ListNode current = slow;
+        int cycleLength = 0;
+        
+        while (true) {
+            current = current.next;
+            cycleLength++;
+            if (current == slow) {
+                break;
+            }
+        }
+        return cycleLength;
+    }
+
+    private static ListNode findStart(ListNode head, int cycleLength) {
+        ListNode pointer1 = head;
+        ListNode pointer2 = head;
+        // move pointer2 ahead by cycleLength nodes
+        while (cycleLength > 0 && pointer2 != null) {
+            pointer2 = pointer2.next;
+            cycleLength--;
+        }
+        
+        // increment both pointers until they meet at the start
+        // of the cycle
+        while (pointer1 != pointer2) {
+            pointer1 = pointer1.next;
+            pointer2 = pointer2.next;
+        }
+        return pointer1;
+    }
+
+    public static void main(String[] args) {
+        ListNode head = new ListNode(1);
+        head.next = new ListNode(2);
+        head.next.next = new ListNode(3);
+        head.next.next.next = new ListNode(4);
+        head.next.next.next.next = new ListNode(5);
+        head.next.next.next.next.next = new ListNode(6);
+
+        head.next.next.next.next.next.next = head.next.next;
+        System.out.println("LinkedList cycle start: " + findCycleStart(head).value);
+
+        head.next.next.next.next.next.next = head.next.next.next;
+        System.out.println("LinkedList cycle start: " + findCycleStart(head).value);
+
+        head.next.next.next.next.next.next = head;
+        System.out.println("LinkedList cycle start: " + findCycleStart(head).value);
+    }
 }
-
-head = new Node(1)
-head.next = new Node(2)
-head.next.next = new Node(3)
-head.next.next.next = new Node(4)
-head.next.next.next.next = new Node(5)
-head.next.next.next.next.next = new Node(6)
-
-head.next.next.next.next.next.next = head.next.next
-console.log(`LinkedList cycle start: ${findCycleStart(head).value}`)
-
-head.next.next.next.next.next.next = head.next.next.next
-console.log(`LinkedList cycle start: ${findCycleStart(head).value}`)
-
-head.next.next.next.next.next.next = head
-console.log(`LinkedList cycle start: ${findCycleStart(head).value}`)
 ````
 
 - As we know, finding the  <i>cycle</i>  in a <b>LinkedList</b> with `N` nodes and also finding the length of the  <i>cycle</i>  requires `O(N)`. Also, as we saw in the above algorithm, we will need `O(N)` to find the start of the cycle. Therefore, the overall time complexity of our algorithm will be `O(N)`.
@@ -227,35 +244,43 @@ The process, defined above, to find out if a number is a <b>happy number</b> or 
 
 We saw in the <b>LinkedList Cycle</b> problem that we can use the <b>Fast & Slow</b> pointers method to find a  <i>cycle</i>  among a set of elements. As we have described above, each number will definitely have a cycle. Therefore, we will use the same <i>fast</i> & <i>slow pointer</i> strategy to find the  <i>cycle</i>  and once the  <i>cycle</i>  is found, we will see if the  <i>cycle</i>  is stuck on number `1` to find out if the number is happy or not.
 
-````js
-function findHappyNumber(num) {
-  let slow = num
-  let fast = num
-  
-  while(true) {
-    //move one step
-    slow = findSquareSum(slow)
-    //move two steps
-    fast = findSquareSum(findSquareSum(fast))
-    
-    if(slow === fast) {
-      //found the cycle
-      break
+````java
+class Solution {
+    public static boolean findHappyNumber(int num) {
+        int slow = num;
+        int fast = num;
+        
+        while (true) {
+            // move one step
+            slow = findSquareSum(slow);
+            // move two steps
+            fast = findSquareSum(findSquareSum(fast));
+            
+            if (slow == fast) {
+                // found the cycle
+                break;
+            }
+        }
+        // see if the cycle is stuck on the number 1
+        return slow == 1;
     }
-  }
-  //see if the cycle is stuck on the number 1
-  return slow === 1
-}
 
-function findSquareSum(num) {
-  let sum = 0
-  while(num > 0) {
-    let digit = num % 10
-    sum += digit * digit
-    num = Math.floor(num / 10)
-  }
-  return sum
-  
+    private static int findSquareSum(int num) {
+        int sum = 0;
+        while (num > 0) {
+            int digit = num % 10;
+            sum += digit * digit;
+            num /= 10;
+        }
+        return sum;
+    }
+
+    public static void main(String[] args) {
+        System.out.println(findHappyNumber(23)); // true
+        System.out.println(findHappyNumber(12)); // false
+        System.out.println(findHappyNumber(19)); // true
+        System.out.println(findHappyNumber(2));  // false
+    }
 }
 ````
 `findHappyNumber(23)//true`
@@ -318,38 +343,43 @@ One brute force strategy could be to first count the number of nodes in the <b>L
 
 We can use the <b>Fast & Slow</b> pointers method such that the <i>fast pointer</i> is always twice the nodes ahead of the <i>slow pointer</i>. This way, when the <i>fast pointer</i> reaches the end of the <b>LinkedList</b>, the <i>slow pointer</i> will be pointing at the middle node.
 
-````js
-class Node {
-  constructor(value, next = null) {
-    this.value = value
-    this.next = next
-  }
+````java
+class ListNode {
+    int value = 0;
+    ListNode next;
+
+    ListNode(int value) {
+        this.value = value;
+    }
 }
 
-function findMiddleOfLinkedList(head) {
-  let slow = head
-  let fast = head
-  
-  while(fast !== null && fast.next !== null) {
-    slow = slow.next
-    fast = fast.next.next
-  }
-  return slow
+class Solution {
+    public static ListNode findMiddleOfLinkedList(ListNode head) {
+        ListNode slow = head;
+        ListNode fast = head;
+        
+        while (fast != null && fast.next != null) {
+            slow = slow.next;
+            fast = fast.next.next;
+        }
+        return slow;
+    }
+
+    public static void main(String[] args) {
+        ListNode head = new ListNode(1);
+        head.next = new ListNode(2);
+        head.next.next = new ListNode(3);
+        head.next.next.next = new ListNode(4);
+        head.next.next.next.next = new ListNode(5);
+        System.out.println("Middle Node: " + findMiddleOfLinkedList(head).value);
+
+        head.next.next.next.next.next = new ListNode(6);
+        System.out.println("Middle Node: " + findMiddleOfLinkedList(head).value);
+
+        head.next.next.next.next.next.next = new ListNode(7);
+        System.out.println("Middle Node: " + findMiddleOfLinkedList(head).value);
+    }
 }
-
-head = new Node(1)
-head.next = new Node(2)
-head.next.next = new Node(3)
-head.next.next.next = new Node(4)
-head.next.next.next.next = new Node(5)
-
-console.log(`Middle Node: ${findMiddleOfLinkedList(head).value}`)
-
-head.next.next.next.next.next = new Node(6)
-console.log(`Middle Node: ${findMiddleOfLinkedList(head).value}`)
-
-head.next.next.next.next.next.next = new Node(7)
-console.log(`Middle Node: ${findMiddleOfLinkedList(head).value}`)
 ````
 - The above algorithm will have a time complexity of `O(N)` where `N` is the number of nodes in the <b>LinkedList</b>.
 - The algorithm runs in constant space `O(1)`.
@@ -378,78 +408,83 @@ As we know, a palindrome <b>LinkedList</b> will have nodes values that read the 
 3. Then, we will compare the first half with the reversed second half to see if the <b>LinkedList</b> represents a palindrome.
 4. Finally, we will reverse the second half of the <b>LinkedList</b> again to revert and bring the <b>LinkedList</b> back to its original form.
 
-````js
-class Node {
-  constructor(value, next = null) {
-    this.value = value
-    this.next = next
-  }
-}
+````java
+class ListNode {
+    int value = 0;
+    ListNode next;
 
-function isPalindromicLinkedList(head) {
-  if(head === null || head.next === null) {
-    return true
-  }
-  
-  //find the middle of the LinkedList
-  let slow = head
-  let fast = head
-  
-  while((fast !== null && fast.next !== null)) {
-    slow = slow.next
-    fast = fast.next.next
-  }
-  
-  //reverse the second half
-  let headSecondHalf = reverse(slow)
-  
-  //store the head of reversed part to revert back later
-  let copyHeadSecondHalf = headSecondHalf
-  
-  //compare first and second half
-  while((head !== null && headSecondHalf !== null)){
-    if(head.value !== headSecondHalf.value) {
-      //not a palindrome
-      break
+    ListNode(int value) {
+        this.value = value;
     }
-    
-    head = head.next
-    headSecondHalf = headSecondHalf.next
-  }
-  
-  //revert the reverse of the second half
-  reverse(copyHeadSecondHalf)
-  
-  //if both halves match
-  if(head === null || headSecondHalf === null) {
-    return true
-  }
-  
-  return false
 }
 
+class Solution {
+    public static boolean isPalindromicLinkedList(ListNode head) {
+        if (head == null || head.next == null) {
+            return true;
+        }
+        
+        // find the middle of the LinkedList
+        ListNode slow = head;
+        ListNode fast = head;
+        
+        while (fast != null && fast.next != null) {
+            slow = slow.next;
+            fast = fast.next.next;
+        }
+        
+        // reverse the second half
+        ListNode headSecondHalf = reverse(slow);
+        
+        // store the head of reversed part to revert back later
+        ListNode copyHeadSecondHalf = headSecondHalf;
+        
+        // compare first and second half
+        while (head != null && headSecondHalf != null) {
+            if (head.value != headSecondHalf.value) {
+                // not a palindrome
+                break;
+            }
+            
+            head = head.next;
+            headSecondHalf = headSecondHalf.next;
+        }
+        
+        // revert the reverse of the second half
+        reverse(copyHeadSecondHalf);
+        
+        // if both halves match
+        if (head == null || headSecondHalf == null) {
+            return true;
+        }
+        
+        return false;
+    }
 
-function reverse(head) {
-  let prev = null
-  
-  while (head !== null) {
-    let next = head.next
-    head.next = prev
-    prev = head
-    head = next
-  }
-  return prev
+    private static ListNode reverse(ListNode head) {
+        ListNode prev = null;
+        
+        while (head != null) {
+            ListNode next = head.next;
+            head.next = prev;
+            prev = head;
+            head = next;
+        }
+        return prev;
+    }
+
+    public static void main(String[] args) {
+        ListNode head = new ListNode(2);
+        head.next = new ListNode(4);
+        head.next.next = new ListNode(6);
+        head.next.next.next = new ListNode(4);
+        head.next.next.next.next = new ListNode(2);
+        System.out.println("Is palindrome: " + isPalindromicLinkedList(head));
+
+        head.next.next.next.next.next = new ListNode(2);
+        System.out.println("Is palindrome: " + isPalindromicLinkedList(head));
+    }
 }
-head = new Node(2)
-head.next = new Node(4)
-head.next.next = new Node(6)
-head.next.next.next = new Node(4)
-head.next.next.next.next = new Node(2)
-
-console.log(`Is palindrome: ${isPalindromicLinkedList(head)}`)
-
-head.next.next.next.next.next = new Node(2)
-console.log(`Is palindrome: ${isPalindromicLinkedList(head)}`)
 ````
 
 - The above algorithm will have a time complexity of `O(N)` where `N` is the number of nodes in the <b>LinkedList</b>.
@@ -478,83 +513,86 @@ This problem shares similarities with <b>Palindrome LinkedList</b>. To rearrange
 2. Once we have the middle of the <b>LinkedList</b>, we will reverse the second half of the <b>LinkedList</b>.
 3. Finally, we’ll iterate through the first half and the reversed second half to produce a <b>LinkedList</b> in the required order.
 
-````js
-class Node {
-  constructor (val, next = null) {
-    this.val = val
-    this.next = next
-  }
-  
-  printList() {
-    let result = "";
-    let temp = this;
-    while (temp !== null) {
-      result += temp.val + " ";
-      temp = temp.next;
+````java
+class ListNode {
+    int val = 0;
+    ListNode next;
+
+    ListNode(int val) {
+        this.val = val;
     }
-    console.log(result);
-  }
-}
-
-
-function reorder (head) {
-  if(head === null || head.next === null) {
-    return true
-  }
-  
-  //find the middle of the LinkedList
-  let slow = head
-  let fast = head
-  
-  while (fast !== null && fast.next !== null) {
-    slow = slow.next
-    fast = fast.next.next
-  }
-  
-  //slow is now pointing to the middle node
-  headSecondHalf = reverse(slow)
-  //reverse thesecond half
-  headFirstHalf = head
-  
-  //rearrange to produce the LinkList in the required order
-  while(headFirstHalf !== null && headSecondHalf !== null) {
-    let temp = headFirstHalf.next
-    headFirstHalf.next = headSecondHalf
-    headFirstHalf = temp
     
-    temp = headSecondHalf.next
-    headSecondHalf.next = headFirstHalf
-    headSecondHalf = temp
-  }
-  
-  //set the next of the last node to 'null'
-  if(headFirstHalf!== null) {
-    headFirstHalf.next = null
-  }
+    void printList() {
+        StringBuilder result = new StringBuilder();
+        ListNode temp = this;
+        while (temp != null) {
+            result.append(temp.val).append(" ");
+            temp = temp.next;
+        }
+        System.out.println(result.toString());
+    }
 }
 
+class Solution {
+    public static void reorder(ListNode head) {
+        if (head == null || head.next == null) {
+            return;
+        }
+        
+        // find the middle of the LinkedList
+        ListNode slow = head;
+        ListNode fast = head;
+        
+        while (fast != null && fast.next != null) {
+            slow = slow.next;
+            fast = fast.next.next;
+        }
+        
+        // slow is now pointing to the middle node
+        ListNode headSecondHalf = reverse(slow);
+        // reverse the second half
+        ListNode headFirstHalf = head;
+        
+        // rearrange to produce the LinkList in the required order
+        while (headFirstHalf != null && headSecondHalf != null) {
+            ListNode temp = headFirstHalf.next;
+            headFirstHalf.next = headSecondHalf;
+            headFirstHalf = temp;
+            
+            temp = headSecondHalf.next;
+            headSecondHalf.next = headFirstHalf;
+            headSecondHalf = temp;
+        }
+        
+        // set the next of the last node to 'null'
+        if (headFirstHalf != null) {
+            headFirstHalf.next = null;
+        }
+    }
 
-function reverse(head) {
-  let prev = null
-  
-  while(head !== null) {
-    let next = head.next
-    head.next = prev
-    prev = head
-    head = next
-  }
-  
-  return prev
-  
+    private static ListNode reverse(ListNode head) {
+        ListNode prev = null;
+        
+        while (head != null) {
+            ListNode next = head.next;
+            head.next = prev;
+            prev = head;
+            head = next;
+        }
+        return prev;
+    }
+
+    public static void main(String[] args) {
+        ListNode head = new ListNode(2);
+        head.next = new ListNode(4);
+        head.next.next = new ListNode(6);
+        head.next.next.next = new ListNode(8);
+        head.next.next.next.next = new ListNode(10);
+        head.next.next.next.next.next = new ListNode(12);
+        reorder(head);
+        head.printList();
+    }
 }
-head = new Node(2)
-head.next = new Node(4)
-head.next.next = new Node(6)
-head.next.next.next = new Node(8)
-head.next.next.next.next = new Node(10)
-head.next.next.next.next.next = new Node(12)
-reorder(head)
-head.printList()
 ````
 - The above algorithm will have a time complexity of `O(N)` where `N` is the number of nodes in the <b>LinkedList</b>.
 - The algorithm runs in constant space `O(1)`.
@@ -591,61 +629,65 @@ This problem involves finding a  <i>cycle</i>  in the array and, as we know, the
 
 2. The other requirement mentioned in the problem is that the  <i>cycle</i>  should not contain both forward and backward movements. We will handle this by remembering the direction of each element while searching for the cycle. If the number is positive, the direction will be forward and if the number is negative, the direction will be backward. So whenever we move a pointer forward, if there is a change in the direction, we will finish our  <i>cycle</i>  search right there for the current element.
 
-````js
-function circularArrayLoopExists(arr) {
-  for(let i = 0; i < arr.length; i++) {
-    //if we are moving forward or not
-    let isForward = arr[i] >= 0
-    let slow = i
-    let fast = i
-    
-    //if slow or fast becomes -1 this means we can't find cycle for this number
-    while(true) {
-      // move one step for slow pointer
-      slow = findNextIndex(arr, isForward, slow)
-      //move one step for fast pointer
-      fast = findNextIndex(arr, isForward, fast)
-      if(fast !== -1){
-        //move another step for the fast pointer
-        fast = findNextIndex(arr, isForward, fast)
-      }
-      if(slow === -1 || fast === -1 || slow === fast){
-        break
-      }  
+````java
+class Solution {
+    public static boolean circularArrayLoopExists(int[] arr) {
+        for (int i = 0; i < arr.length; i++) {
+            // if we are moving forward or not
+            boolean isForward = arr[i] >= 0;
+            int slow = i;
+            int fast = i;
+            
+            // if slow or fast becomes -1 this means we can't find cycle for this number
+            while (true) {
+                // move one step for slow pointer
+                slow = findNextIndex(arr, isForward, slow);
+                // move one step for fast pointer
+                fast = findNextIndex(arr, isForward, fast);
+                if (fast != -1) {
+                    // move another step for the fast pointer
+                    fast = findNextIndex(arr, isForward, fast);
+                }
+                if (slow == -1 || fast == -1 || slow == fast) {
+                    break;
+                }  
+            }
+            
+            if (slow != -1 && slow == fast) {
+                return true;
+            }
+        } 
+        return false;
     }
-    
-    if(slow !== -1 && slow === fast){
-      return true
+
+    private static int findNextIndex(int[] arr, boolean isForward, int currentIndex) {
+        boolean direction = arr[currentIndex] >= 0;
+        
+        if (isForward != direction) {
+            // change in direction, return -1
+            return -1;
+        }
+        
+        int nextIndex = (currentIndex + arr[currentIndex]) % arr.length;
+        if (nextIndex < 0) {
+            // wrap around for negative numbers
+            nextIndex += arr.length;
+        }
+        
+        // one element cycle, return -1
+        if (nextIndex == currentIndex) {
+            nextIndex = -1;
+        }
+        
+        return nextIndex;
     }
-  } 
-  return false
-}
 
-function findNextIndex(arr, isForward, currentIndex) {
-  let direction = arr[currentIndex] >= 0
-  
-  if(isForward !== direction){
-    //change indirection, return -1
-    return -1
-  }
-  
-  nextIndex = (currentIndex + arr[currentIndex]) % arr.length
-  if(nextIndex < 0) {
-    //wrap around for negative numbers
-    nextIndex += arr.length
-  }
-  
-  //one element cycle, return -1
-  if(nextIndex === currentIndex){
-    nextIndex = -1
-  }
-  
-  return nextIndex
+    public static void main(String[] args) {
+        System.out.println(circularArrayLoopExists(new int[]{1, 2, -1, 2, 2}));
+        System.out.println(circularArrayLoopExists(new int[]{2, 2, -1, 2}));
+        System.out.println(circularArrayLoopExists(new int[]{2, 1, -1, -2}));
+    }
 }
-
-circularArrayLoopExists([1, 2, -1, 2, 2])
-circularArrayLoopExists([2, 2, -1, 2])
-circularArrayLoopExists([2, 1, -1, -2])
 ````
 
 - The above algorithm will have a time complexity of `O(N²)` where `N` is the number of elements in the array. This complexity is due to the fact that we are iterating all elements of the array and trying to find a  <i>cycle</i>  for each element.

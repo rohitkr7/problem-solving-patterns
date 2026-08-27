@@ -40,78 +40,87 @@ All three operations are the same walk: start at the `root` and consume the inpu
 
 Since `search` and `startsWith` share the entire walk, we factor it into a private `findNode(prefix)` helper that returns the node we landed on or `null` if the path broke. `search` then adds the `isWord` check on top and `startsWith` does not — which makes the one-boolean difference between them explicit in the code.
 
-````js
+````java
+import java.util.*;
+
 class TrieNode {
-  constructor() {
     //children of the current node, keyed by the character
-    this.children = new Map();
+    Map<Character, TrieNode> children;
     //true if a word ends exactly at this node
-    this.isWord = false;
-  }
+    boolean isWord;
+
+    public TrieNode() {
+        children = new HashMap<>();
+        isWord = false;
+    }
 }
 
 class Trie {
-  constructor() {
-    //the root is an empty node, it does not hold any character
-    this.root = new TrieNode();
-  }
+    TrieNode root;
 
-  insert(word) {
-    let current = this.root;
-    for (let i = 0; i < word.length; i++) {
-      const char = word[i];
-      //if the character is missing, create the branch for it
-      if (!current.children.has(char)) {
-        current.children.set(char, new TrieNode());
-      }
-      //walk one level down
-      current = current.children.get(char);
+    public Trie() {
+        //the root is an empty node, it does not hold any character
+        root = new TrieNode();
     }
-    //mark the last node as the end of a word
-    current.isWord = true;
-  }
 
-  //walk the trie following the characters of the prefix
-  //return the node we land on, or null if the path breaks
-  findNode(prefix) {
-    let current = this.root;
-    for (let i = 0; i < prefix.length; i++) {
-      const char = prefix[i];
-      if (!current.children.has(char)) {
-        return null;
-      }
-      current = current.children.get(char);
+    public void insert(String word) {
+        TrieNode current = root;
+        for (int i = 0; i < word.length(); i++) {
+            char ch = word.charAt(i);
+            //if the character is missing, create the branch for it
+            current.children.putIfAbsent(ch, new TrieNode());
+            //walk one level down
+            current = current.children.get(ch);
+        }
+        //mark the last node as the end of a word
+        current.isWord = true;
     }
-    return current;
-  }
 
-  search(word) {
-    const node = this.findNode(word);
-    //the path must exist AND a word must end there
-    return node !== null && node.isWord;
-  }
+    //walk the trie following the characters of the prefix
+    //return the node we land on, or null if the path breaks
+    private TrieNode findNode(String prefix) {
+        TrieNode current = root;
+        for (int i = 0; i < prefix.length(); i++) {
+            char ch = prefix.charAt(i);
+            if (!current.children.containsKey(ch)) {
+                return null;
+            }
+            current = current.children.get(ch);
+        }
+        return current;
+    }
 
-  startsWith(prefix) {
-    //the path only needs to exist
-    return this.findNode(prefix) !== null;
-  }
+    public boolean search(String word) {
+        TrieNode node = findNode(word);
+        //the path must exist AND a word must end there
+        return node != null && node.isWord;
+    }
+
+    public boolean startsWith(String prefix) {
+        //the path only needs to exist
+        return findNode(prefix) != null;
+    }
 }
 
-const trie = new Trie();
-trie.insert('apple');
-console.log(`search('apple'): ${trie.search('apple')}`);
-//search('apple'): true
-console.log(`search('app'): ${trie.search('app')}`);
-//search('app'): false
-//'app' is only a prefix of 'apple', no word ends there yet
-console.log(`startsWith('app'): ${trie.startsWith('app')}`);
-//startsWith('app'): true
-trie.insert('app');
-console.log(`search('app'): ${trie.search('app')}`);
-//search('app'): true
-//now a word does end at 'app'
-console.log(`startsWith('apricot'): ${trie.startsWith('apricot')}`);
-//startsWith('apricot'): false
+class Solution {
+    public static void main(String[] args) {
+        Trie trie = new Trie();
+        trie.insert("apple");
+        System.out.println("search('apple'): " + trie.search("apple"));
+        //search('apple'): true
+        System.out.println("search('app'): " + trie.search("app"));
+        //search('app'): false
+        //'app' is only a prefix of 'apple', no word ends there yet
+        System.out.println("startsWith('app'): " + trie.startsWith("app"));
+        //startsWith('app'): true
+        trie.insert("app");
+        System.out.println("search('app'): " + trie.search("app"));
+        //search('app'): true
+        //now a word does end at 'app'
+        System.out.println("startsWith('apricot'): " + trie.startsWith("apricot"));
+        //startsWith('apricot'): false
+    }
+}
 ````
 - The <b>time complexity</b> of `insert`, `search`, and `startsWith` is `O(M)`, where `M` is the length of the string being inserted or queried. Notice what is <i>absent</i> from that bound: the number of words already in the trie. Each operation is a single walk down at most `M` levels, and each step is an `O(1)` <b>HashMap</b> lookup.
 - The <b>space complexity</b> of the trie is `O(N * M)` in the worst case, where `N` is the number of inserted words and `M` is their average length. This is the worst case where no two words share a single character. In practice, the more prefixes the words share, the fewer nodes we allocate — which is exactly the trade the structure is built to win.
@@ -141,81 +150,88 @@ So we write `searchInNode(word, index, node)`, tracking how far into the pattern
 
 Note that the recursion is doing the work a stack would do explicitly, which is where our space cost comes from.
 
-````js
+````java
 class TrieNode {
-  constructor() {
-    this.children = new Map();
-    this.isWord = false;
-  }
+    Map<Character, TrieNode> children;
+    boolean isWord;
+
+    public TrieNode() {
+        children = new HashMap<>();
+        isWord = false;
+    }
 }
 
 class WordDictionary {
-  constructor() {
-    this.root = new TrieNode();
-  }
+    TrieNode root;
 
-  addWord(word) {
-    let current = this.root;
-    for (let i = 0; i < word.length; i++) {
-      const char = word[i];
-      if (!current.children.has(char)) {
-        current.children.set(char, new TrieNode());
-      }
-      current = current.children.get(char);
-    }
-    current.isWord = true;
-  }
-
-  search(word) {
-    return this.searchInNode(word, 0, this.root);
-  }
-
-  searchInNode(word, index, node) {
-    //we consumed the whole pattern, this is a match
-    //only if a word actually ends at this node
-    if (index === word.length) {
-      return node.isWord;
+    public WordDictionary() {
+        root = new TrieNode();
     }
 
-    const char = word[index];
-
-    //a '.' can match any single child, so we branch out
-    if (char === '.') {
-      for (const child of node.children.values()) {
-        if (this.searchInNode(word, index + 1, child)) {
-          return true;
+    public void addWord(String word) {
+        TrieNode current = root;
+        for (int i = 0; i < word.length(); i++) {
+            char ch = word.charAt(i);
+            current.children.putIfAbsent(ch, new TrieNode());
+            current = current.children.get(ch);
         }
-      }
-      //none of the children could complete the pattern
-      return false;
+        current.isWord = true;
     }
 
-    //a concrete character has only one possible path
-    if (!node.children.has(char)) {
-      return false;
+    public boolean search(String word) {
+        return searchInNode(word, 0, root);
     }
-    return this.searchInNode(word, index + 1, node.children.get(char));
-  }
+
+    private boolean searchInNode(String word, int index, TrieNode node) {
+        //we consumed the whole pattern, this is a match
+        //only if a word actually ends at this node
+        if (index == word.length()) {
+            return node.isWord;
+        }
+
+        char ch = word.charAt(index);
+
+        //a '.' can match any single child, so we branch out
+        if (ch == '.') {
+            for (TrieNode child : node.children.values()) {
+                if (searchInNode(word, index + 1, child)) {
+                    return true;
+                }
+            }
+            //none of the children could complete the pattern
+            return false;
+        }
+
+        //a concrete character has only one possible path
+        if (!node.children.containsKey(ch)) {
+            return false;
+        }
+        return searchInNode(word, index + 1, node.children.get(ch));
+    }
 }
 
-const wordDictionary = new WordDictionary();
-wordDictionary.addWord('bad');
-wordDictionary.addWord('dad');
-wordDictionary.addWord('mad');
-console.log(`search('pad'): ${wordDictionary.search('pad')}`);
-//search('pad'): false
-console.log(`search('bad'): ${wordDictionary.search('bad')}`);
-//search('bad'): true
-console.log(`search('.ad'): ${wordDictionary.search('.ad')}`);
-//search('.ad'): true
-//the '.' matches 'b', 'd', or 'm'
-console.log(`search('b..'): ${wordDictionary.search('b..')}`);
-//search('b..'): true
-console.log(`search('b.'): ${wordDictionary.search('b.')}`);
-//search('b.'): false
-//'ba' is a prefix but no two-letter word was ever added
-console.log(`search('...'): ${wordDictionary.search('...')}`);
-//search('...'): true
+class Solution {
+    public static void main(String[] args) {
+        WordDictionary wordDictionary = new WordDictionary();
+        wordDictionary.addWord("bad");
+        wordDictionary.addWord("dad");
+        wordDictionary.addWord("mad");
+        System.out.println("search('pad'): " + wordDictionary.search("pad"));
+        //search('pad'): false
+        System.out.println("search('bad'): " + wordDictionary.search("bad"));
+        //search('bad'): true
+        System.out.println("search('.ad'): " + wordDictionary.search(".ad"));
+        //search('.ad'): true
+        //the '.' matches 'b', 'd', or 'm'
+        System.out.println("search('b..'): " + wordDictionary.search("b.."));
+        //search('b..'): true
+        System.out.println("search('b.'): " + wordDictionary.search("b."));
+        //search('b.'): false
+        //'ba' is a prefix but no two-letter word was ever added
+        System.out.println("search('...'): " + wordDictionary.search("..."));
+        //search('...'): true
+    }
+}
 ````
 - The <b>time complexity</b> of `addWord` is `O(M)`, where `M` is the length of the word. For `search`, if the pattern contains no dots the complexity is also `O(M)` since the walk never branches. In the worst case — a pattern of all dots — we may have to explore every path in the trie, giving `O(26^M)` for a `26`-letter alphabet, or more usefully `O(N * M)`, where `N` is the number of added words, since the trie cannot contain more than `N * M` nodes to visit.
 - The <b>space complexity</b> is `O(N * M)` for the trie itself, plus `O(M)` for the <b>recursion</b> stack, since the depth of the recursion is bounded by the length of the search pattern.
@@ -234,68 +250,73 @@ There is a second, easier-to-miss stopping condition: a node where `isWord` is `
 
 So: walk down from the root while `children.size === 1 && !isWord`, collecting characters as we go. We also guard the input up front — an empty array, or any empty string in the array, means the answer is `""`.
 
-````js
+````java
 class TrieNode {
-  constructor() {
-    this.children = new Map();
-    this.isWord = false;
-  }
+    Map<Character, TrieNode> children;
+    boolean isWord;
+
+    public TrieNode() {
+        children = new HashMap<>();
+        isWord = false;
+    }
 }
 
-function longestCommonPrefix(strs) {
-  if (strs === null || strs.length === 0) {
-    return '';
-  }
+class Solution {
+    public static String longestCommonPrefix(String[] strs) {
+        if (strs == null || strs.length == 0) {
+            return "";
+        }
 
-  //an empty string can never share a prefix with anything
-  for (let i = 0; i < strs.length; i++) {
-    if (strs[i].length === 0) {
-      return '';
+        //an empty string can never share a prefix with anything
+        for (String str : strs) {
+            if (str.length() == 0) {
+                return "";
+            }
+        }
+
+        //1. insert every word into the trie
+        TrieNode root = new TrieNode();
+        for (String word : strs) {
+            TrieNode current = root;
+            for (int i = 0; i < word.length(); i++) {
+                char ch = word.charAt(i);
+                current.children.putIfAbsent(ch, new TrieNode());
+                current = current.children.get(ch);
+            }
+            current.isWord = true;
+        }
+
+        //2. walk down from the root while there is exactly one child
+        //and no word has ended yet, that chain of single children
+        //is the longest common prefix
+        StringBuilder prefix = new StringBuilder();
+        TrieNode current = root;
+        while (current.children.size() == 1 && !current.isWord) {
+            Map.Entry<Character, TrieNode> entry = current.children.entrySet().iterator().next();
+            prefix.append(entry.getKey());
+            current = entry.getValue();
+        }
+
+        return prefix.toString();
     }
-  }
 
-  //1. insert every word into the trie
-  const root = new TrieNode();
-  strs.forEach((word) => {
-    let current = root;
-    for (let i = 0; i < word.length; i++) {
-      const char = word[i];
-      if (!current.children.has(char)) {
-        current.children.set(char, new TrieNode());
-      }
-      current = current.children.get(char);
+    public static void main(String[] args) {
+        System.out.println("Longest common prefix: \"" + longestCommonPrefix(new String[] { "flower", "flow", "flight" }) + "\"");
+        //Longest common prefix: "fl"
+        System.out.println("Longest common prefix: \"" + longestCommonPrefix(new String[] { "dog", "racecar", "car" }) + "\"");
+        //Longest common prefix: ""
+        //the root already has three children, so there is no common prefix
+        System.out.println("Longest common prefix: \"" + longestCommonPrefix(new String[] { "interspecies", "interstellar", "interstate" }) + "\"");
+        //Longest common prefix: "inters"
+        System.out.println("Longest common prefix: \"" + longestCommonPrefix(new String[] { "throne", "throne" }) + "\"");
+        //Longest common prefix: "throne"
+        System.out.println("Longest common prefix: \"" + longestCommonPrefix(new String[] { "ab", "a" }) + "\"");
+        //Longest common prefix: "a"
+        //the isWord check stops us at 'a', even though it has a single child 'b'
+        System.out.println("Longest common prefix: \"" + longestCommonPrefix(new String[] { "" }) + "\"");
+        //Longest common prefix: ""
     }
-    current.isWord = true;
-  });
-
-  //2. walk down from the root while there is exactly one child
-  //and no word has ended yet, that chain of single children
-  //is the longest common prefix
-  const prefix = [];
-  let current = root;
-  while (current.children.size === 1 && !current.isWord) {
-    const [char, child] = current.children.entries().next().value;
-    prefix.push(char);
-    current = child;
-  }
-
-  return prefix.join('');
 }
-
-console.log(`Longest common prefix: "${longestCommonPrefix(['flower', 'flow', 'flight'])}"`);
-//Longest common prefix: "fl"
-console.log(`Longest common prefix: "${longestCommonPrefix(['dog', 'racecar', 'car'])}"`);
-//Longest common prefix: ""
-//the root already has three children, so there is no common prefix
-console.log(`Longest common prefix: "${longestCommonPrefix(['interspecies', 'interstellar', 'interstate'])}"`);
-//Longest common prefix: "inters"
-console.log(`Longest common prefix: "${longestCommonPrefix(['throne', 'throne'])}"`);
-//Longest common prefix: "throne"
-console.log(`Longest common prefix: "${longestCommonPrefix(['ab', 'a'])}"`);
-//Longest common prefix: "a"
-//the isWord check stops us at 'a', even though it has a single child 'b'
-console.log(`Longest common prefix: "${longestCommonPrefix([''])}"`);
-//Longest common prefix: ""
 ````
 - The <b>time complexity</b> of the above algorithm is `O(S)`, where `S` is the total number of characters across all the input strings. Building the trie touches each character exactly once, and the walk down from the root is bounded by the length of the shortest string, which is at most `S`.
 - The <b>space complexity</b> is `O(S)` as well, for the trie nodes. This is the price we pay over the `O(1)`-space vertical scan, and it buys us a reusable structure rather than a one-shot answer.
@@ -320,63 +341,84 @@ The two ways to fail out are both "no root matches, keep the word as is":
 
 We build the trie from the dictionary once, then map each whitespace-separated word of the sentence through the lookup and re-join.
 
-````js
+```java
 class TrieNode {
-  constructor() {
-    this.children = new Map();
-    this.isWord = false;
-  }
+    Map<Character, TrieNode> children;
+    boolean isWord;
+
+    public TrieNode() {
+        children = new HashMap<>();
+        isWord = false;
+    }
 }
 
-function replaceWords(dictionary, sentence) {
-  //1. build a trie out of all the roots
-  const root = new TrieNode();
-  dictionary.forEach((word) => {
-    let current = root;
-    for (let i = 0; i < word.length; i++) {
-      const char = word[i];
-      if (!current.children.has(char)) {
-        current.children.set(char, new TrieNode());
-      }
-      current = current.children.get(char);
-    }
-    current.isWord = true;
-  });
+class Solution {
+    public static String replaceWords(List<String> dictionary, String sentence) {
+        //1. build a trie out of all the roots
+        TrieNode root = new TrieNode();
+        for (String word : dictionary) {
+            TrieNode current = root;
+            for (int i = 0; i < word.length(); i++) {
+                char ch = word.charAt(i);
+                current.children.putIfAbsent(ch, new TrieNode());
+                current = current.children.get(ch);
+            }
+            current.isWord = true;
+        }
 
-  //2. for a word, walk the trie and stop at the FIRST node
-  //that ends a root, that is the shortest matching root
-  const findShortestRoot = (word) => {
-    let current = root;
-    const matched = [];
-    for (let i = 0; i < word.length; i++) {
-      const char = word[i];
-      if (!current.children.has(char)) {
-        //the trie has no branch left, no root is a prefix of this word
-        return word;
-      }
-      current = current.children.get(char);
-      matched.push(char);
-      if (current.isWord) {
-        return matched.join('');
-      }
-    }
-    //the whole word was consumed without ever ending a root
-    return word;
-  };
+        //2. for a word, walk the trie and stop at the FIRST node
+        //that ends a root, that is the shortest matching root
+        String[] words = sentence.split(" ");
+        StringBuilder result = new StringBuilder();
+        
+        for (int w = 0; w < words.length; w++) {
+            String word = words[w];
+            TrieNode current = root;
+            StringBuilder matched = new StringBuilder();
+            boolean found = false;
+            
+            for (int i = 0; i < word.length(); i++) {
+                char ch = word.charAt(i);
+                if (!current.children.containsKey(ch)) {
+                    //the trie has no branch left, no root is a prefix of this word
+                    break;
+                }
+                current = current.children.get(ch);
+                matched.append(ch);
+                if (current.isWord) {
+                    found = true;
+                    break;
+                }
+            }
+            
+            if (found) {
+                result.append(matched.toString());
+            } else {
+                result.append(word);
+            }
+            
+            if (w < words.length - 1) {
+                result.append(" ");
+            }
+        }
 
-  return sentence.split(' ').map(findShortestRoot).join(' ');
+        return result.toString();
+    }
+
+    public static void main(String[] args) {
+        System.out.println(replaceWords(Arrays.asList("cat", "bat", "rat"), "the cattle was rattled by the battery"));
+        //the cat was rat by the bat
+        System.out.println(replaceWords(Arrays.asList("a", "b", "c"), "aadsfasf absbs bbab cadsfafs"));
+        //a a b c
+        System.out.println(replaceWords(Arrays.asList("catt", "cat", "bat", "rat"), "the cattle was rattled by the battery"));
+        //the cat was rat by the bat
+        //'cattle' matches both 'catt' and 'cat', we stop at the shorter 'cat'
+        System.out.println(replaceWords(Arrays.asList("a", "aa", "aaa", "aaaa"), "a aa a aaaa aaa aaa aaa aaaaaa bbb baba ababa"));
+        //a a a a a a a a bbb baba a
+    }
 }
+```
 
-console.log(replaceWords(['cat', 'bat', 'rat'], 'the cattle was rattled by the battery'));
-//the cat was rat by the bat
-console.log(replaceWords(['a', 'b', 'c'], 'aadsfasf absbs bbab cadsfafs'));
-//a a b c
-console.log(replaceWords(['catt', 'cat', 'bat', 'rat'], 'the cattle was rattled by the battery'));
-//the cat was rat by the bat
-//'cattle' matches both 'catt' and 'cat', we stop at the shorter 'cat'
-console.log(replaceWords(['a', 'aa', 'aaa', 'aaaa'], 'a aa a aaaa aaa aaa aaa aaaaaa bbb baba ababa'));
-//a a a a a a a a bbb baba a
-````
 - The <b>time complexity</b> of the above algorithm is `O(D + S)`, where `D` is the total number of characters across all the roots in the `dictionary` and `S` is the total number of characters in the `sentence`. Building the trie is `O(D)`, and each word of the sentence is walked at most once through its own characters, summing to `O(S)`. Compare this to the `O(S * |dictionary|)` of the brute-force `startsWith` approach — the dictionary size has vanished from the query cost.
 - The <b>space complexity</b> is `O(D)` for the trie, plus `O(S)` for the output sentence we build.
 
@@ -400,113 +442,120 @@ A few implementation details that matter:
 - <b>Mark visited cells in the board itself.</b> Overwriting `board[row][col]` with `'#'` enforces "the same cell may not be reused within one word" without allocating a separate `visited` matrix. `'#'` is safe because it can never appear in the trie, so the lookup for it fails and the branch prunes naturally. We restore the original character on the way back up — that restore <i>is</i> the backtracking step.
 - <b>Prune dead nodes on the way out.</b> Once we finish exploring a node that has no children left and no word left to report, it can never contribute to another match. Deleting it from its parent (`parent.children.delete(char)`) shrinks the trie as the search progresses, so later cells prune even earlier. This is the optimization that rescues the pathological test case of a board full of a single repeated letter.
 
-````js
+````java
 class TrieNode {
-  constructor() {
-    this.children = new Map();
+    Map<Character, TrieNode> children;
     //instead of a boolean we store the whole word,
     //so we don't have to rebuild it from the path
-    this.word = null;
-  }
+    String word;
+
+    public TrieNode() {
+        children = new HashMap<>();
+        word = null;
+    }
 }
 
-function findWords(board, words) {
-  const found = [];
-  if (!board || board.length === 0 || board[0].length === 0) {
-    return found;
-  }
+class Solution {
+    public static List<String> findWords(char[][] board, String[] words) {
+        List<String> found = new ArrayList<>();
+        if (board == null || board.length == 0 || board[0].length == 0) {
+            return found;
+        }
 
-  //1. build a trie out of all the words we are looking for
-  const root = new TrieNode();
-  words.forEach((word) => {
-    let current = root;
-    for (let i = 0; i < word.length; i++) {
-      const char = word[i];
-      if (!current.children.has(char)) {
-        current.children.set(char, new TrieNode());
-      }
-      current = current.children.get(char);
+        //1. build a trie out of all the words we are looking for
+        TrieNode root = new TrieNode();
+        for (String word : words) {
+            TrieNode current = root;
+            for (int i = 0; i < word.length(); i++) {
+                char ch = word.charAt(i);
+                current.children.putIfAbsent(ch, new TrieNode());
+                current = current.children.get(ch);
+            }
+            current.word = word;
+        }
+
+        int rows = board.length;
+        int cols = board[0].length;
+
+        //2. DFS from every cell, walking the board and the trie in lock-step
+        for (int row = 0; row < rows; row++) {
+            for (int col = 0; col < cols; col++) {
+                dfs(board, row, col, root, found);
+            }
+        }
+
+        return found;
     }
-    current.word = word;
-  });
+    
+    private static void dfs(char[][] board, int row, int col, TrieNode parent, List<String> found) {
+        char ch = board[row][col];
+        TrieNode node = parent.children.get(ch);
 
-  const rows = board.length;
-  const cols = board[0].length;
+        //no word in our set continues with this character, prune this branch
+        if (node == null) {
+            return;
+        }
 
-  //2. DFS from every cell, walking the board and the trie in lock-step
-  const dfs = (row, col, parent) => {
-    const char = board[row][col];
-    const node = parent.children.get(char);
+        //we landed on a node that ends a word
+        if (node.word != null) {
+            found.add(node.word);
+            //null it out so the same word is never reported twice
+            node.word = null;
+        }
 
-    //no word in our set continues with this character, prune this branch
-    if (node === undefined) {
-      return;
+        //mark the cell as visited, '#' can never appear in the trie
+        board[row][col] = '#';
+
+        if (row > 0) dfs(board, row - 1, col, node, found);
+        if (row < board.length - 1) dfs(board, row + 1, col, node, found);
+        if (col > 0) dfs(board, row, col - 1, node, found);
+        if (col < board[0].length - 1) dfs(board, row, col + 1, node, found);
+
+        //backtrack, restore the cell for other paths
+        board[row][col] = ch;
+
+        //optimization: a node with no children and no word left
+        //is dead weight, drop it so later searches prune sooner
+        if (node.children.isEmpty() && node.word == null) {
+            parent.children.remove(ch);
+        }
     }
 
-    //we landed on a node that ends a word
-    if (node.word !== null) {
-      found.push(node.word);
-      //null it out so the same word is never reported twice
-      node.word = null;
+    public static void main(String[] args) {
+        char[][] board1 = {
+            {'o', 'a', 'a', 'n'},
+            {'e', 't', 'a', 'e'},
+            {'i', 'h', 'k', 'r'},
+            {'i', 'f', 'l', 'v'}
+        };
+        System.out.println("Words found: " + findWords(board1, new String[]{"oath", "pea", "eat", "rain"}));
+        //Words found: [oath, eat]
+
+        char[][] board2 = {
+            {'a', 'b'},
+            {'c', 'd'}
+        };
+        System.out.println("Words found: " + findWords(board2, new String[]{"abcb"}));
+        //Words found: []
+        //'abcb' would need to reuse the 'b' cell, which is not allowed
+
+        char[][] board3 = {
+            {'a', 'b'}
+        };
+        System.out.println("Words found: " + findWords(board3, new String[]{"ab", "ba", "a", "b", "zz"}));
+        //Words found: [a, ab, b, ba]
+
+        char[][] board4 = {
+            {'o', 'a', 'a', 'n'},
+            {'e', 't', 'a', 'e'},
+            {'i', 'h', 'k', 'r'},
+            {'i', 'f', 'l', 'v'}
+        };
+        System.out.println("Words found: " + findWords(board4, new String[]{"oath", "oat", "oa", "hklf", "hf"}));
+        //Words found: [oa, oat, oath, hf, hklf]
+        //the shared 'oa' prefix is walked exactly once for all three of its words
     }
-
-    //mark the cell as visited, '#' can never appear in the trie
-    board[row][col] = '#';
-
-    if (row > 0) dfs(row - 1, col, node);
-    if (row < rows - 1) dfs(row + 1, col, node);
-    if (col > 0) dfs(row, col - 1, node);
-    if (col < cols - 1) dfs(row, col + 1, node);
-
-    //backtrack, restore the cell for other paths
-    board[row][col] = char;
-
-    //optimization: a node with no children and no word left
-    //is dead weight, drop it so later searches prune sooner
-    if (node.children.size === 0 && node.word === null) {
-      parent.children.delete(char);
-    }
-  };
-
-  for (let row = 0; row < rows; row++) {
-    for (let col = 0; col < cols; col++) {
-      dfs(row, col, root);
-    }
-  }
-
-  return found;
 }
-
-const board1 = [
-  ['o', 'a', 'a', 'n'],
-  ['e', 't', 'a', 'e'],
-  ['i', 'h', 'k', 'r'],
-  ['i', 'f', 'l', 'v'],
-];
-console.log(`Words found: ${findWords(board1, ['oath', 'pea', 'eat', 'rain'])}`);
-//Words found: oath,eat
-
-const board2 = [
-  ['a', 'b'],
-  ['c', 'd'],
-];
-console.log(`Words found: ${findWords(board2, ['abcb'])}`);
-//Words found:
-//'abcb' would need to reuse the 'b' cell, which is not allowed
-
-const board3 = [['a', 'b']];
-console.log(`Words found: ${findWords(board3, ['ab', 'ba', 'a', 'b', 'zz'])}`);
-//Words found: a,ab,b,ba
-
-const board4 = [
-  ['o', 'a', 'a', 'n'],
-  ['e', 't', 'a', 'e'],
-  ['i', 'h', 'k', 'r'],
-  ['i', 'f', 'l', 'v'],
-];
-console.log(`Words found: ${findWords(board4, ['oath', 'oat', 'oa', 'hklf', 'hf'])}`);
-//Words found: oa,oat,oath,hf,hklf
-//the shared 'oa' prefix is walked exactly once for all three of its words
 ````
 - The <b>time complexity</b> of the above algorithm is `O(D + M * N * 4 * 3^(L-1))`, where `D` is the total number of characters across all `words`, `M` and `N` are the dimensions of the board, and `L` is the length of the longest word. Building the trie costs `O(D)`. For the search, we start a <b>DFS</b> from each of the `M * N` cells; the first step has `4` choices of direction and every subsequent step has at most `3`, since we can never immediately walk back onto the cell we just marked. The trie is what keeps us far away from this bound in practice — most branches die within a character or two of pruning.
 - The <b>space complexity</b> is `O(D)` for the trie, which dominates, plus `O(L)` for the <b>recursion</b> stack, since the <b>DFS</b> can never go deeper than the longest word. Marking visited cells in place means we need no extra grid.
@@ -533,73 +582,81 @@ The subtlety — and this is what the problem is really testing — is the <b>ov
 
 The fix is to push a <b>delta</b> rather than the raw value. We keep a `Map` of the current value of each key on the side, so on insert we can compute `delta = val - previousValue` (with `previousValue` defaulting to `0` for a brand-new key) and add <i>that</i> along the path. For a new key the delta is just the value, so the common case is unaffected; for an overwrite the delta correctly cancels out the old contribution. Note this handles decreases too — `insert("apple", 1)` after `insert("apple", 5)` yields a delta of `-4`.
 
-````js
+````java
 class TrieNode {
-  constructor() {
-    this.children = new Map();
+    Map<Character, TrieNode> children;
     //sum of the values of every key that passes through this node
-    this.sum = 0;
-  }
+    int sum;
+
+    public TrieNode() {
+        children = new HashMap<>();
+        sum = 0;
+    }
 }
 
 class MapSum {
-  constructor() {
-    this.root = new TrieNode();
+    TrieNode root;
     //remembers the current value of each key so an
     //overwrite can be turned into a delta
-    this.values = new Map();
-  }
+    Map<String, Integer> values;
 
-  insert(key, val) {
-    //if the key already exists we must not add the value twice,
-    //we push only the difference down the path
-    const previous = this.values.has(key) ? this.values.get(key) : 0;
-    const delta = val - previous;
-    this.values.set(key, val);
-
-    let current = this.root;
-    for (let i = 0; i < key.length; i++) {
-      const char = key[i];
-      if (!current.children.has(char)) {
-        current.children.set(char, new TrieNode());
-      }
-      current = current.children.get(char);
-      //every node on the path of the key accumulates the delta
-      current.sum += delta;
+    public MapSum() {
+        root = new TrieNode();
+        values = new HashMap<>();
     }
-  }
 
-  sum(prefix) {
-    let current = this.root;
-    for (let i = 0; i < prefix.length; i++) {
-      const char = prefix[i];
-      if (!current.children.has(char)) {
-        //no key starts with this prefix
-        return 0;
-      }
-      current = current.children.get(char);
+    public void insert(String key, int val) {
+        //if the key already exists we must not add the value twice,
+        //we push only the difference down the path
+        int previous = values.getOrDefault(key, 0);
+        int delta = val - previous;
+        values.put(key, val);
+
+        TrieNode current = root;
+        for (int i = 0; i < key.length(); i++) {
+            char ch = key.charAt(i);
+            current.children.putIfAbsent(ch, new TrieNode());
+            current = current.children.get(ch);
+            //every node on the path of the key accumulates the delta
+            current.sum += delta;
+        }
     }
-    //the running total was maintained on insert, just read it
-    return current.sum;
-  }
+
+    public int sum(String prefix) {
+        TrieNode current = root;
+        for (int i = 0; i < prefix.length(); i++) {
+            char ch = prefix.charAt(i);
+            if (!current.children.containsKey(ch)) {
+                //no key starts with this prefix
+                return 0;
+            }
+            current = current.children.get(ch);
+        }
+        //the running total was maintained on insert, just read it
+        return current.sum;
+    }
 }
 
-const mapSum = new MapSum();
-mapSum.insert('apple', 3);
-console.log(`sum('ap'): ${mapSum.sum('ap')}`);
-//sum('ap'): 3
-mapSum.insert('app', 2);
-console.log(`sum('ap'): ${mapSum.sum('ap')}`);
-//sum('ap'): 5
-//'apple' contributes 3 and 'app' contributes 2
-mapSum.insert('apple', 5);
-console.log(`sum('ap'): ${mapSum.sum('ap')}`);
-//sum('ap'): 7
-//the delta of 5 - 3 = 2 is pushed down, so we get 5 + 2, not 3 + 2 + 5
-console.log(`sum('apple'): ${mapSum.sum('apple')}`);
-//sum('apple'): 5
-console.log(`sum('b'): ${mapSum.sum('b')}`);
-//sum('b'): 0
+class Solution {
+    public static void main(String[] args) {
+        MapSum mapSum = new MapSum();
+        mapSum.insert("apple", 3);
+        System.out.println("sum('ap'): " + mapSum.sum("ap"));
+        //sum('ap'): 3
+        mapSum.insert("app", 2);
+        System.out.println("sum('ap'): " + mapSum.sum("ap"));
+        //sum('ap'): 5
+        //'apple' contributes 3 and 'app' contributes 2
+        mapSum.insert("apple", 5);
+        System.out.println("sum('ap'): " + mapSum.sum("ap"));
+        //sum('ap'): 7
+        //the delta of 5 - 3 = 2 is pushed down, so we get 5 + 2, not 3 + 2 + 5
+        System.out.println("sum('apple'): " + mapSum.sum("apple"));
+        //sum('apple'): 5
+        System.out.println("sum('b'): " + mapSum.sum("b"));
+        //sum('b'): 0
+    }
+}
 ````
 - The <b>time complexity</b> of `insert` is `O(M)`, where `M` is the length of the `key` — one walk down the path, updating a number at each node. `sum` is `O(P)`, where `P` is the length of the `prefix`, since the aggregate is already computed and we only need to reach the right node. Contrast this with the lazy alternative, where `sum` would cost `O(size of the subtree)`.
 - The <b>space complexity</b> is `O(N * M)` for the trie, where `N` is the number of distinct keys and `M` is their average length, plus `O(N * M)` for the side `Map` of key values.
@@ -611,69 +668,80 @@ console.log(`sum('b'): ${mapSum.sum('b')}`);
 
 Keeping counts rather than a boolean `isWord` also makes duplicate insertions meaningful, and it is what lets a trie support deletion: `erase(word)` would decrement both counters along the path and drop nodes whose `wordCount` reaches `0`.
 
-````js
+````java
 class TrieNode {
-  constructor() {
-    this.children = new Map();
+    Map<Character, TrieNode> children;
     //how many inserted words pass through this node
-    this.wordCount = 0;
+    int wordCount;
     //how many inserted words end exactly at this node
-    this.endCount = 0;
-  }
+    int endCount;
+
+    public TrieNode() {
+        children = new HashMap<>();
+        wordCount = 0;
+        endCount = 0;
+    }
 }
 
 class WordFilter {
-  constructor() {
-    this.root = new TrieNode();
-  }
+    TrieNode root;
 
-  insert(word) {
-    let current = this.root;
-    for (let i = 0; i < word.length; i++) {
-      const char = word[i];
-      if (!current.children.has(char)) {
-        current.children.set(char, new TrieNode());
-      }
-      current = current.children.get(char);
-      current.wordCount++;
+    public WordFilter() {
+        root = new TrieNode();
     }
-    current.endCount++;
-  }
 
-  countWordsEqualTo(word) {
-    let current = this.root;
-    for (let i = 0; i < word.length; i++) {
-      const char = word[i];
-      if (!current.children.has(char)) return 0;
-      current = current.children.get(char);
+    public void insert(String word) {
+        TrieNode current = root;
+        for (int i = 0; i < word.length(); i++) {
+            char ch = word.charAt(i);
+            current.children.putIfAbsent(ch, new TrieNode());
+            current = current.children.get(ch);
+            current.wordCount++;
+        }
+        current.endCount++;
     }
-    return current.endCount;
-  }
 
-  countWordsStartingWith(prefix) {
-    let current = this.root;
-    for (let i = 0; i < prefix.length; i++) {
-      const char = prefix[i];
-      if (!current.children.has(char)) return 0;
-      current = current.children.get(char);
+    public int countWordsEqualTo(String word) {
+        TrieNode current = root;
+        for (int i = 0; i < word.length(); i++) {
+            char ch = word.charAt(i);
+            if (!current.children.containsKey(ch)) return 0;
+            current = current.children.get(ch);
+        }
+        return current.endCount;
     }
-    return current.wordCount;
-  }
+
+    public int countWordsStartingWith(String prefix) {
+        TrieNode current = root;
+        for (int i = 0; i < prefix.length(); i++) {
+            char ch = prefix.charAt(i);
+            if (!current.children.containsKey(ch)) return 0;
+            current = current.children.get(ch);
+        }
+        return current.wordCount;
+    }
 }
 
-const wordFilter = new WordFilter();
-['apple', 'apple', 'app', 'apply', 'banana'].forEach((word) => wordFilter.insert(word));
-console.log(`countWordsEqualTo('apple'): ${wordFilter.countWordsEqualTo('apple')}`);
-//countWordsEqualTo('apple'): 2
-console.log(`countWordsEqualTo('ap'): ${wordFilter.countWordsEqualTo('ap')}`);
-//countWordsEqualTo('ap'): 0
-console.log(`countWordsStartingWith('app'): ${wordFilter.countWordsStartingWith('app')}`);
-//countWordsStartingWith('app'): 4
-//'apple' twice, 'app', and 'apply'
-console.log(`countWordsStartingWith('ba'): ${wordFilter.countWordsStartingWith('ba')}`);
-//countWordsStartingWith('ba'): 1
-console.log(`countWordsStartingWith('c'): ${wordFilter.countWordsStartingWith('c')}`);
-//countWordsStartingWith('c'): 0
+class Solution {
+    public static void main(String[] args) {
+        WordFilter wordFilter = new WordFilter();
+        String[] words = {"apple", "apple", "app", "apply", "banana"};
+        for (String word : words) {
+            wordFilter.insert(word);
+        }
+        System.out.println("countWordsEqualTo('apple'): " + wordFilter.countWordsEqualTo("apple"));
+        //countWordsEqualTo('apple'): 2
+        System.out.println("countWordsEqualTo('ap'): " + wordFilter.countWordsEqualTo("ap"));
+        //countWordsEqualTo('ap'): 0
+        System.out.println("countWordsStartingWith('app'): " + wordFilter.countWordsStartingWith("app"));
+        //countWordsStartingWith('app'): 4
+        //'apple' twice, 'app', and 'apply'
+        System.out.println("countWordsStartingWith('ba'): " + wordFilter.countWordsStartingWith("ba"));
+        //countWordsStartingWith('ba'): 1
+        System.out.println("countWordsStartingWith('c'): " + wordFilter.countWordsStartingWith("c"));
+        //countWordsStartingWith('c'): 0
+    }
+}
 ````
 - The <b>time complexity</b> of all three operations is `O(M)`, where `M` is the length of the word or prefix, since each is a single walk down the trie with `O(1)` work per node.
 - The <b>space complexity</b> is `O(N * M)`, where `N` is the number of distinct inserted words and `M` is their average length. Duplicate insertions of the same word cost no extra nodes — they only bump the counters.
