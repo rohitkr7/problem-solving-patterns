@@ -1,6 +1,6 @@
 # Several Coding Patterns for Solving Data Structures and Algorithms Problems during Interviews
 
-These are my notes in <b>Java</b> from a [course](https://www.educative.io/courses/grokking-the-coding-interview) that categorizes coding interview problems into a set of <b>16 patterns</b>, plus <b>10 additional patterns</b> (17-26) that the course does not cover but which show up constantly in interviews.
+This repository contains a collection of all the important problem-solving patterns to learn for LeetCode and coding interviews. The problems are categorized into a set of <b>26 patterns</b> that show up constantly in technical assessments.
 
 ### The 16 course patterns
 
@@ -28,6 +28,7 @@ These are my notes in <b>Java</b> from a [course](https://www.educative.io/cours
 ## Additional Resources
 Here are a few other resources that I found helpful when learning <b>Data Structures and Algorithms</b> using <b>Java</b>
 
+- [Grokking the Coding Interview](https://www.educative.io/courses/grokking-the-coding-interview) - A great course that originally inspired the categorization of many of these coding interview patterns.
 - [JDoodle](https://www.jdoodle.com/online-java-compiler/) - A Java playground
 for your browser
 - [Big O CheatSheet](https://www.bigocheatsheet.com/) - Reference for <b>Big-O</b> complexities of common algorithms
