@@ -1,5 +1,14 @@
 # Several Coding Patterns for Solving Data Structures and Algorithms Problems during Interviews
 
+<div align="center">
+
+[![Live Web App](https://img.shields.io/badge/Live%20App-Problem%20Solving%20Patterns-38bdf8?style=for-the-badge&logo=githubpages&logoColor=white)](https://rohitkr7.github.io/Problem-Solving-Patterns/)
+[![LeetCode Solutions](https://img.shields.io/badge/LeetCode-Solutions%20Viewer-FFA116?style=for-the-badge&logo=leetcode&logoColor=white)](https://rohitkr7.github.io/leetcode-viewer/)
+
+👉 **[Launch Interactive Web App →](https://rohitkr7.github.io/Problem-Solving-Patterns/)**
+
+</div>
+
 This repository contains a collection of all the important problem-solving patterns to learn for LeetCode and coding interviews. The problems are categorized into a set of <b>26 patterns</b> that show up constantly in technical assessments.
 
 ### The 16 course patterns
