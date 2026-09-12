@@ -2,10 +2,10 @@
 
 <div align="center">
 
-[![Live Web App](https://img.shields.io/badge/Live%20App-Problem%20Solving%20Patterns-38bdf8?style=for-the-badge&logo=githubpages&logoColor=white)](https://rohitkr7.github.io/Problem-Solving-Patterns/)
+[![Live Web App](https://img.shields.io/badge/Live%20App-Problem%20Solving%20Patterns-38bdf8?style=for-the-badge&logo=githubpages&logoColor=white)](https://rohitkr7.github.io/problem-solving-patterns/)
 [![LeetCode Solutions](https://img.shields.io/badge/LeetCode-Solutions%20Viewer-FFA116?style=for-the-badge&logo=leetcode&logoColor=white)](https://rohitkr7.github.io/leetcode-viewer/)
 
-👉 **[Launch Interactive Web App →](https://rohitkr7.github.io/Problem-Solving-Patterns/)**
+👉 **[Launch Interactive Web App →](https://rohitkr7.github.io/problem-solving-patterns/)**
 
 </div>
 
