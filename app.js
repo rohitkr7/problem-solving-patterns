@@ -210,7 +210,12 @@
       return;
     }
 
-    const pattern = patternsData.patterns.find(p => p.slug === hash || `pattern-${p.num}` === hash);
+    const pattern = patternsData.patterns.find(p =>
+      p.slug === hash ||
+      `pattern-${p.num}` === hash ||
+      `pattern-${String(p.num).padStart(2, '0')}` === hash ||
+      (p.num === 16 && hash === 'pattern-16-pattern-16-topological-sort-graph')
+    );
     if (pattern) {
       currentPattern = pattern;
       renderPattern(pattern);

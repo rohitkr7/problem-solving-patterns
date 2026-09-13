@@ -12,7 +12,7 @@ This pattern applies whenever you see one of the following signals:
 - <b>Grouping / counting components:</b> "how many provinces, islands, friend circles, clusters?" Every remaining disjoint set is one component, so the answer often falls out of a single counter.
 - <b>Cycle detection in an undirected graph:</b> while adding edge `(u, v)`, if `u` and `v` <i>already</i> share a root, that edge closes a cycle.
 
-That last point is worth contrasting with <b>[Pattern 16: Topological Sort](./✅%20Pattern%2016:%20🔎%20Topological%20Sort%20%28Graph%29.md)</b>. Both patterns detect cycles, but they are not interchangeable. <b>Topological Sort</b> detects cycles in a <b>directed</b> graph: it relies on <i>in-degrees</i> and edge direction, and it reports a cycle indirectly, by failing to produce an ordering that contains every vertex. <b>Union Find</b> detects cycles in an <b>undirected</b> graph, and it has no notion of direction at all - `union(u, v)` and `union(v, u)` are the same call - so it can never tell you that `A` must come before `B`. What it can do is tell you the instant an edge becomes redundant.
+That last point is worth contrasting with <b>[Pattern 16: Topological Sort](./✅%20Pattern%2016:%20Topological%20Sort%20(Graph).md)</b>. Both patterns detect cycles, but they are not interchangeable. <b>Topological Sort</b> detects cycles in a <b>directed</b> graph: it relies on <i>in-degrees</i> and edge direction, and it reports a cycle indirectly, by failing to produce an ordering that contains every vertex. <b>Union Find</b> detects cycles in an <b>undirected</b> graph, and it has no notion of direction at all - `union(u, v)` and `union(v, u)` are the same call - so it can never tell you that `A` must come before `B`. What it can do is tell you the instant an edge becomes redundant.
 
 Put simply: if the edges have arrows, reach for <b>Topological Sort</b>. If the edges are plain connections and you care about <i>groups</i>, reach for <b>Union Find</b>. Two further boundaries are worth knowing before committing to this pattern: it <b>cannot un-merge</b>, since sets only ever grow, so problems that delete edges usually need to be processed <i>in reverse</i> so that deletions become additions; and it <b>does not give you paths</b>, only the fact that two elements are connected - finding the route between them is a <b>BFS</b>/<b>DFS</b> job.
 
@@ -856,7 +856,7 @@ The recipe for recognising and applying <b>Union Find</b>:
 
 And the boundaries of the pattern, worth knowing before you commit to it in an interview:
 
-- It has <b>no notion of direction</b>. For anything involving ordering or dependencies, use <b>[Pattern 16: Topological Sort](./✅%20Pattern%2016:%20🔎%20Topological%20Sort%20%28Graph%29.md)</b> instead.
+- It has <b>no notion of direction</b>. For anything involving ordering or dependencies, use <b>[Pattern 16: Topological Sort](./✅%20Pattern%2016:%20Topological%20Sort%20(Graph).md)</b> instead.
 - It <b>cannot un-merge</b>. Sets only ever grow, so problems that delete edges usually need to be processed <i>in reverse</i> so that deletions become additions.
 - It <b>does not give you paths</b>. It can tell you that `u` and `v` are connected, but not how to get from one to the other - that is a <b>BFS</b>/<b>DFS</b> job.
 
