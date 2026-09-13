@@ -8,7 +8,7 @@
 - <b>All pairs, on a small dense graph</b>: use <b>Floyd-Warshall</b>. Three nested loops over a distance matrix give every pair's shortest path in `O(V³)` time and `O(V²)` space. For `V ≤ ~400` this beats running Dijkstra `V` times, and it is a fraction of the code.
 - <b>Weights are only `0` or `1`</b>: use <b>0-1 BFS</b>. Swap the heap for a <b>Deque</b>: a `0`-weight edge goes to the <i>front</i> (same cost, process it next), a `1`-weight edge goes to the <i>back</i>. The deque stays sorted by construction, which buys you `O(V+E)` — no `logV` at all. Problems phrased as "minimum walls to break" or "minimum edges to reverse" are usually this in disguise.
 
-One more relative worth knowing: on a <b>Directed Acyclic Graph</b> you can beat Dijkstra outright. Relax edges in <b>[Pattern 16: Topological Sort](./✅%20Pattern%2016:%20🔎%20Topological%20Sort%20(Graph).md)</b> order and every node is finalized in a single `O(V+E)` sweep, negative weights and all, because a topological order guarantees you never need to revisit a node.
+One more relative worth knowing: on a <b>Directed Acyclic Graph</b> you can beat Dijkstra outright. Relax edges in <b>[Pattern 16: Topological Sort](./✅%20Pattern%2016:%20Topological%20Sort%20(Graph).md)</b> order and every node is finalized in a single `O(V+E)` sweep, negative weights and all, because a topological order guarantees you never need to revisit a node.
 
 Notice that most of these options want a <b>priority queue</b>, and <i>Java ships with a built-in heap: `PriorityQueue`</i>. We will use it extensively in the subsequent problems, but it is worth understanding how a binary heap is implemented under the hood — so let's write one good one.
 

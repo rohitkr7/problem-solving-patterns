@@ -22,7 +22,7 @@ This repository contains a collection of all the important problem-solving patte
 |<b>[Pattern 5: Cyclic Sort](./✅%20%20Pattern%2005:%20Cyclic%20Sort.md)</b>|<b>[Pattern 13: Top 'K' Elements](./✅%20Pattern%2013:%20Top%20'K'%20Elements.md)</b>|
 |<b>[Pattern 6: In-place Reversal of a LinkedList](./✅%20%20Pattern%2006:%20In-place%20Reversal%20of%20a%20LinkedList.md)</b>|<b>[Pattern 14: K-way merge](./%E2%9C%85%20Pattern%2014%3A%20K-way%20merge.md)</b>|
 |<b>[Pattern 7: Tree Breadth First Search](./✅%20%20Pattern%2007:%20Tree%20Breadth%20First%20Search.md)</b>|<b>[Pattern 15: 0/1 Knapsack (Dynamic Programming)](./%E2%9C%85%20Pattern%2015:%200-1%20Knapsack%20(Dynamic%20Programming).md)</b>|
-|<b>[Pattern 8: Depth First Search (DFS)](./✅%20%20Pattern%2008:Tree%20Depth%20First%20Search.md)</b>|<b>[Pattern 16: Topological Sort (Graph)](./%E2%9C%85%20Pattern%2016%3A%20%F0%9F%94%8E%20Topological%20Sort%20(Graph).md)</b>|
+|<b>[Pattern 8: Depth First Search (DFS)](./✅%20%20Pattern%2008:Tree%20Depth%20First%20Search.md)</b>|<b>[Pattern 16: Topological Sort (Graph)](./✅%20Pattern%2016:%20Topological%20Sort%20(Graph).md)</b>|
 
 ### Additional patterns
 
@@ -163,7 +163,7 @@ In this pattern, we will go through a set of problems to develop an understandin
 
 After the recursive solution, we will modify our algorithm to apply advanced techniques of <b>Memoization</b> and <b>Bottom-Up Dynamic Programming</b> to develop a complete understanding of this pattern.
 
-## [Pattern 16: 🔎 Topological Sort (Graph)](./%E2%9C%85%20Pattern%2016%3A%20%F0%9F%94%8E%20Topological%20Sort%20(Graph).md)
+## [Pattern 16: Topological Sort (Graph)](./✅%20Pattern%2016:%20Topological%20Sort%20(Graph).md)
 <b>Topological Sort</b> is used to find a linear ordering of elements that have dependencies on each other. For example, if event `B` is dependent on event `A`, `A` comes before `B` in topological ordering.
 
 # 
@@ -179,7 +179,7 @@ Reach for it whenever a problem repeatedly asks <i>"is this a prefix of anything
 
 <b>Union Find</b> tracks which elements belong to the same group while the groups keep merging. With <i>path compression</i> and <i>union by rank</i>, both `find()` and `union()` run in near-constant amortized time.
 
-This is the tool for <b>dynamic connectivity</b> questions and for detecting cycles in an <b>undirected</b> graph — the counterpart to <b>[Pattern 16: Topological Sort](./%E2%9C%85%20Pattern%2016%3A%20%F0%9F%94%8E%20Topological%20Sort%20(Graph).md)</b>, which handles the directed case.
+This is the tool for <b>dynamic connectivity</b> questions and for detecting cycles in an <b>undirected</b> graph — the counterpart to <b>[Pattern 16: Topological Sort](./✅%20Pattern%2016:%20Topological%20Sort%20(Graph).md)</b>, which handles the directed case.
 
 ## [Pattern 19: Monotonic Stack](./✅%20Pattern%2019:%20Monotonic%20Stack.md)
 
